@@ -92,7 +92,8 @@ MediCheck는 사용자가 자신의 약 정보와 복약 일정을 관리하고,
 - Minimum SDK: **API 26 (Android 8.0)**
 - Package: `com.cau.medicheck`
 
-※ Authentication 방식은 개발 초기 단계에서 Firebase Authentication 사용 여부 등을 검토하여 확정합니다.
+- Authentication: **Room 기반 로컬 인증** (계정도 Room에 저장, Firebase 미사용 — Issue #3)
+- DB 설계: [docs/DB_DESIGN.md](docs/DB_DESIGN.md)
 
 ---
 
