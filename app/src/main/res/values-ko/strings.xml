@@ -106,4 +106,18 @@
     <string name="notifications_off_title">알림이 꺼져 있습니다</string>
     <string name="notifications_off_body">약 먹을 시간이 되어도 알림을 받을 수 없습니다.</string>
     <string name="action_turn_on_notifications">알림 켜기</string>
+
+    <!-- 통계 -->
+    <string name="tab_stats">통계</string>
+    <string name="stats_title">주간 통계</string>
+    <string name="stats_this_week">이번 주</string>
+    <string name="stats_rate_label">복약 완료율</string>
+    <string name="stats_rate_value">%1$d%%</string>
+    <string name="stats_rate_detail">%2$d회 중 %1$d회 복용</string>
+    <string name="stats_no_records">기록 없음</string>
+    <string name="stats_daily_title">요일별 복약</string>
+    <string name="stats_day_count">%1$d/%2$d</string>
+    <string name="stats_rate_help">완료율 = 복용 완료 ÷ (복용 완료 + 건너뜀 + 깜빡함). 아직 시간이 안 된 복약은 계산에 넣지 않습니다.</string>
+    <string name="action_previous_week">이전 주</string>
+    <string name="action_next_week">다음 주</string>
 </resources>

@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
+import com.cau.medicheck.ui.components.BarChartIcon
 import com.cau.medicheck.ui.components.NotificationPermissionBanner
 import com.cau.medicheck.ui.screens.dose.DayDosesViewModel
 import com.cau.medicheck.ui.screens.dose.DoseActions
@@ -43,12 +44,15 @@ import com.cau.medicheck.ui.screens.medication.MedicationEditScreen
 import com.cau.medicheck.ui.screens.medication.MedicationEditViewModel
 import com.cau.medicheck.ui.screens.medication.MedicationListScreen
 import com.cau.medicheck.ui.screens.medication.MedicationListViewModel
+import com.cau.medicheck.ui.screens.stats.StatsScreen
+import com.cau.medicheck.ui.screens.stats.StatsViewModel
 
 /** 로그인한 뒤의 화면들에 붙이는 주소. */
 object MainRoutes {
     const val TODAY = "today"
     const val MEDICATIONS = "medications"
     const val HISTORY = "history"
+    const val STATS = "stats"
 
     /** 등록·수정 화면의 주소. 뒤에 붙는 id가 "어느 약을 수정할지"를 알려 준다. */
     private const val MEDICATION_EDIT = "medication_edit"
@@ -63,17 +67,18 @@ object MainRoutes {
         if (medicationId == null) MEDICATION_EDIT else "$MEDICATION_EDIT?$ARG_MEDICATION_ID=$medicationId"
 }
 
-/** 화면 아래쪽 탭 세 개. 순서대로 그려진다. */
+/** 화면 아래쪽 탭 네 개. 순서대로 그려진다. */
 private enum class MainTab(val route: String, @param:StringRes val labelRes: Int, val icon: ImageVector) {
     TODAY(MainRoutes.TODAY, R.string.tab_today, Icons.Filled.Home),
     MEDICATIONS(MainRoutes.MEDICATIONS, R.string.tab_medications, Icons.AutoMirrored.Filled.List),
-    HISTORY(MainRoutes.HISTORY, R.string.tab_history, Icons.Filled.DateRange)
+    HISTORY(MainRoutes.HISTORY, R.string.tab_history, Icons.Filled.DateRange),
+    STATS(MainRoutes.STATS, R.string.tab_stats, BarChartIcon)
 }
 
 /**
  * 로그인한 뒤의 화면들과 그 사이의 이동.
  *
- *   아래쪽 탭:  오늘  |  내 약  |  기록
+ *   아래쪽 탭:  오늘  |  내 약  |  기록  |  통계
  *   내 약 → 약 등록·수정 (이 화면에서는 탭을 숨긴다)
  *
  * 화면마다 자기 ViewModel을 하나씩 가진다. viewModel(factory = ...)로 꺼내면
@@ -164,6 +169,25 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
                     onPreviousDay = viewModel::goToPreviousDay,
                     onNextDay = viewModel::goToNextDay,
                     onDatePicked = viewModel::goToDate,
+                    onLogout = onLogout
+                )
+            }
+
+            // ----- 통계 -----
+            composable(MainRoutes.STATS) {
+                val viewModel: StatsViewModel = viewModel(factory = StatsViewModel.factory(user.id))
+                val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+                // 화면이 다시 보일 때마다 오늘까지의 기록을 채워, 깜빡한 날이 통계에 빠지지 않게 한다.
+                LifecycleResumeEffect(viewModel) {
+                    viewModel.refresh()
+                    onPauseOrDispose { }
+                }
+
+                StatsScreen(
+                    state = state,
+                    onPreviousWeek = viewModel::goToPreviousWeek,
+                    onNextWeek = viewModel::goToNextWeek,
                     onLogout = onLogout
                 )
             }
