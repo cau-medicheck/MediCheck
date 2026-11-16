@@ -110,4 +110,18 @@
     <string name="notifications_off_title">Notifications are off</string>
     <string name="notifications_off_body">You will not be reminded when it is time to take a medication.</string>
     <string name="action_turn_on_notifications">Turn on</string>
+
+    <!-- 통계 -->
+    <string name="tab_stats">Stats</string>
+    <string name="stats_title">Weekly stats</string>
+    <string name="stats_this_week">This week</string>
+    <string name="stats_rate_label">Completion rate</string>
+    <string name="stats_rate_value">%1$d%%</string>
+    <string name="stats_rate_detail">%1$d of %2$d doses taken</string>
+    <string name="stats_no_records">No records</string>
+    <string name="stats_daily_title">Day by day</string>
+    <string name="stats_day_count">%1$d/%2$d</string>
+    <string name="stats_rate_help">Completion rate = taken ÷ (taken + skipped + missed). Doses that are not due yet are not counted.</string>
+    <string name="action_previous_week">Previous week</string>
+    <string name="action_next_week">Next week</string>
 </resources>
