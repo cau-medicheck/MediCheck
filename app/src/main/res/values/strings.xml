@@ -1,3 +1,36 @@
 <resources>
+    <!--
+        화면에 보이는 모든 문구를 여기에 모아 둔다 (기본: 영어).
+        한국어 문구는 values-ko/strings.xml에 같은 이름으로 들어 있고,
+        폰 언어가 한국어면 안드로이드가 자동으로 그쪽을 쓴다.
+    -->
     <string name="app_name">MediCheck</string>
+
+    <!-- 로그인·회원가입 -->
+    <string name="login_subtitle">Never miss a dose</string>
+    <string name="label_username">Username</string>
+    <string name="label_password">Password</string>
+    <string name="label_password_confirm">Confirm password</string>
+    <string name="label_display_name">Name</string>
+    <string name="hint_username">4–20 characters: a–z, 0–9, _</string>
+    <string name="hint_password">At least 8 characters</string>
+    <string name="action_login">Log in</string>
+    <string name="action_sign_up">Sign up</string>
+    <string name="action_go_to_sign_up">Create an account</string>
+    <string name="action_back_to_login">I already have an account</string>
+    <string name="action_logout">Log out</string>
+    <string name="signup_title">Create your account</string>
+
+    <!-- 로그인·회원가입 오류 -->
+    <string name="error_username_invalid">Username must be 4–20 characters: a–z, 0–9, _</string>
+    <string name="error_password_too_short">Password must be at least 8 characters</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_display_name_invalid">Enter a name (up to 20 characters)</string>
+    <string name="error_username_taken">This username is already taken</string>
+    <string name="error_wrong_credentials">Incorrect username or password</string>
+    <string name="error_empty_fields">Enter your username and password</string>
+
+    <!-- 홈 -->
+    <string name="home_greeting">Hello, %1$s</string>
+    <string name="home_placeholder">Your medications will appear here.</string>
 </resources>
