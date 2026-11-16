@@ -1,0 +1,25 @@
+<!--
+    알림 창 왼쪽에 작게 보이는 아이콘: 가운데 줄이 그어진 알약 모양.
+    알림 아이콘은 시스템이 색을 입히므로 모양만 흰색으로 그린다.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="-45">
+        <!-- 알약의 왼쪽 절반 (채움) -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M8,7 L12,7 L12,17 L8,17 A5,5 0 0 1 8,7 Z" />
+        <!-- 알약의 오른쪽 절반 (테두리만) -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M12,8 L16,8 A4,4 0 0 1 16,16 L12,16"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2" />
+    </group>
+</vector>

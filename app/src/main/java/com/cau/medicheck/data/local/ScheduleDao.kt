@@ -36,6 +36,17 @@ interface ScheduleDao {
     )
     fun observeActiveByUser(userId: Long): Flow<List<Schedule>>
 
+    /** 한 사용자의 사용 중인 규칙 전부를, 알림에 필요한 약 정보와 함께 읽는다. */
+    @Query(
+        "SELECT s.id AS scheduleId, m.id AS medicationId, m.name AS medicationName, " +
+            "m.dosage AS dosage, m.start_date AS startDate, m.end_date AS endDate, " +
+            "s.time AS time, s.repeat_days AS repeatDays " +
+            "FROM schedules s " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND m.deleted_at IS NULL AND s.deleted_at IS NULL"
+    )
+    suspend fun findReminderRows(userId: Long): List<ReminderRow>
+
     @Query("UPDATE schedules SET deleted_at = :deletedAt WHERE id = :id")
     suspend fun softDelete(id: Long, deletedAt: Long)
 

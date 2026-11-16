@@ -5,8 +5,10 @@ import com.cau.medicheck.data.local.DoseRecordDao
 import com.cau.medicheck.data.local.DoseRecordRow
 import com.cau.medicheck.data.local.Medication
 import com.cau.medicheck.data.local.MedicationDao
+import com.cau.medicheck.data.local.ReminderRow
 import com.cau.medicheck.data.local.Schedule
 import com.cau.medicheck.data.local.ScheduleDao
+import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.TransactionRunner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,6 +79,23 @@ internal class FakeScheduleDao(private val medicationDao: FakeMedicationDao) : S
             list.filter { it.medicationId in myMedicationIds && it.deletedAt == null }.sortedBy { it.time }
         }
 
+    override suspend fun findReminderRows(userId: Long): List<ReminderRow> =
+        schedules.value.filter { it.deletedAt == null }.mapNotNull { schedule ->
+            val medication = medicationDao.medications.value.find { it.id == schedule.medicationId }
+                ?: return@mapNotNull null
+            if (medication.userId != userId || medication.deletedAt != null) return@mapNotNull null
+            ReminderRow(
+                scheduleId = schedule.id,
+                medicationId = medication.id,
+                medicationName = medication.name,
+                dosage = medication.dosage,
+                startDate = medication.startDate,
+                endDate = medication.endDate,
+                time = schedule.time,
+                repeatDays = schedule.repeatDays
+            )
+        }
+
     override suspend fun softDelete(id: Long, deletedAt: Long) {
         schedules.update { list -> list.map { if (it.id == id) it.copy(deletedAt = deletedAt) else it } }
     }
@@ -116,6 +135,9 @@ internal class FakeDoseRecordDao(
             if (!exists) this.records.update { it + new.copy(id = ++lastId) }
         }
     }
+
+    override suspend fun statusOf(scheduleId: Long, date: String): String? =
+        records.value.find { it.scheduleId == scheduleId && it.date == date }?.status
 
     override suspend fun lastDate(scheduleId: Long): String? =
         records.value.filter { it.scheduleId == scheduleId }.maxOfOrNull { it.date }
@@ -163,4 +185,19 @@ internal class FakeDoseRecordDao(
 /** 트랜잭션 없이 그냥 순서대로 실행만 하는 가짜. */
 internal class FakeTransactionRunner : TransactionRunner {
     override suspend fun <T> run(block: suspend () -> T): T = block()
+}
+
+/** 변수 하나에만 저장하는 가짜 SessionStore. */
+internal class FakeSessionStore : SessionStore {
+    private var userId: Long? = null
+
+    override fun getLoggedInUserId(): Long? = userId
+
+    override fun saveLoggedInUserId(userId: Long) {
+        this.userId = userId
+    }
+
+    override fun clear() {
+        userId = null
+    }
 }

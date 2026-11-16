@@ -1,5 +1,6 @@
 package com.cau.medicheck.ui.screens.dose
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,8 @@ import java.time.LocalTime
 /**
  * 오늘 화면: 오늘 먹어야 할 약을 시각 순으로 보여 주고, 복용 완료·건너뛰기를 기록한다.
  * 로그인하면 가장 먼저 보이는 화면이다.
+ *
+ * @param banner 목록 위에 보여 줄 안내 (알림이 꺼져 있을 때의 안내 카드가 들어온다)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +39,8 @@ fun TodayScreen(
     displayName: String,
     state: DayDosesUiState,
     actions: DoseActions,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    banner: @Composable () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -62,34 +66,36 @@ fun TodayScreen(
             )
         }
     ) { innerPadding ->
-        val contentModifier = Modifier.padding(innerPadding)
-        when {
-            state.isLoading -> CenteredLoading(contentModifier)
+        Column(modifier = Modifier.padding(innerPadding)) {
+            // 알림이 꺼져 있을 때만 무언가 그려진다. 켜져 있으면 빈 자리다.
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) { banner() }
 
-            state.doses.isEmpty() -> CenteredMessage(
-                title = stringResource(R.string.today_empty_title),
-                body = stringResource(R.string.today_empty_body),
-                modifier = contentModifier
-            )
+            when {
+                state.isLoading -> CenteredLoading()
 
-            else -> DoseList(
-                doses = state.doses,
-                actions = actions,
-                modifier = contentModifier,
-                header = {
-                    Column(modifier = Modifier.padding(bottom = 4.dp)) {
-                        Text(
-                            text = stringResource(R.string.home_greeting, displayName),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = stringResource(R.string.today_summary, state.takenCount, state.totalCount),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                state.doses.isEmpty() -> CenteredMessage(
+                    title = stringResource(R.string.today_empty_title),
+                    body = stringResource(R.string.today_empty_body)
+                )
+
+                else -> DoseList(
+                    doses = state.doses,
+                    actions = actions,
+                    header = {
+                        Column(modifier = Modifier.padding(bottom = 4.dp)) {
+                            Text(
+                                text = stringResource(R.string.home_greeting, displayName),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = stringResource(R.string.today_summary, state.takenCount, state.totalCount),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

@@ -97,4 +97,13 @@
     <string name="status_taken">복용 완료</string>
     <string name="status_taken_at">%1$s 복용</string>
     <string name="status_skipped">건너뜀</string>
+
+    <!-- 알림 -->
+    <string name="reminder_channel_name">복약 알림</string>
+    <string name="reminder_channel_description">약 먹을 시간이 되면 알려 줍니다</string>
+    <string name="reminder_title">%1$s 먹을 시간이에요</string>
+    <string name="reminder_text">%1$s · %2$s</string>
+    <string name="notifications_off_title">알림이 꺼져 있습니다</string>
+    <string name="notifications_off_body">약 먹을 시간이 되어도 알림을 받을 수 없습니다.</string>
+    <string name="action_turn_on_notifications">알림 켜기</string>
 </resources>
