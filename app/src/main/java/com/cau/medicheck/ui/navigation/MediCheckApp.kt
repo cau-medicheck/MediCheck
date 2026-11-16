@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -12,7 +13,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.cau.medicheck.ui.screens.home.HomeScreen
 import com.cau.medicheck.ui.screens.login.AuthUiState
 import com.cau.medicheck.ui.screens.login.AuthViewModel
 import com.cau.medicheck.ui.screens.login.LoginScreen
@@ -29,11 +29,11 @@ object Routes {
  *
  *   로그인 기록 확인 중  → 돌아가는 표시
  *   로그인 안 됨        → 로그인·회원가입 화면
- *   로그인 됨          → 홈 화면
+ *   로그인 됨          → 약 목록부터 시작하는 화면들 (MainNavHost)
  *
  * 로그인에 성공하면 AuthViewModel의 currentUser가 채워지고,
- * 그 값을 보고 있는 이 함수가 자동으로 다시 그려져서 홈 화면으로 바뀐다.
- * (그래서 "홈으로 이동하라"는 코드를 따로 쓰지 않는다. 로그아웃도 같은 원리다.)
+ * 그 값을 보고 있는 이 함수가 자동으로 다시 그려져서 약 목록 화면으로 바뀐다.
+ * (그래서 "다음 화면으로 이동하라"는 코드를 따로 쓰지 않는다. 로그아웃도 같은 원리다.)
  */
 @Composable
 fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory)) {
@@ -44,7 +44,11 @@ fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewMode
     when {
         state.isCheckingSession -> LoadingScreen()
         user == null -> AuthNavHost(state, authViewModel)
-        else -> HomeScreen(user = user, onLogout = authViewModel::logout)
+        // key(user.id): 다른 계정으로 로그인하면 안쪽 화면들을 처음부터 새로 만든다.
+        // (앞 계정의 화면 상태가 남아 있지 않게 하기 위해서다.)
+        else -> key(user.id) {
+            MainNavHost(user = user, onLogout = authViewModel::logout)
+        }
     }
 }
 

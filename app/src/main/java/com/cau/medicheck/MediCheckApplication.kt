@@ -3,9 +3,11 @@ package com.cau.medicheck
 import android.app.Application
 import android.content.Context
 import com.cau.medicheck.data.local.AppDatabase
+import com.cau.medicheck.data.local.RoomTransactionRunner
 import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.SharedPrefsSessionStore
 import com.cau.medicheck.data.repository.AuthRepository
+import com.cau.medicheck.data.repository.MedicationRepository
 
 /**
  * 앱 전체에서 하나씩만 있어야 하는 것들을 만들어 보관하는 상자.
@@ -22,6 +24,14 @@ class AppContainer(context: Context) {
 
     val authRepository: AuthRepository by lazy {
         AuthRepository(database.userDao(), sessionStore)
+    }
+
+    val medicationRepository: MedicationRepository by lazy {
+        MedicationRepository(
+            medicationDao = database.medicationDao(),
+            scheduleDao = database.scheduleDao(),
+            transaction = RoomTransactionRunner(database)
+        )
     }
 }
 
