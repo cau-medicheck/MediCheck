@@ -1,6 +1,5 @@
 package com.cau.medicheck.data.repository
 
-import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.data.local.UserDao
 import com.cau.medicheck.domain.AuthError
@@ -172,19 +171,4 @@ private class FakeUserDao : UserDao {
 
     override suspend fun findById(id: Long): User? =
         users.find { it.id == id }
-}
-
-/** 변수 하나에만 저장하는 가짜 SessionStore. */
-private class FakeSessionStore : SessionStore {
-    private var userId: Long? = null
-
-    override fun getLoggedInUserId(): Long? = userId
-
-    override fun saveLoggedInUserId(userId: Long) {
-        this.userId = userId
-    }
-
-    override fun clear() {
-        userId = null
-    }
 }

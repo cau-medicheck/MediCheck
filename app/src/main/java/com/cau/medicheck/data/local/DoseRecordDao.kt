@@ -17,6 +17,10 @@ interface DoseRecordDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllIgnore(records: List<DoseRecord>)
 
+    /** 한 규칙의 한 날짜 기록의 상태("PENDING" 등). 기록이 없으면 null. (알림을 보낼지 정할 때 쓴다) */
+    @Query("SELECT status FROM dose_records WHERE schedule_id = :scheduleId AND date = :date")
+    suspend fun statusOf(scheduleId: Long, date: String): String?
+
     /** 한 규칙에서 마지막으로 기록을 만든 날짜. 기록이 하나도 없으면 null. */
     @Query("SELECT MAX(date) FROM dose_records WHERE schedule_id = :scheduleId")
     suspend fun lastDate(scheduleId: Long): String?

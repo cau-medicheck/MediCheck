@@ -45,3 +45,18 @@ data class Schedule(
     @ColumnInfo(name = "deleted_at")
     val deletedAt: Long? = null
 )
+
+/**
+ * 알림을 예약하는 데 필요한 것만 모은 조회 결과: 규칙 한 줄 + 그 약의 이름·복용량·기간.
+ * 표가 아니라 schedules와 medications를 이어 붙여 읽은 결과의 모양이다.
+ */
+data class ReminderRow(
+    val scheduleId: Long,
+    val medicationId: Long,
+    val medicationName: String,
+    val dosage: String,
+    val startDate: String,
+    val endDate: String?,
+    val time: String,
+    val repeatDays: String
+)
