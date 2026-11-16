@@ -71,7 +71,7 @@ fun DoseList(
  * 복용 기록 하나를 보여 주는 카드.
  *
  *   예정·깜빡함 → [복용 완료] [건너뛰기] 버튼
- *   복용 완료·건너뜀 → 상태 문구 + [되돌리기]
+ *   복용 완료·건너뜀 → 상태 문구 + [되돌리기] (버튼 줄 없이 한 줄로)
  */
 @Composable
 fun DoseCard(dose: DoseUi, actions: DoseActions) {
@@ -107,17 +107,27 @@ fun DoseCard(dose: DoseUi, actions: DoseActions) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                StatusLabel(dose)
-            }
-
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 if (isAnswered) {
-                    Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { actions.onUndo(item.id) }) {
-                        Text(stringResource(R.string.action_undo))
+                    // 이미 응답한 기록: 상태 문구 아래에 "되돌리기"를 작게 붙여 카드를 한 줄로 끝낸다.
+                    Column(horizontalAlignment = Alignment.End) {
+                        StatusLabel(dose)
+                        TextButton(
+                            onClick = { actions.onUndo(item.id) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text(stringResource(R.string.action_undo))
+                        }
                     }
                 } else {
+                    StatusLabel(dose)
+                }
+            }
+
+            // 아직 응답하지 않은 기록에만 버튼 줄을 보여 준다.
+            if (!isAnswered) {
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(onClick = { actions.onTake(item.id) }, modifier = Modifier.weight(1f)) {
                         Text(stringResource(R.string.action_take))
                     }
