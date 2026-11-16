@@ -39,6 +39,10 @@ interface MedicationDao {
     )
     fun observeActive(userId: Long): Flow<List<Medication>>
 
+    /** 한 사용자의 사용 중인 약 목록을 한 번만 읽는다. (복용 기록을 만들 때 쓴다) */
+    @Query("SELECT * FROM medications WHERE user_id = :userId AND deleted_at IS NULL")
+    suspend fun findActive(userId: Long): List<Medication>
+
     /** soft delete: 줄을 지우지 않고 삭제 시각만 적는다. */
     @Query("UPDATE medications SET deleted_at = :deletedAt WHERE id = :id")
     suspend fun softDelete(id: Long, deletedAt: Long)

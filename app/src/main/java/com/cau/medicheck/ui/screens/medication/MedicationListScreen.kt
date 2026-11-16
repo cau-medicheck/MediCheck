@@ -42,7 +42,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /**
- * 약 목록 화면. 로그인한 뒤 처음 보이는 화면이다.
+ * 약 목록 화면 (아래쪽 탭의 "내 약").
  *
  * 그리기만 한다. 약 목록은 state로 받고, 버튼을 누르면 밖에서 받은 함수를 부른다.
  *   - onAddClick: "약 추가" 버튼
@@ -52,7 +52,6 @@ import java.time.LocalTime
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationListScreen(
-    displayName: String,
     state: MedicationListUiState,
     onAddClick: () -> Unit,
     onMedicationClick: (medicationId: Long) -> Unit,
@@ -86,7 +85,7 @@ fun MedicationListScreen(
             }
 
             state.medications.isEmpty() -> CenteredBox(Modifier.padding(innerPadding)) {
-                EmptyMessage(displayName)
+                EmptyMessage()
             }
 
             else -> LazyColumn(
@@ -97,13 +96,6 @@ fun MedicationListScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.home_greeting, displayName),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
                 // key: 줄마다 약의 id를 이름표로 붙여, 목록이 바뀔 때 어느 줄이 어느 약인지 알게 한다.
                 items(state.medications, key = { it.id }) { medication ->
                     MedicationCard(medication, onClick = { onMedicationClick(medication.id) })
@@ -163,17 +155,11 @@ private fun MedicationCard(medication: MedicationDetail, onClick: () -> Unit) {
 
 /** 등록된 약이 없을 때 보여 주는 안내 */
 @Composable
-private fun EmptyMessage(displayName: String) {
+private fun EmptyMessage() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(32.dp)
     ) {
-        Text(
-            text = stringResource(R.string.home_greeting, displayName),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.medications_empty_title),
             style = MaterialTheme.typography.headlineSmall,
@@ -211,7 +197,6 @@ private fun MedicationListScreenPreview() {
     )
     MediCheckTheme(dynamicColor = false) {
         MedicationListScreen(
-            displayName = "Suhwan",
             state = MedicationListUiState(isLoading = false, medications = sample),
             onAddClick = {}, onMedicationClick = {}, onLogout = {}
         )
@@ -223,7 +208,6 @@ private fun MedicationListScreenPreview() {
 private fun MedicationListEmptyPreview() {
     MediCheckTheme(dynamicColor = false) {
         MedicationListScreen(
-            displayName = "Suhwan",
             state = MedicationListUiState(isLoading = false),
             onAddClick = {}, onMedicationClick = {}, onLogout = {}
         )

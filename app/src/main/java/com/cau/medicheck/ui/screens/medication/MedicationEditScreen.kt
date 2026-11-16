@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -40,7 +38,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,12 +53,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.RepeatDays
+import com.cau.medicheck.ui.components.DatePickerPopup
 import com.cau.medicheck.ui.theme.MediCheckTheme
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneOffset
 
 /**
  * 약 등록·수정 화면에서 일어나는 모든 동작의 묶음.
@@ -359,38 +355,6 @@ private fun ScheduleRowCard(
                 }
             }
         }
-    }
-}
-
-/** 날짜를 고르는 창 */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DatePickerPopup(
-    initialDate: LocalDate,
-    onDismiss: () -> Unit,
-    onDatePicked: (LocalDate) -> Unit
-) {
-    // 날짜 고르는 부품은 날짜를 "1970년부터 흐른 밀리초(UTC 기준)"로 주고받는다.
-    // 그래서 LocalDate와 밀리초 사이를 바꿔 준다.
-    val pickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-    )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    pickerState.selectedDateMillis?.let { millis ->
-                        onDatePicked(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate())
-                    } ?: onDismiss()
-                }
-            ) { Text(stringResource(R.string.action_ok)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-        }
-    ) {
-        DatePicker(state = pickerState)
     }
 }
 

@@ -6,7 +6,10 @@ import com.cau.medicheck.data.local.AppDatabase
 import com.cau.medicheck.data.local.RoomTransactionRunner
 import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.SharedPrefsSessionStore
+import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.data.repository.AuthRepository
+import com.cau.medicheck.data.repository.DoseRecordGenerator
+import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
 
 /**
@@ -26,11 +29,31 @@ class AppContainer(context: Context) {
         AuthRepository(database.userDao(), sessionStore)
     }
 
+    private val transactionRunner: TransactionRunner by lazy { RoomTransactionRunner(database) }
+
+    /** 복용 기록을 미리 만들어 두는 도구. 약 Repository와 복용 기록 Repository가 함께 쓴다. */
+    private val doseRecordGenerator: DoseRecordGenerator by lazy {
+        DoseRecordGenerator(
+            medicationDao = database.medicationDao(),
+            scheduleDao = database.scheduleDao(),
+            doseRecordDao = database.doseRecordDao()
+        )
+    }
+
     val medicationRepository: MedicationRepository by lazy {
         MedicationRepository(
             medicationDao = database.medicationDao(),
             scheduleDao = database.scheduleDao(),
-            transaction = RoomTransactionRunner(database)
+            transaction = transactionRunner,
+            doseRecordGenerator = doseRecordGenerator
+        )
+    }
+
+    val doseRepository: DoseRepository by lazy {
+        DoseRepository(
+            doseRecordDao = database.doseRecordDao(),
+            generator = doseRecordGenerator,
+            transaction = transactionRunner
         )
     }
 }

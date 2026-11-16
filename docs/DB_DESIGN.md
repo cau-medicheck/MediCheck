@@ -165,6 +165,7 @@ erDiagram
 - 약·규칙 조회 쿼리는 기본적으로 `deleted_at IS NULL` 조건을 붙인다.
 - 통계·이력 조회는 삭제된 약·규칙의 기록도 **포함**한다 (이름 표시는 soft delete된 행에서 가져온다).
 - **삭제 직전에 ⑨ 기록 보충을 먼저 실행**한 뒤 `deleted_at`을 기록한다.
+- 예외 — 오늘 치 기록 다시 맞추기: 약·규칙을 수정하거나 삭제한 직후, **오늘 날짜이면서 아직 응답이 없고(PENDING) 예정 시각도 지나지 않은** 기록은 지운다. 바뀌기 전 규칙으로 만든 기록이라, 그대로 두면 틀린 시각에 "깜빡함"으로 집계되기 때문이다. 수정의 경우 지운 직후 새 규칙으로 다시 만든다. 이미 응답했거나 시각이 지난 기록, 지난 날짜의 기록은 건드리지 않는다. (`DoseRecordDao.deleteUpcomingPending`)
 - 의료진 지시로 복용을 중단하는 경우는 삭제가 아니라 `end_date` 수정으로 처리한다.
 
 ---
@@ -174,10 +175,14 @@ erDiagram
 `dose_records` 행은 사용자가 버튼을 누를 때가 아니라 **시스템이 미리 만든다.**
 
 **언제 실행하나**
-1. 앱 실행 시 (홈 화면 진입)
+1. 앱 실행 시 (오늘 화면이 보일 때마다)
 2. 규칙(schedules)의 시간·요일을 변경하기 직전
 3. 규칙 또는 약을 삭제하기 직전
 4. 약의 `end_date`를 변경하기 직전
+5. 약을 새로 등록한 직후 (등록하자마자 오늘 목록에 보이도록)
+6. 약·규칙을 수정한 직후 (⑧의 "오늘 치 기록 다시 맞추기"로 지운 기록을 새 규칙으로 다시 만들기 위해)
+
+구현 위치: `data/repository/DoseRecordGenerator.kt` 한 곳. 1번은 `DoseRepository.refresh()`, 2~6번은 `MedicationRepository`가 부른다. 날짜 계산은 `domain/DosePlanner.kt`.
 
 **무엇을 만드나** — `deleted_at IS NULL`인 모든 규칙에 대해:
 - 대상 날짜 범위: `max(약.start_date, 마지막 생성일 + 1일)` ~ **오늘** (단, `end_date`가 있으면 그 이하)
@@ -214,6 +219,7 @@ MISSED를 저장하지 않으므로 "시간 지났으니 상태를 바꿔라"는
 **상태 변경 규칙**
 - PENDING → TAKEN / SKIPPED: 버튼. `acted_at = 지금`
 - TAKEN ↔ SKIPPED: 실수 수정 허용. `acted_at` 갱신
+- TAKEN / SKIPPED → PENDING: "되돌리기" 버튼. 잘못 누른 것을 응답 전 상태로 돌린다. `acted_at = NULL` (구현 시 추가)
 - MISSED 상태(= 시간 지난 PENDING)에서도 TAKEN 가능 ("늦게 먹음"). `acted_at`과 `scheduled_time`의 차이로 지연 복용 분석 가능
 
 **완료율**
@@ -232,8 +238,8 @@ MISSED를 저장하지 않으므로 "시간 지났으니 상태를 바꿔라"는
 
 ## 구현 시 확인 목록 (Room Entity 작성 전)
 
-- [ ] FK 열에 `@Index` 선언
-- [ ] `@Entity(indices = [Index(value = ["schedule_id","date"], unique = true)])`
-- [ ] `repeat_days` String ↔ List 변환 (TypeConverter 또는 split)
-- [ ] 모든 약·규칙 조회 DAO에 `deleted_at IS NULL`
-- [ ] 기록 보충 함수는 Repository 한 곳에만 두고, 앱 실행·변경·삭제 전에 호출
+- [x] FK 열에 `@Index` 선언
+- [x] `@Entity(indices = [Index(value = ["schedule_id","date"], unique = true)])`
+- [x] `repeat_days` String ↔ 요일 묶음 변환 (`domain/RepeatDays.kt`의 변환 함수)
+- [x] 모든 약·규칙 조회 DAO에 `deleted_at IS NULL` (주인 확인용 `findById`만 예외)
+- [x] 기록 보충 함수는 한 곳(`DoseRecordGenerator`)에만 두고, 앱 실행·변경·삭제 전에 호출

@@ -1,19 +1,10 @@
 package com.cau.medicheck.data.repository
 
-import com.cau.medicheck.data.local.Medication
-import com.cau.medicheck.data.local.MedicationDao
-import com.cau.medicheck.data.local.Schedule
-import com.cau.medicheck.data.local.ScheduleDao
-import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
 import com.cau.medicheck.domain.RepeatDays
 import com.cau.medicheck.domain.ScheduleDraft
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -24,20 +15,29 @@ import org.junit.Test
 import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneOffset
 
 /**
  * MedicationRepository 단위 테스트.
- * 진짜 DB 대신 메모리에만 저장하는 가짜 DAO를 끼워서, 등록·수정·삭제의 순서와 결과를 확인한다.
+ * 진짜 DB 대신 메모리에만 저장하는 가짜 DAO(Fakes.kt)를 끼워서, 등록·수정·삭제의 순서와 결과를 확인한다.
+ *
+ * 시계는 2026-11-16(월) 10:00에 멈춰 둔다. "오늘"과 "지금"이 테스트마다 달라지지 않게 하기 위해서다.
  */
 class MedicationRepositoryTest {
 
     private val me = 1L
     private val someoneElse = 2L
 
+    private val today = LocalDate.of(2026, 11, 16)
+    private val clock = Clock.fixed(Instant.parse("2026-11-16T10:00:00Z"), ZoneOffset.UTC)
+
     private lateinit var medicationDao: FakeMedicationDao
     private lateinit var scheduleDao: FakeScheduleDao
+    private lateinit var doseRecordDao: FakeDoseRecordDao
     private lateinit var repository: MedicationRepository
 
     private val morning = ScheduleDraft(time = LocalTime.of(8, 0), days = RepeatDays.EVERY_DAY)
@@ -46,12 +46,13 @@ class MedicationRepositoryTest {
     private fun draft(
         name: String = "타이레놀",
         schedules: List<ScheduleDraft> = listOf(morning, evening),
+        startDate: LocalDate = today,
         endDate: LocalDate? = null,
         memo: String = "식후 30분"
     ) = MedicationDraft(
         name = name,
         dosage = "1정",
-        startDate = LocalDate.of(2026, 11, 16),
+        startDate = startDate,
         endDate = endDate,
         memo = memo,
         schedules = schedules
@@ -61,10 +62,12 @@ class MedicationRepositoryTest {
     fun setUp() {
         medicationDao = FakeMedicationDao()
         scheduleDao = FakeScheduleDao(medicationDao)
+        doseRecordDao = FakeDoseRecordDao(medicationDao, scheduleDao)
         repository = MedicationRepository(
             medicationDao = medicationDao,
             scheduleDao = scheduleDao,
             transaction = FakeTransactionRunner(),
+            doseRecordGenerator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, clock),
             now = { 5_000L }
         )
     }
@@ -236,73 +239,96 @@ class MedicationRepositoryTest {
         assertEquals(MedicationResult.Failure(MedicationError.NOT_FOUND), result)
         assertNull(medicationDao.medications.value.single().deletedAt)
     }
-}
 
-/** 메모리의 목록에만 저장하는 가짜 MedicationDao. */
-private class FakeMedicationDao : MedicationDao {
-    val medications = MutableStateFlow<List<Medication>>(emptyList())
+    // ---------- 복용 기록과의 약속 (기록 생성·보충) ----------
 
-    override suspend fun insert(medication: Medication): Long {
-        val newId = medications.value.size + 1L
-        medications.update { it + medication.copy(id = newId) }
-        return newId
+    /** 오늘(월요일) 치 기록을 "시각 → 상태" 목록으로 본다. */
+    private fun todayRecords() = doseRecordDao.records.value
+        .filter { it.date == today.toString() }
+        .sortedBy { it.scheduledTime }
+        .map { it.scheduledTime to it.status }
+
+    @Test
+    fun `약을 등록하면 오늘 치 복용 기록이 바로 만들어진다`() = runBlocking<Unit> {
+        addTylenol()   // 매일 08:00 + 월·수·금 20:00, 오늘은 월요일
+
+        assertEquals(listOf("08:00" to "PENDING", "20:00" to "PENDING"), todayRecords())
     }
 
-    override suspend fun update(medication: Medication) {
-        medications.update { list -> list.map { if (it.id == medication.id) medication else it } }
+    @Test
+    fun `수정하기 직전에 지난 날짜의 기록을 바뀌기 전 시각으로 먼저 채운다`() = runBlocking<Unit> {
+        // 사흘 전(금요일)부터 먹기 시작한 약. 등록할 때 금·토·일·월 기록이 만들어진다.
+        repository.addMedication(me, draft(startDate = today.minusDays(3), schedules = listOf(morning)))
+        // 앱을 안 열어서 기록이 없던 상황을 만든다.
+        doseRecordDao.records.value = emptyList()
+        val id = medicationDao.medications.value.single().id
+        val saved = repository.getMedication(me, id)!!.schedules.single()
+
+        // 08:00 → 09:00으로 바꾼다. (지금은 10:00이라 둘 다 이미 지난 시각)
+        repository.updateMedication(
+            me, id,
+            draft(
+                startDate = today.minusDays(3),
+                schedules = listOf(ScheduleDraft(saved.id, LocalTime.of(9, 0), saved.days))
+            )
+        )
+
+        // 지난 날짜와 오늘의 기록은 바뀌기 전 시각(08:00)으로 남아 있어야 한다.
+        val records = doseRecordDao.records.value.sortedBy { it.date }
+        assertEquals(
+            listOf("2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16"),
+            records.map { it.date }
+        )
+        assertTrue(records.all { it.scheduledTime == "08:00" })
     }
 
-    override suspend fun findById(id: Long): Medication? = medications.value.find { it.id == id }
+    @Test
+    fun `시각을 바꾸면 아직 안 된 오늘 치 기록은 새 시각으로 다시 만들어진다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
 
-    override fun observeActive(userId: Long): Flow<List<Medication>> =
-        medications.map { list -> list.filter { it.userId == userId && it.deletedAt == null } }
+        // 저녁 20:00 → 21:00. 지금은 10:00이라 저녁 기록은 아직 시각 전이다.
+        repository.updateMedication(
+            me, id,
+            draft(
+                schedules = listOf(
+                    ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                    ScheduleDraft(savedEvening.id, LocalTime.of(21, 0), savedEvening.days)
+                )
+            )
+        )
 
-    override suspend fun softDelete(id: Long, deletedAt: Long) {
-        medications.update { list -> list.map { if (it.id == id) it.copy(deletedAt = deletedAt) else it } }
-    }
-}
-
-/** 메모리의 목록에만 저장하는 가짜 ScheduleDao. 주인을 가려내려고 약 목록을 함께 본다. */
-private class FakeScheduleDao(private val medicationDao: FakeMedicationDao) : ScheduleDao {
-    val schedules = MutableStateFlow<List<Schedule>>(emptyList())
-
-    override suspend fun insert(schedule: Schedule): Long {
-        val newId = schedules.value.size + 1L
-        schedules.update { it + schedule.copy(id = newId) }
-        return newId
-    }
-
-    override suspend fun update(schedule: Schedule) {
-        schedules.update { list -> list.map { if (it.id == schedule.id) schedule else it } }
+        // 이미 지난 아침 기록(08:00)은 그대로, 저녁 기록은 21:00으로.
+        assertEquals(listOf("08:00" to "PENDING", "21:00" to "PENDING"), todayRecords())
     }
 
-    override suspend fun findActiveByMedication(medicationId: Long): List<Schedule> =
-        schedules.value
-            .filter { it.medicationId == medicationId && it.deletedAt == null }
-            .sortedBy { it.time }
+    @Test
+    fun `이미 응답한 오늘 치 기록은 시각을 바꿔도 그대로 남는다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+        val eveningRecord = doseRecordDao.records.value.single { it.scheduledTime == "20:00" }
+        doseRecordDao.updateStatus(eveningRecord.id, "TAKEN", 9_000L)   // 저녁 약을 미리 먹었다고 기록
 
-    override fun observeActiveByUser(userId: Long): Flow<List<Schedule>> =
-        schedules.map { list ->
-            val myMedicationIds = medicationDao.medications.value
-                .filter { it.userId == userId && it.deletedAt == null }
-                .map { it.id }
-            list.filter { it.medicationId in myMedicationIds && it.deletedAt == null }.sortedBy { it.time }
-        }
+        repository.updateMedication(
+            me, id,
+            draft(
+                schedules = listOf(
+                    ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                    ScheduleDraft(savedEvening.id, LocalTime.of(21, 0), savedEvening.days)
+                )
+            )
+        )
 
-    override suspend fun softDelete(id: Long, deletedAt: Long) {
-        schedules.update { list -> list.map { if (it.id == id) it.copy(deletedAt = deletedAt) else it } }
+        assertEquals(listOf("08:00" to "PENDING", "20:00" to "TAKEN"), todayRecords())
     }
 
-    override suspend fun softDeleteByMedication(medicationId: Long, deletedAt: Long) {
-        schedules.update { list ->
-            list.map {
-                if (it.medicationId == medicationId && it.deletedAt == null) it.copy(deletedAt = deletedAt) else it
-            }
-        }
-    }
-}
+    @Test
+    fun `약을 삭제하면 아직 안 된 오늘 치 기록만 지워지고 나머지 기록은 남는다`() = runBlocking<Unit> {
+        val id = addTylenol()
 
-/** 트랜잭션 없이 그냥 순서대로 실행만 하는 가짜. */
-private class FakeTransactionRunner : TransactionRunner {
-    override suspend fun <T> run(block: suspend () -> T): T = block()
+        repository.deleteMedication(me, id)
+
+        // 08:00은 이미 지난 시각이라 남고(깜빡함으로 집계), 20:00은 아직이라 지워진다.
+        assertEquals(listOf("08:00" to "PENDING"), todayRecords())
+    }
 }

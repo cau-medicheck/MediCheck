@@ -74,4 +74,27 @@
     <string name="error_med_schedule_no_days">복용 시간마다 요일을 하나 이상 고르세요</string>
     <string name="error_med_schedule_duplicate">같은 요일에 같은 시간이 겹칩니다</string>
     <string name="error_med_not_found">약을 찾을 수 없습니다</string>
+
+    <!-- 아래쪽 탭 -->
+    <string name="tab_today">오늘</string>
+    <string name="tab_medications">내 약</string>
+    <string name="tab_history">기록</string>
+
+    <!-- 오늘 · 기록 -->
+    <string name="today_title">오늘</string>
+    <string name="today_summary">%2$d회 중 %1$d회 복용</string>
+    <string name="today_empty_title">오늘 예정된 복약이 없습니다</string>
+    <string name="today_empty_body">‘내 약’ 탭에서 약을 등록하세요.</string>
+    <string name="history_title">복약 기록</string>
+    <string name="history_empty">이 날의 기록이 없습니다</string>
+    <string name="action_previous_day">이전 날</string>
+    <string name="action_next_day">다음 날</string>
+    <string name="action_take">복용 완료</string>
+    <string name="action_skip">건너뛰기</string>
+    <string name="action_undo">되돌리기</string>
+    <string name="status_upcoming">예정</string>
+    <string name="status_missed">깜빡함</string>
+    <string name="status_taken">복용 완료</string>
+    <string name="status_taken_at">%1$s 복용</string>
+    <string name="status_skipped">건너뜀</string>
 </resources>

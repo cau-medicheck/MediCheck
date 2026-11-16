@@ -78,4 +78,27 @@
     <string name="error_med_schedule_no_days">Choose at least one day for each time</string>
     <string name="error_med_schedule_duplicate">Two times overlap on the same day</string>
     <string name="error_med_not_found">This medication no longer exists</string>
+
+    <!-- 아래쪽 탭 -->
+    <string name="tab_today">Today</string>
+    <string name="tab_medications">Medications</string>
+    <string name="tab_history">History</string>
+
+    <!-- 오늘 · 기록 -->
+    <string name="today_title">Today</string>
+    <string name="today_summary">%1$d of %2$d taken</string>
+    <string name="today_empty_title">Nothing scheduled today</string>
+    <string name="today_empty_body">Add a medication in the Medications tab.</string>
+    <string name="history_title">History</string>
+    <string name="history_empty">No records for this day</string>
+    <string name="action_previous_day">Previous day</string>
+    <string name="action_next_day">Next day</string>
+    <string name="action_take">Taken</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_undo">Undo</string>
+    <string name="status_upcoming">Upcoming</string>
+    <string name="status_missed">Missed</string>
+    <string name="status_taken">Taken</string>
+    <string name="status_taken_at">Taken at %1$s</string>
+    <string name="status_skipped">Skipped</string>
 </resources>
