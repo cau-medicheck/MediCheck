@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
+import com.cau.medicheck.ui.components.NotificationPermissionBanner
 import com.cau.medicheck.ui.screens.dose.DayDosesViewModel
 import com.cau.medicheck.ui.screens.dose.DoseActions
 import com.cau.medicheck.ui.screens.dose.HistoryScreen
@@ -132,7 +133,8 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
                     displayName = user.displayName,
                     state = state,
                     actions = rememberDoseActions(viewModel),
-                    onLogout = onLogout
+                    onLogout = onLogout,
+                    banner = { NotificationPermissionBanner() }
                 )
             }
 

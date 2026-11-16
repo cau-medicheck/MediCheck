@@ -62,8 +62,10 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     }
 
     fun logout() {
-        authRepository.logout()
-        _uiState.update { it.copy(currentUser = null, error = null) }
+        viewModelScope.launch {
+            authRepository.logout()
+            _uiState.update { it.copy(currentUser = null, error = null) }
+        }
     }
 
     /** 화면을 옮기거나 입력을 고칠 때 이전 오류 문구를 지운다. */

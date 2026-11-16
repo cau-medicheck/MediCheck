@@ -35,13 +35,17 @@ sealed interface MedicationResult {
  *   - 등록 직후: 오늘 치 기록을 바로 만든다 (등록하자마자 오늘 목록에 보이게).
  *   - 수정·삭제 직전: 바뀌기 전 규칙으로 오늘까지의 기록을 먼저 채운다 (과거 기록이 사라지지 않게).
  *   - 수정·삭제 직후: 아직 시각이 안 된 오늘 치 기록은 지우고, 새 규칙으로 다시 만든다.
+ *
+ * @param onChanged 약이 등록·수정·삭제된 뒤에 부를 함수. 앱에서는 "알림을 다시 예약하라"가 들어온다.
+ *                  (이 클래스가 알림을 직접 알지 않아도 되게 함수로 받는다. 테스트에서는 비워 둔다.)
  */
 class MedicationRepository(
     private val medicationDao: MedicationDao,
     private val scheduleDao: ScheduleDao,
     private val transaction: TransactionRunner,
     private val doseRecordGenerator: DoseRecordGenerator,
-    private val now: () -> Long = System::currentTimeMillis
+    private val now: () -> Long = System::currentTimeMillis,
+    private val onChanged: suspend () -> Unit = {}
 ) {
 
     /**
@@ -95,6 +99,7 @@ class MedicationRepository(
             doseRecordGenerator.generateForMedication(newMedication.copy(id = medicationId))
             medicationId
         }
+        onChanged()
         return MedicationResult.Success(newId)
     }
 
@@ -160,6 +165,7 @@ class MedicationRepository(
             doseRecordGenerator.discardUpcomingToday(medicationId)
             doseRecordGenerator.generateForMedication(updated)
         }
+        onChanged()
         return MedicationResult.Success(medicationId)
     }
 
@@ -179,6 +185,7 @@ class MedicationRepository(
             // 삭제한 약의, 아직 시각이 안 된 오늘 치 기록은 더 이상 먹을 일이 없으므로 지운다.
             doseRecordGenerator.discardUpcomingToday(medicationId)
         }
+        onChanged()
         return MedicationResult.Success(medicationId)
     }
 

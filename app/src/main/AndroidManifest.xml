@@ -2,6 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 알림을 띄우는 권한 (Android 13 이상에서는 사용자에게 물어봐야 한다) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 정확한 시각에 알람을 거는 권한. 복약 알림처럼 시각이 중요한 앱에 허용된다 (Android 13 이상) -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Android 12에서는 위 권한이 없어서 이 권한을 대신 쓴다 -->
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <!-- 폰을 다시 켰을 때 신호를 받는 권한 (꺼지면 사라지는 알람을 다시 걸기 위해) -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".MediCheckApplication"
         android:allowBackup="true"
@@ -24,6 +35,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            알람이 울리거나, 폰이 다시 켜지거나, 시각·시간대가 바뀌거나, 앱이 업데이트되면 깨어나는 수신기.
+            exported="false": 다른 앱이 이 수신기를 부를 수 없다 (시스템과 우리 앱만 부른다).
+        -->
+        <receiver
+            android:name=".notification.ReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

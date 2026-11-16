@@ -101,4 +101,13 @@
     <string name="status_taken">Taken</string>
     <string name="status_taken_at">Taken at %1$s</string>
     <string name="status_skipped">Skipped</string>
+
+    <!-- 알림 -->
+    <string name="reminder_channel_name">Medication reminders</string>
+    <string name="reminder_channel_description">Reminds you when it is time to take a medication</string>
+    <string name="reminder_title">Time to take %1$s</string>
+    <string name="reminder_text">%1$s · %2$s</string>
+    <string name="notifications_off_title">Notifications are off</string>
+    <string name="notifications_off_body">You will not be reminded when it is time to take a medication.</string>
+    <string name="action_turn_on_notifications">Turn on</string>
 </resources>

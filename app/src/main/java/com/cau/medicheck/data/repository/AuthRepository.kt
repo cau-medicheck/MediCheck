@@ -26,12 +26,15 @@ sealed interface AuthResult {
  * @param hashDispatcher 해시 계산은 일부러 느리게 만든 계산이라, 화면이 멈추지 않도록
  *                       계산 전용 일꾼(Dispatchers.Default)에게 맡긴다.
  * @param now 현재 시각을 돌려주는 함수. 테스트에서 시각을 고정하려고 바꿔 끼울 수 있게 했다.
+ * @param onSessionChanged 로그인·로그아웃으로 "지금 로그인한 사람"이 바뀐 뒤에 부를 함수.
+ *                         앱에서는 "알림을 다시 예약하라(로그아웃이면 취소하라)"가 들어온다.
  */
 class AuthRepository(
     private val userDao: UserDao,
     private val sessionStore: SessionStore,
     private val hashDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val now: () -> Long = System::currentTimeMillis
+    private val now: () -> Long = System::currentTimeMillis,
+    private val onSessionChanged: suspend () -> Unit = {}
 ) {
 
     /**
@@ -69,6 +72,7 @@ class AuthRepository(
         }
 
         sessionStore.saveLoggedInUserId(newId)
+        onSessionChanged()
         return AuthResult.Success(newUser.copy(id = newId))
     }
 
@@ -90,6 +94,7 @@ class AuthRepository(
         if (!passwordMatches) return AuthResult.Failure(AuthError.WRONG_CREDENTIALS)
 
         sessionStore.saveLoggedInUserId(user.id)
+        onSessionChanged()
         return AuthResult.Success(user)
     }
 
@@ -102,7 +107,8 @@ class AuthRepository(
         return user
     }
 
-    fun logout() {
+    suspend fun logout() {
         sessionStore.clear()
+        onSessionChanged()
     }
 }
