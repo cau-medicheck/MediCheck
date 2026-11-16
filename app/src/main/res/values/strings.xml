@@ -32,5 +32,50 @@
 
     <!-- 홈 -->
     <string name="home_greeting">Hello, %1$s</string>
-    <string name="home_placeholder">Your medications will appear here.</string>
+
+    <!-- 약 목록 -->
+    <string name="medications_title">My medications</string>
+    <string name="medications_empty_title">No medications yet</string>
+    <string name="medications_empty_body">Tap “Add medication” to register your first one.</string>
+    <string name="action_add_medication">Add medication</string>
+    <string name="schedule_line">%1$s · %2$s</string>
+    <string name="period_from">From %1$s</string>
+    <string name="period_range">%1$s – %2$s</string>
+    <string name="days_every_day">Every day</string>
+    <string name="days_weekdays">Weekdays</string>
+    <string name="days_weekends">Weekends</string>
+
+    <!-- 약 등록·수정 -->
+    <string name="medication_new_title">Add medication</string>
+    <string name="medication_edit_title">Edit medication</string>
+    <string name="label_medication_name">Medication name</string>
+    <string name="label_dosage">Dosage</string>
+    <string name="hint_dosage">e.g. 1 tablet, 5 ml</string>
+    <string name="label_memo">Memo (optional)</string>
+    <string name="hint_memo">e.g. 30 minutes after meals</string>
+    <string name="section_period">Period</string>
+    <string name="label_start_date">Start date</string>
+    <string name="label_end_date">End date</string>
+    <string name="no_end_date">No end date</string>
+    <string name="action_clear_end_date">Clear end date</string>
+    <string name="section_times">Times</string>
+    <string name="action_add_time">Add time</string>
+    <string name="action_remove_time">Remove this time</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_back">Back</string>
+    <string name="delete_medication_title">Delete this medication?</string>
+    <string name="delete_medication_body">“%1$s” will be removed from your list. Your past records are kept.</string>
+
+    <!-- 약 등록·수정 오류 -->
+    <string name="error_med_name_invalid">Enter a medication name (up to 50 characters)</string>
+    <string name="error_med_dosage_invalid">Enter a dosage (up to 30 characters)</string>
+    <string name="error_med_memo_too_long">Memo can be up to 200 characters</string>
+    <string name="error_med_end_before_start">End date cannot be before the start date</string>
+    <string name="error_med_no_schedule">Add at least one time</string>
+    <string name="error_med_schedule_no_days">Choose at least one day for each time</string>
+    <string name="error_med_schedule_duplicate">Two times overlap on the same day</string>
+    <string name="error_med_not_found">This medication no longer exists</string>
 </resources>
