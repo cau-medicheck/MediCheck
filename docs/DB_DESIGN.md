@@ -62,7 +62,13 @@ erDiagram
 | created_at | Long | NOT NULL | 가입 시각 (epoch millis) |
 
 - 개인정보는 최소한으로 둔다. 생년월일·성별·보호자 연락처·주소는 **넣지 않는다.**
-- 해시 알고리즘(SHA-256 + salt 등)은 구현 시 확정한다.
+- 해시 방식 (구현 시 확정, `domain/PasswordHasher.kt`):
+  - 알고리즘: **PBKDF2-HMAC-SHA256**, 반복 100,000회, 결과 256비트
+  - salt: 사용자마다 무작위 16바이트 (같은 비밀번호라도 저장값이 달라진다)
+  - `password_hash` 칸의 형식: `pbkdf2$반복횟수$salt$해시` (salt·해시는 Base64)
+  - 반복 횟수를 값 안에 함께 적어 두므로, 나중에 횟수를 올려도 기존 계정은 그대로 검증된다
+- `username`은 저장·비교 전에 앞뒤 공백을 없애고 소문자로 바꾼다 (`Suhwan` = `suhwan`). 허용 문자: 영문 소문자·숫자·밑줄, 4~20자
+- 로그인 상태는 DB가 아니라 SharedPreferences에 로그인한 사용자의 `id`만 저장한다 (`data/local/SessionStore.kt`)
 
 ---
 
