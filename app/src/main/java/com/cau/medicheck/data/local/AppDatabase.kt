@@ -13,11 +13,12 @@ import androidx.room.withTransaction
  * - version: 표 구조가 바뀔 때마다 1씩 올리는 번호.
  *     1: users
  *     2: medications, schedules 추가
+ *     3: dose_records 추가
  * - 표마다 DAO(창구)를 하나씩 꺼낼 수 있게 함수를 적어 둔다. 몸통은 Room이 만든다.
  */
 @Database(
-    entities = [User::class, Medication::class, Schedule::class],
-    version = 2,
+    entities = [User::class, Medication::class, Schedule::class, DoseRecord::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,6 +28,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun medicationDao(): MedicationDao
 
     abstract fun scheduleDao(): ScheduleDao
+
+    abstract fun doseRecordDao(): DoseRecordDao
 
     companion object {
         /** 폰에 저장되는 DB 파일 이름 */

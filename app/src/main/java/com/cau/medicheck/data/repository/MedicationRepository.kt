@@ -30,11 +30,17 @@ sealed interface MedicationResult {
  * 표의 글자("2026-11-16", "08:00", "MON,WED")와 코드의 타입 사이의 변환도 여기서 한다.
  *
  * 모든 함수가 userId를 받는다. 다른 사람의 약을 읽거나 고칠 수 없게 주인을 확인하기 위해서다.
+ *
+ * 복용 기록과의 약속 (docs/DB_DESIGN.md ⑨):
+ *   - 등록 직후: 오늘 치 기록을 바로 만든다 (등록하자마자 오늘 목록에 보이게).
+ *   - 수정·삭제 직전: 바뀌기 전 규칙으로 오늘까지의 기록을 먼저 채운다 (과거 기록이 사라지지 않게).
+ *   - 수정·삭제 직후: 아직 시각이 안 된 오늘 치 기록은 지우고, 새 규칙으로 다시 만든다.
  */
 class MedicationRepository(
     private val medicationDao: MedicationDao,
     private val scheduleDao: ScheduleDao,
     private val transaction: TransactionRunner,
+    private val doseRecordGenerator: DoseRecordGenerator,
     private val now: () -> Long = System::currentTimeMillis
 ) {
 
@@ -64,18 +70,17 @@ class MedicationRepository(
         MedicationValidator.validate(draft)?.let { return MedicationResult.Failure(it) }
 
         val createdAt = now()
+        val newMedication = Medication(
+            userId = userId,
+            name = draft.name.trim(),
+            dosage = draft.dosage.trim(),
+            startDate = draft.startDate.toString(),
+            endDate = draft.endDate?.toString(),
+            memo = draft.memo.trim().ifEmpty { null },
+            createdAt = createdAt
+        )
         val newId = transaction.run {
-            val medicationId = medicationDao.insert(
-                Medication(
-                    userId = userId,
-                    name = draft.name.trim(),
-                    dosage = draft.dosage.trim(),
-                    startDate = draft.startDate.toString(),
-                    endDate = draft.endDate?.toString(),
-                    memo = draft.memo.trim().ifEmpty { null },
-                    createdAt = createdAt
-                )
-            )
+            val medicationId = medicationDao.insert(newMedication)
             draft.schedules.forEach { schedule ->
                 scheduleDao.insert(
                     Schedule(
@@ -86,6 +91,8 @@ class MedicationRepository(
                     )
                 )
             }
+            // 등록하자마자 오늘 목록에 보이도록 오늘까지의 복용 기록을 만든다.
+            doseRecordGenerator.generateForMedication(newMedication.copy(id = medicationId))
             medicationId
         }
         return MedicationResult.Success(newId)
@@ -109,16 +116,18 @@ class MedicationRepository(
             ?: return MedicationResult.Failure(MedicationError.NOT_FOUND)
 
         val changedAt = now()
+        val updated = existing.copy(
+            name = draft.name.trim(),
+            dosage = draft.dosage.trim(),
+            startDate = draft.startDate.toString(),
+            endDate = draft.endDate?.toString(),
+            memo = draft.memo.trim().ifEmpty { null }
+        )
         transaction.run {
-            medicationDao.update(
-                existing.copy(
-                    name = draft.name.trim(),
-                    dosage = draft.dosage.trim(),
-                    startDate = draft.startDate.toString(),
-                    endDate = draft.endDate?.toString(),
-                    memo = draft.memo.trim().ifEmpty { null }
-                )
-            )
+            // 바꾸기 전에, 지금까지의 규칙으로 오늘까지의 기록을 먼저 채워 둔다.
+            doseRecordGenerator.generateForMedication(existing)
+
+            medicationDao.update(updated)
 
             val saved = scheduleDao.findActiveByMedication(medicationId).associateBy { it.id }
             val keptIds = mutableSetOf<Long>()
@@ -146,19 +155,29 @@ class MedicationRepository(
             }
 
             saved.keys.filter { it !in keptIds }.forEach { scheduleDao.softDelete(it, changedAt) }
+
+            // 아직 시각이 안 된 오늘 치 기록은 옛 규칙의 것이므로 지우고, 새 규칙으로 다시 만든다.
+            doseRecordGenerator.discardUpcomingToday(medicationId)
+            doseRecordGenerator.generateForMedication(updated)
         }
         return MedicationResult.Success(medicationId)
     }
 
     /** 약을 삭제한다(soft delete). 그 약의 복용 시간들도 함께 soft delete 한다. */
     suspend fun deleteMedication(userId: Long, medicationId: Long): MedicationResult {
-        findOwned(userId, medicationId)
+        val existing = findOwned(userId, medicationId)
             ?: return MedicationResult.Failure(MedicationError.NOT_FOUND)
 
         val deletedAt = now()
         transaction.run {
+            // 지우기 전에, 지금까지의 규칙으로 오늘까지의 기록을 먼저 채워 둔다.
+            doseRecordGenerator.generateForMedication(existing)
+
             scheduleDao.softDeleteByMedication(medicationId, deletedAt)
             medicationDao.softDelete(medicationId, deletedAt)
+
+            // 삭제한 약의, 아직 시각이 안 된 오늘 치 기록은 더 이상 먹을 일이 없으므로 지운다.
+            doseRecordGenerator.discardUpcomingToday(medicationId)
         }
         return MedicationResult.Success(medicationId)
     }
