@@ -33,24 +33,24 @@ class MedicationValidatorTest {
 
     @Test
     fun `약 이름은 비어 있으면 안 되고 50자를 넘으면 안 된다`() {
-        assertEquals(MedicationError.NAME_INVALID, validate(draft(name = "")))
-        assertEquals(MedicationError.NAME_INVALID, validate(draft(name = "   ")))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(name = "")))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(name = "   ")))
         assertNull(validate(draft(name = "가".repeat(50))))
-        assertEquals(MedicationError.NAME_INVALID, validate(draft(name = "가".repeat(51))))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(name = "가".repeat(51))))
     }
 
     @Test
     fun `복용량은 비어 있으면 안 되고 30자를 넘으면 안 된다`() {
-        assertEquals(MedicationError.DOSAGE_INVALID, validate(draft(dosage = " ")))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(dosage = " ")))
         assertNull(validate(draft(dosage = "1".repeat(30))))
-        assertEquals(MedicationError.DOSAGE_INVALID, validate(draft(dosage = "1".repeat(31))))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(dosage = "1".repeat(31))))
     }
 
     @Test
     fun `메모는 비워도 되지만 200자를 넘으면 안 된다`() {
         assertNull(validate(draft(memo = "")))
         assertNull(validate(draft(memo = "가".repeat(200))))
-        assertEquals(MedicationError.MEMO_TOO_LONG, validate(draft(memo = "가".repeat(201))))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(memo = "가".repeat(201))))
     }
 
     @Test
@@ -61,21 +61,21 @@ class MedicationValidatorTest {
         assertNull(validate(draft(startDate = start, endDate = start)))
         assertNull(validate(draft(startDate = start, endDate = start.plusDays(7))))
         assertEquals(
-            MedicationError.END_BEFORE_START,
+            MedicationError.DATES_INVALID,
             validate(draft(startDate = start, endDate = start.minusDays(1)))
         )
     }
 
     @Test
     fun `복용 시간이 하나도 없으면 안 된다`() {
-        assertEquals(MedicationError.NO_SCHEDULE, validate(draft(schedules = emptyList())))
+        assertEquals(MedicationError.NAME_DOSAGE_TIME_INVALID, validate(draft(schedules = emptyList())))
     }
 
     @Test
     fun `요일을 하나도 고르지 않은 복용 시간이 있으면 안 된다`() {
         val noDays = ScheduleDraft(time = LocalTime.of(20, 0), days = emptySet())
 
-        assertEquals(MedicationError.SCHEDULE_NO_DAYS, validate(draft(schedules = listOf(morning, noDays))))
+        assertEquals(MedicationError.NO_DAYS, validate(draft(schedules = listOf(morning, noDays))))
     }
 
     @Test
@@ -83,7 +83,7 @@ class MedicationValidatorTest {
         val sameTimeOverlap = ScheduleDraft(time = LocalTime.of(8, 0), days = setOf(MONDAY, WEDNESDAY))
 
         assertEquals(
-            MedicationError.SCHEDULE_DUPLICATE,
+            MedicationError.DUPLICATE_TIME,
             validate(draft(schedules = listOf(morning, sameTimeOverlap)))
         )
     }
@@ -101,5 +101,29 @@ class MedicationValidatorTest {
         val evening = ScheduleDraft(time = LocalTime.of(20, 0), days = RepeatDays.EVERY_DAY)
 
         assertNull(validate(draft(schedules = listOf(morning, evening))))
+    }
+
+    @Test
+    fun `여러 개가 틀리면 프로토타입의 검사 순서에서 가장 앞의 것 하나만 알려 준다`() {
+        val noDays = ScheduleDraft(time = LocalTime.of(8, 0), days = emptySet())
+        val start = LocalDate.of(2026, 11, 16)
+
+        // ① 이름이 비었고 ② 요일도 없고 ③ 종료일도 앞 → ①
+        assertEquals(
+            MedicationError.NAME_DOSAGE_TIME_INVALID,
+            validate(draft(name = "", schedules = listOf(noDays), startDate = start, endDate = start.minusDays(1)))
+        )
+        // ② 요일이 없고 ③ 종료일도 앞 → ②
+        assertEquals(
+            MedicationError.NO_DAYS,
+            validate(draft(schedules = listOf(noDays), startDate = start, endDate = start.minusDays(1)))
+        )
+        // ③ 종료일이 앞이고 ④ 같은 시각이 두 줄 → ③
+        assertEquals(
+            MedicationError.DATES_INVALID,
+            validate(draft(schedules = listOf(morning, morning), startDate = start, endDate = start.minusDays(1)))
+        )
+        // ④만 틀림
+        assertEquals(MedicationError.DUPLICATE_TIME, validate(draft(schedules = listOf(morning, morning))))
     }
 }

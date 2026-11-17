@@ -36,17 +36,12 @@ import com.cau.medicheck.ui.screens.dose.S30DoseHistoryViewModel
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeScreen
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeViewModel
 import com.cau.medicheck.ui.screens.dose.ScheduleActions
-import com.cau.medicheck.ui.screens.medication.MedicationEditActions
-import com.cau.medicheck.ui.screens.medication.MedicationEditScreen
-import com.cau.medicheck.ui.screens.medication.MedicationEditViewModel
-import com.cau.medicheck.ui.screens.medication.MedicationListScreen
-import com.cau.medicheck.ui.screens.medication.MedicationListViewModel
 import com.cau.medicheck.ui.screens.stats.StatsScreen
 import com.cau.medicheck.ui.screens.stats.StatsViewModel
 import kotlinx.coroutines.launch
 
 /** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
-private val REGISTERED = setOf("S04", "S05", "S06", "S08", "S10", "S13", "S30", "S31")
+private val REGISTERED = setOf("S04", "S05", "S10", "S13", "S30", "S31") + MEDICATION_SCREENS
 
 /** 회차를 가리키는 주소 인자 두 개(규칙 번호, 날짜). 둘 다 없어도 화면이 열리도록 기본값을 둔다. */
 private val doseArguments = listOf(
@@ -74,8 +69,9 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  * 화면마다 자기 ViewModel을 하나씩 가진다. viewModel(factory = …)로 꺼내면 그 화면이 뒤로 가기 기록에
  * 남아 있는 동안 같은 ViewModel이 유지된다.
  *
- * 2단계에서 만든 화면: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각.
- * 임시 연결: S06 내 약·S08 약 등록/수정(3단계에서 새로 만듦), S13 통계(4단계에서 새로 만듦).
+ * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
+ * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계).
+ * 임시 연결: S13 통계(4단계에서 새로 만듦).
  * 그 밖의 화면은 "준비 중" 임시 화면이다.
  */
 fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit) {
@@ -183,7 +179,8 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
         )
     }
 
-    legacyScreens(user, go, onLogout)
+    medicationGraph(user, go)   // 내 약 쪽 화면들 (MedicationGraph.kt)
+    legacyScreens(user, onLogout)
 
     // ----- 아직 만들지 않은 화면: "준비 중" -----
     Routes.ALL_SCREEN_IDS
@@ -211,54 +208,10 @@ private fun RefreshOnResume(refresh: () -> Unit) {
 }
 
 /**
- * 예전 화면을 임시로 연결한 부분. 내 약(S06)·약 등록/수정(S08)은 3단계, 통계(S13)는 4단계에서 새 화면으로 바뀐다.
- * 이 화면들은 예전 모양 그대로다. A11yBody: 새 화면의 본문처럼 글자 배율·높은 대비가 적용되게 감싼다.
+ * 예전 화면을 임시로 연결한 부분. 통계(S13)는 4단계에서 새 화면으로 바뀐다.
+ * 이 화면은 예전 모양 그대로다. A11yBody: 새 화면의 본문처럼 글자 배율·높은 대비가 적용되게 감싼다.
  */
-private fun NavGraphBuilder.legacyScreens(user: User, go: AppNavigator, onLogout: () -> Unit) {
-    composable(Routes.S06) {
-        val vm: MedicationListViewModel = viewModel(factory = MedicationListViewModel.factory(user.id))
-        val state by vm.uiState.collectAsStateWithLifecycle()
-        A11yBody(Modifier) {
-            MedicationListScreen(
-                state = state,
-                onAddClick = { go.open(Routes.s08New()) },
-                onMedicationClick = { id -> go.open(Routes.s08Edit(id)) },
-                onLogout = onLogout
-            )
-        }
-    }
-
-    composable(
-        route = Routes.S08,
-        arguments = listOf(navArgument(Routes.ARG_MED_ID) { type = NavType.LongType; defaultValue = Routes.NO_ID })
-    ) { entry ->
-        // 주소에 붙어 온 약 id를 꺼낸다. 없으면(-1) 새 약 등록이다.
-        val medicationId = entry.arguments?.getLong(Routes.ARG_MED_ID)?.takeIf { it != Routes.NO_ID }
-        val vm: MedicationEditViewModel = viewModel(factory = MedicationEditViewModel.factory(user.id, medicationId))
-        val state by vm.uiState.collectAsStateWithLifecycle()
-        // 저장·삭제가 끝나면(isFinished) 이 화면을 연 화면으로 돌아간다.
-        LaunchedEffect(state.isFinished) {
-            if (state.isFinished) go.back()
-        }
-        val actions = remember(vm, go) {
-            MedicationEditActions(
-                onNameChange = vm::onNameChange,
-                onDosageChange = vm::onDosageChange,
-                onMemoChange = vm::onMemoChange,
-                onStartDateChange = vm::onStartDateChange,
-                onEndDateChange = vm::onEndDateChange,
-                onAddSchedule = vm::addSchedule,
-                onRemoveSchedule = vm::removeSchedule,
-                onScheduleTimeChange = vm::onScheduleTimeChange,
-                onScheduleDayToggle = vm::onScheduleDayToggle,
-                onSave = vm::save,
-                onDelete = vm::delete,
-                onBack = go::back
-            )
-        }
-        A11yBody(Modifier) { MedicationEditScreen(state = state, actions = actions) }
-    }
-
+private fun NavGraphBuilder.legacyScreens(user: User, onLogout: () -> Unit) {
     composable(Routes.S13) {
         val vm: StatsViewModel = viewModel(factory = StatsViewModel.factory(user.id))
         val state by vm.uiState.collectAsStateWithLifecycle()

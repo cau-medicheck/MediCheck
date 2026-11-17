@@ -12,6 +12,7 @@ import com.cau.medicheck.domain.DosePlanner
 import com.cau.medicheck.domain.DoseStatus
 import com.cau.medicheck.domain.MedicationDetail
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Clock
@@ -42,6 +43,13 @@ enum class ActualTimeResult {
     TIME_IN_FUTURE,  // 적은 시각이 지금보다 늦다
     NOT_FOUND        // 내 기록이 아니거나 없는 회차
 }
+
+/**
+ * 과거 기록 보존 화면(S32)의 내용.
+ * @param total 오늘보다 앞선 날짜의 기록 수
+ * @param days 최근 날짜부터 (날짜, 그날의 기록 수)
+ */
+data class DoseArchive(val total: Int, val days: List<Pair<LocalDate, Int>>)
 
 /** 변경 이력 화면(S30)의 한 줄 */
 data class DoseHistoryItem(
@@ -138,6 +146,16 @@ class DoseRepository(
     /** 그 날짜의 첫 회차(시각 → 이름 순)의 열쇠. 회차가 없으면 null. (S30 "복용 회차 열기") */
     suspend fun firstDoseOf(userId: Long, date: LocalDate): DoseKey? =
         observeDay(userId, date, LocalDate.now(clock)).first().firstOrNull()?.key
+
+    /**
+     * 과거 기록 보존(S32): 오늘보다 앞선 날짜의 기록 수와, 최근 [dayLimit]개 날짜별 기록 수.
+     * 약을 고치거나 지워도 지난 기록은 그때의 이름·복용량·시각 그대로 남아 있으므로, 그 수를 그대로 센다.
+     */
+    fun observeArchive(userId: Long, today: LocalDate, dayLimit: Int = 10): Flow<DoseArchive> =
+        combine(
+            doseRecordDao.observePastRecordCount(userId, today.toString()),
+            doseRecordDao.observeRecentPastDates(userId, today.toString(), dayLimit)
+        ) { total, dates -> DoseArchive(total, dates.map { LocalDate.parse(it.date) to it.count }) }
 
     /** 한 사용자의 상태 변경 이력, 최신순. 기록이 지워진 회차의 이력도 포함한다. (S30) */
     fun observeHistory(userId: Long): Flow<List<DoseHistoryItem>> =

@@ -98,3 +98,7 @@ val PagerDotActive = Color(0xFF1D99A2); val PagerDotInactive = Color(0xFFDCE6E9)
 val HeroInnerBg = Color(0x17FFFFFF)        // 완료율 상자 바탕
 val HeroInnerBorder = Color(0x36FFFFFF)    // 완료율 상자 테두리
 val HeroRingRest = Color(0x47FFFFFF)       // 완료율 원의 빈 부분
+
+// 사진 올리기 상자(S29)의 점선 테두리와 바탕 (v3 .upload)
+val DashedBorder = Color(0xFFBFD7DA)
+val DashedBg = Color(0xFFF5FBFB)

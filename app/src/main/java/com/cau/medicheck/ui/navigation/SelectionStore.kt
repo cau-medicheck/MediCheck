@@ -31,6 +31,10 @@ class SelectionStore(private val clock: Clock = Clock.systemDefaultZone()) {
     /** 마지막으로 연 회차. 회차 상세(S10)가 "어느 회차인지" 없이 열렸을 때 이것을 보여 준다. */
     val lastDose: StateFlow<DoseKey?> = _lastDose.asStateFlow()
 
+    private val _lastMedId = MutableStateFlow<Long?>(null)
+    /** 마지막으로 상세(S07)에서 연 약. 약 상세·삭제 확인이 "어느 약인지" 없이 열렸을 때 이 약을 보여 준다. */
+    val lastMedId: StateFlow<Long?> = _lastMedId.asStateFlow()
+
     /** 마지막으로 확인한 "오늘". 자정이 지났는지 알아내는 데 쓴다. */
     private var knownToday: LocalDate = LocalDate.now(clock)
 
@@ -49,6 +53,10 @@ class SelectionStore(private val clock: Clock = Clock.systemDefaultZone()) {
         _lastDose.value = key
     }
 
+    fun setLastMedId(medId: Long) {
+        _lastMedId.value = medId
+    }
+
     /**
      * 자정이 지나 "오늘"이 바뀌었을 때 부른다.
      * 선택 날짜가 옛 오늘이었으면 새 오늘로 따라간다. 다른 날짜를 보고 있었으면 그대로 둔다.
@@ -64,5 +72,6 @@ class SelectionStore(private val clock: Clock = Clock.systemDefaultZone()) {
         knownToday = LocalDate.now(clock)
         selectDay(knownToday)
         _lastDose.value = null
+        _lastMedId.value = null
     }
 }

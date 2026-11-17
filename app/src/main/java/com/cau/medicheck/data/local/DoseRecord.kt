@@ -89,3 +89,6 @@ data class DoseRecordRow(
     val dosage: String,
     val memo: String?
 )
+
+/** "어느 날짜에 기록이 몇 개" 한 줄. (S32의 날짜 목록 조회 결과) */
+data class DateCount(val date: String, val count: Int)

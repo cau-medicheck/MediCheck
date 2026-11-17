@@ -608,12 +608,13 @@ D의 요일 ∈ s.repeat_days
 ---
 - **1단계에 실제로 만든 DAO 함수** (나머지는 각 단계에서 이 표대로 더한다):
   - `UserDao`: `insert`, `update`, `findByEmail`, `findById`, `findSampleUser`, `findSampleUsers`, `deleteById`
-  - `MedicationDao`: 기존 + `setPausedFrom(userId, medId, date?)`, `deleteAllForUser(userId)` (`observeActive`의 `ORDER BY id`는 3단계)
+  - `MedicationDao`: 기존 + `setPausedFrom(userId, medId, date?)`, `deleteAllForUser(userId)` `updateSource(userId, medId, hospital, department, sourceMemo)`. `observeActive`는 `ORDER BY id`(등록 순서 — 3단계에서 반영)
   - `ScheduleDao`: 기존 + `findReminderRows`(`effective_from` 읽기·`paused_from IS NULL`), `raiseEffectiveFrom`, `deleteAllForUser`
   - `DoseRecordDao`: `insertAllIgnore`, `lastDate`, `observeRange`(스냅샷), `findOwned(userId, recordId)`(다른 DAO처럼 userId가 먼저), `findOwnedByKey`, `updateStatus(userId, recordId, …)`, `findUpcomingPending`, `updateUpcomingSnapshot`, `findPendingAfter(userId, medId, endDate)`(종료일 당김), `deleteByIds`, `deleteAllForUser`. 옛 `statusOf`는 지움(알림이 `findOwnedByKey`를 씀)
   - `DoseStatusEventDao`: `insert`, `latestFor`, `observeForUser`, `findAllForUser`(오래된 것부터), `detachRecords`, `deleteAllForUser`
   - `UserSettingsDao`: `insert`, `upsert`, `find`, `observe`, `deleteForUser`
-  - 아직 없음: `observeOwnedRowByKey`·`observeDoseDates`·`findReminderDoses`·`observePastRecordCount`·`observeRecentPastDates`·`observeCountForUser`·`findAllEntitiesForUser`·`deletePendingAfter`(DoseRecordDao), `findActiveByName`·`observeActiveCount`·`findAllForUser`·`updateSource`(MedicationDao), `ScheduleDao.findAllForUser`, `UserDao.observeById`, `insertAll`(백업 복원)
+  - 2·3단계에서 더함: `DoseRecordDao.observeOwnedRowByKey`(2단계), `observePastRecordCount`·`observeRecentPastDates`(3단계 S32)
+  - 아직 없음: `observeDoseDates`·`findReminderDoses`·`observeCountForUser`·`findAllEntitiesForUser`·`deletePendingAfter`(DoseRecordDao), `observeActiveCount`·`findAllForUser`(MedicationDao — 같은 이름 찾기는 DAO 질의 없이 `MedicationRepository.findSameName`이 `findActive` 결과에서 고른다), `ScheduleDao.findAllForUser`, `UserDao.observeById`, `insertAll`(백업 복원)
 
 ---
 

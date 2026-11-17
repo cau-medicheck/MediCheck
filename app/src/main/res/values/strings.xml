@@ -126,54 +126,12 @@
     <string name="error_wrong_credentials">이메일 또는 비밀번호가 올바르지 않습니다.</string>
     <string name="error_sample_failed">샘플 계정을 준비하지 못했어요. 다시 시도해주세요.</string>
 
-    <!-- 홈 -->
-    <string name="home_greeting">%1$s님, 안녕하세요</string>
-
-    <!-- 약 목록 -->
-    <string name="medications_title">내 약</string>
-    <string name="medications_empty_title">등록된 약이 없습니다</string>
-    <string name="medications_empty_body">‘약 추가’를 눌러 첫 약을 등록하세요.</string>
-    <string name="action_add_medication">약 추가</string>
-    <string name="schedule_line">%1$s · %2$s</string>
-    <string name="period_from">%1$s부터</string>
-    <string name="period_range">%1$s ~ %2$s</string>
-    <string name="days_every_day">매일</string>
-    <string name="days_weekdays">평일</string>
-    <string name="days_weekends">주말</string>
-
-    <!-- 약 등록·수정 -->
-    <string name="medication_new_title">약 추가</string>
-    <string name="medication_edit_title">약 수정</string>
-    <string name="label_medication_name">약 이름</string>
-    <string name="label_dosage">복용량</string>
-    <string name="hint_dosage">예: 1정, 5ml</string>
-    <string name="label_memo">메모 (선택)</string>
-    <string name="hint_memo">예: 식후 30분</string>
-    <string name="section_period">복용 기간</string>
-    <string name="label_start_date">시작일</string>
-    <string name="label_end_date">종료일</string>
-    <string name="no_end_date">종료일 없음</string>
-    <string name="action_clear_end_date">종료일 지우기</string>
-    <string name="section_times">복용 시간</string>
-    <string name="action_add_time">시간 추가</string>
-    <string name="action_remove_time">이 시간 삭제</string>
-    <string name="action_save">저장</string>
+    <!-- 고르기 창 버튼 · 여러 화면이 쓰는 낱말 -->
     <string name="action_cancel">취소</string>
     <string name="action_ok">확인</string>
     <string name="action_delete">삭제</string>
-    <string name="action_back">뒤로</string>
-    <string name="delete_medication_title">이 약을 삭제할까요?</string>
-    <string name="delete_medication_body">‘%1$s’ 약이 목록에서 사라집니다. 지난 복용 기록은 남습니다.</string>
-
-    <!-- 약 등록·수정 오류 -->
-    <string name="error_med_name_invalid">약 이름을 50자 이내로 입력하세요</string>
-    <string name="error_med_dosage_invalid">복용량을 30자 이내로 입력하세요</string>
-    <string name="error_med_memo_too_long">메모는 200자 이내로 입력하세요</string>
-    <string name="error_med_end_before_start">종료일은 시작일보다 빠를 수 없습니다</string>
-    <string name="error_med_no_schedule">복용 시간을 하나 이상 추가하세요</string>
-    <string name="error_med_schedule_no_days">복용 시간마다 요일을 하나 이상 고르세요</string>
-    <string name="error_med_schedule_duplicate">같은 요일에 같은 시간이 겹칩니다</string>
-    <string name="error_med_not_found">약을 찾을 수 없습니다</string>
+    <string name="action_clear_end_date">종료일 지우기</string>
+    <string name="error_med_not_found">약을 찾지 못했어요</string>
 
     <!-- 예전 통계 화면(임시 S13)이 쓰는 상태 낱말 — 4단계에서 정리 -->
     <string name="status_missed">깜빡함</string>
@@ -188,6 +146,7 @@
 
     <!-- 통계 -->
     <string name="tab_stats">통계</string>
+    <string name="period_range">%1$s ~ %2$s</string>
     <string name="stats_title">주간 통계</string>
     <string name="stats_this_week">이번 주</string>
     <string name="stats_rate_label">복약 완료율</string>
@@ -322,4 +281,158 @@
     <string name="s31_toast_no_dose">회차가 없습니다.</string>
     <string name="s31_toast_saved">실제 복용 시각과 완료 상태가 저장됐습니다.</string>
     <string name="s31_toast_time_future">실제 복용 시각은 지금보다 늦을 수 없어요.</string>
+
+    <!-- ===== 내 약 쪽 공통 (3단계) ===== -->
+    <string name="common_every_day">매일</string>
+    <string name="common_not_set">설정 안 함</string>
+    <string name="common_selected_med">선택한 약</string>
+    <string-array name="common_weekdays_full">
+        <item>일요일</item><item>월요일</item><item>화요일</item><item>수요일</item><item>목요일</item><item>금요일</item><item>토요일</item>
+    </string-array>
+    <string name="med_status_active">복용 중</string>
+    <string name="med_status_paused">일시중지</string>
+    <string name="med_status_ended">종료</string>
+    <string name="mark_could">Could</string>
+    <string name="mark_must">Must</string>
+    <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
+
+    <!-- ===== S06 내 약 목록 ===== -->
+    <string name="s06_title">내 약 관리</string>
+    <string name="s06_subtitle">등록한 약 정보를 관리하세요.</string>
+    <string name="s06_search_hint">약 이름으로 검색</string>
+    <string name="s06_btn_add">＋ 추가</string>
+    <string name="s06_cd_detail">%1$s 상세</string>
+    <string name="s06_empty_title">해당 약이 없어요</string>
+    <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
+    <string name="s06_empty_action">약 추가하기</string>
+    <string name="s06_notice">약 등록·수정·삭제는 날짜별 일정과 연결됩니다.</string>
+    <!-- 샘플 계정일 때만 위 문장 뒤에 붙인다 -->
+    <string name="s06_notice_sample">이 화면의 데이터는 시연용입니다.</string>
+
+    <!-- ===== S07 약 상세 ===== -->
+    <string name="s07_back">내 약 관리</string>
+    <string name="s07_label_dosage">1회 복용량</string>
+    <string name="s07_label_times">복용 시간</string>
+    <string name="s07_label_days">반복 요일</string>
+    <string name="s07_label_start">시작일</string>
+    <string name="s07_label_end">종료일</string>
+    <string name="s07_label_memo">메모</string>
+    <string name="s07_label_source">처방 출처</string>
+    <string name="s07_no_memo">없음</string>
+    <string name="s07_pause_title">일시중지</string>
+    <string name="s07_pause_body">재개 전까지 오늘 이후 일정을 숨겨요.</string>
+    <string name="s07_btn_edit">✎ 약 수정</string>
+    <string name="s07_btn_delete">삭제</string>
+    <string name="s07_row_source_title">처방 출처 메모</string>
+    <string name="s07_row_source_desc">의료기관·진료과</string>
+    <string name="s07_row_archive_title">과거 기록 보존</string>
+    <string name="s07_row_archive_desc">복용 이력 아카이브</string>
+    <string name="s07_notice">일정을 수정하면 적용 범위 선택 화면으로 이동합니다. 과거 기록은 별도 스냅샷으로 보존합니다.</string>
+    <string name="s07_empty_body">약 목록에서 다시 선택해주세요.</string>
+    <string name="s07_empty_action">목록 보기</string>
+
+    <!-- ===== S08 약 등록/수정 ===== -->
+    <string name="s08_back">약 관리로 돌아가기</string>
+    <string name="s08_title_new">새 약 등록</string>
+    <string name="s08_title_edit">약 정보 수정</string>
+    <string name="s08_subtitle">복용 정보와 일정을 설정하세요.</string>
+    <string name="s08_link_photo">사진으로 등록 (준비 중)</string>
+    <string name="s08_label_name">약 이름 *</string>
+    <string name="s08_hint_name">예: 비타민 C</string>
+    <string name="s08_label_dosage">1회 복용량 *</string>
+    <string name="s08_hint_dosage">예: 1정 / 5ml</string>
+    <string name="s08_label_times">복용 시간 *</string>
+    <string name="s08_cd_time">복용 시간 %1$d</string>
+    <string name="s08_cd_time_remove">복용 시간 %1$d 삭제</string>
+    <string name="s08_link_add_time">＋ 시간 추가하기</string>
+    <string name="s08_label_days">반복 요일 *</string>
+    <string name="s08_notice_mixed_days">시간마다 반복 요일이 다르게 저장된 약입니다. 요일을 누르면 고른 요일이 모든 복용 시간에 똑같이 적용됩니다.</string>
+    <string name="s08_label_start">복용 시작일 *</string>
+    <string name="s08_label_end">복용 종료일 (선택)</string>
+    <string name="s08_label_memo">메모</string>
+    <string name="s08_hint_memo">식전·식후 등 복용 메모</string>
+    <string name="s08_btn_register">약 등록 완료</string>
+    <string name="s08_btn_save">변경사항 저장</string>
+    <string name="s08_toast_check_basic">약 이름·복용량·복용 시간을 확인해주세요.</string>
+    <string name="s08_toast_check_days">반복 요일을 하나 이상 선택해주세요.</string>
+    <string name="s08_toast_check_dates">시작일과 종료일을 확인해주세요.</string>
+    <string name="s08_toast_duplicate_time">동일한 복용 시간이 중복되었습니다.</string>
+    <string name="s08_toast_saved">약 정보가 저장되었습니다.</string>
+
+    <!-- ===== S09 삭제 확인 ===== -->
+    <string name="s09_back">취소하고 돌아가기</string>
+    <string name="s09_title">약을 삭제할까요?</string>
+    <!-- "{약 이름}" 바로 뒤에 붙는다 (이름만 굵게 그리려고 나눠 두었다) -->
+    <string name="s09_body_tail">을 삭제하면 향후 복용 일정에서 사라집니다.</string>
+    <string name="s09_body_second">과거 복용 기록은 별도 스냅샷에 보존되고, 앞으로의 일정만 사라집니다.</string>
+    <string name="s09_btn_delete">삭제하기</string>
+    <string name="s09_btn_keep">계속 사용하기</string>
+    <string name="s09_toast_deleted">약을 삭제했어요.</string>
+
+    <!-- ===== S29 사진으로 약 등록 (시안) ===== -->
+    <string name="s29_title">사진으로 약 등록</string>
+    <string name="s29_subtitle">약 봉투·라벨 사진에서 정보를 추출하는 미래 기능입니다.</string>
+    <string name="s29_upload_title">약 봉투 사진 추가</string>
+    <string name="s29_upload_body">이미지를 선택해 업로드 과정을 구상할 수 있습니다.</string>
+    <string name="s29_file_none">선택한 파일 없음</string>
+    <string name="s29_file_picked">이미지 1개 선택됨</string>
+    <string name="s29_file_action">사진 선택</string>
+    <string name="s29_label_example">자동 추출 예시(실제 추출 아님)</string>
+    <string name="s29_example_fields">약 이름 · 복용량 · 시간 · 기간</string>
+    <string name="s29_example_warning">사용자가 원본 처방과 직접 대조해야 합니다.</string>
+    <string name="s29_toast_picked">이미지를 선택했습니다. 실제 문자 추출 기능은 없습니다.</string>
+
+    <!-- ===== S32 과거 기록 보존 ===== -->
+    <string name="s32_title">과거 기록 보존</string>
+    <string name="s32_subtitle">약 수정·삭제 후에도 과거 회차는 별도 스냅샷으로 남습니다.</string>
+    <string name="s32_count_label">보존된 과거 복용 회차</string>
+    <string name="s32_count">%1$d건</string>
+    <string name="s32_badge_sample">시연 데이터</string>
+    <string name="s32_section_dates">보존된 날짜</string>
+    <string name="s32_day_count">과거 회차 %1$d개</string>
+    <string name="s32_empty_title">보존된 기록이 없습니다</string>
+    <string name="s32_empty_body">약 복용 이력이 생성되면 표시됩니다.</string>
+    <!-- 프로토타입 원문의 둘째 문장("실제 Android에서는 … 테스트해야 합니다.")은 이 앱이 실제 앱이라 사실에 맞게 바꿨다 -->
+    <string name="s32_notice">이미 기록된 과거 회차의 약 이름·복용량·예약 시각을 기준 시점별로 보존하는 설계입니다. 약을 수정·삭제해도 지난 날짜의 기록과 이미 응답한 기록은 그때의 약 이름·복용량·시각 그대로 남습니다.</string>
+
+    <!-- ===== S33 일정 변경 적용 범위 ===== -->
+    <string name="s33_title">일정 변경 적용 범위</string>
+    <string name="s33_subtitle">이전 복약 기록은 보존하고 이후 일정을 변경합니다.</string>
+    <string name="s33_body">수정된 정보가 언제부터 적용될지 선택하세요.</string>
+    <string name="s33_scope_today_title">오늘 이후 회차에 적용</string>
+    <string name="s33_scope_today_desc">기존 과거 복용 기록은 유지</string>
+    <string name="s33_scope_tomorrow_title">내일부터 적용</string>
+    <!-- 프로토타입 원문 끝의 "(예정 정책)"은 실제로 구현한 정책이라 뺐다 -->
+    <string name="s33_scope_tomorrow_desc">오늘 일정은 이전 설정 유지</string>
+    <string name="s33_btn_save">적용 범위 확인 후 저장</string>
+    <!-- 프로토타입 원문("브라우저 내 데모 데이터만 변경합니다…")은 실제 앱에서 사실이 아니라 바꿨다 -->
+    <string name="s33_notice">ⓘ 이 기기 안의 데이터만 변경합니다. 서버·의료 정보 서비스와 연결되지 않습니다.</string>
+    <string name="s33_toast_saved">일정 변경을 저장했습니다. (과거 이력 보존)</string>
+
+    <!-- ===== S40 중복 약·회차 확인 ===== -->
+    <string name="s40_title">중복 약·회차 확인</string>
+    <string name="s40_subtitle">실수로 같은 약이나 같은 시간에 회차가 중복되지 않도록 확인합니다.</string>
+    <string name="s40_heading">중복 가능성이 있어요</string>
+    <!-- "등록하려는 {이름}과 이름이 같은 약이 N개 있어요." (이름만 굵게 그리려고 앞뒤로 나눠 두었다) -->
+    <string name="s40_body_head">"등록하려는 "</string>
+    <string name="s40_body_tail">과 이름이 같은 약이 %1$d개 있어요.</string>
+    <string name="s40_body_example">약 이름과 복용 시간이 중복되는 경우 보여주는 UI입니다.</string>
+    <string name="s40_btn_confirm">그대로 등록</string>
+    <string name="s40_btn_recheck">다시 확인</string>
+    <string name="s40_notice">약 이름 중복은 무조건 중복 처방이나 중복 투약을 뜻하지 않습니다. 입력 확인만 제공하며 의료 판단을 하지 않습니다.</string>
+    <string name="s40_toast_registered">중복 가능성을 확인하고 등록했습니다.</string>
+
+    <!-- ===== S42 처방 출처·진료과 ===== -->
+    <string name="s42_title">처방 출처 메모</string>
+    <string name="s42_subtitle">어느 병원에서 받은 약인지 개인 메모를 남길 수 있어요.</string>
+    <string name="s42_badge_optional">선택 기능</string>
+    <string name="s42_label_hospital">의료기관</string>
+    <string name="s42_hint_hospital">예: ○○병원</string>
+    <string name="s42_label_department">진료과</string>
+    <string name="s42_hint_department">예: 내과</string>
+    <string name="s42_label_memo">메모</string>
+    <string name="s42_hint_memo">추가 메모</string>
+    <string name="s42_btn_save">메모 저장</string>
+    <string name="s42_notice">처방 출처는 개인이 입력하는 메모이며, 처방전이나 의약품 데이터베이스 검증 기능은 아닙니다.</string>
+    <string name="s42_toast_saved">처방 출처 메모를 저장했습니다.</string>
 </resources>

@@ -17,14 +17,9 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /*
- * 날짜·시간·요일을 화면에 보여 줄 글자로 바꾸는 함수들.
- * 목록 화면과 수정 화면이 함께 쓴다.
+ * 예전 통계 화면(임시 S13)이 쓰는 날짜·요일 글자 함수와, 약 저장 오류의 문구 고르기.
+ * 새 화면의 날짜·요일 글자는 ui/components/McFormat.kt에 있다. (4단계에서 통계를 새로 만들면 위쪽 함수는 지운다)
  */
-
-private val WEEKDAYS = setOf(
-    DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY
-)
-private val WEEKEND = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
 private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -44,38 +39,12 @@ fun formatDate(date: LocalDate, locale: Locale): String =
 fun shortDayName(day: DayOfWeek, locale: Locale): String =
     day.getDisplayName(TextStyle.SHORT, locale)
 
-/** 요일 묶음을 한 줄로. "매일", "평일", "주말", 그 밖에는 "월, 수, 금" */
-@Composable
-fun daysSummary(days: Set<DayOfWeek>): String {
-    val locale = currentLocale()
-    return when (days) {
-        RepeatDays.EVERY_DAY -> stringResource(R.string.days_every_day)
-        WEEKDAYS -> stringResource(R.string.days_weekdays)
-        WEEKEND -> stringResource(R.string.days_weekends)
-        else -> RepeatDays.ALL.filter { it in days }.joinToString(", ") { shortDayName(it, locale) }
-    }
-}
-
-/** 복용 기간을 한 줄로. 종료일이 없으면 "11월 16일부터", 있으면 "시작일 ~ 종료일" */
-@Composable
-fun periodSummary(startDate: LocalDate, endDate: LocalDate?): String {
-    val locale = currentLocale()
-    return if (endDate == null) {
-        stringResource(R.string.period_from, formatDate(startDate, locale))
-    } else {
-        stringResource(R.string.period_range, formatDate(startDate, locale), formatDate(endDate, locale))
-    }
-}
-
-/** 오류 종류(MedicationError)에 맞는 문구를 strings.xml에서 고른다. */
+/** 오류 종류(MedicationError)에 맞는 토스트 문구를 strings.xml에서 고른다. (문구는 프로토타입 그대로) */
 @StringRes
 fun MedicationError.messageRes(): Int = when (this) {
-    MedicationError.NAME_INVALID -> R.string.error_med_name_invalid
-    MedicationError.DOSAGE_INVALID -> R.string.error_med_dosage_invalid
-    MedicationError.MEMO_TOO_LONG -> R.string.error_med_memo_too_long
-    MedicationError.END_BEFORE_START -> R.string.error_med_end_before_start
-    MedicationError.NO_SCHEDULE -> R.string.error_med_no_schedule
-    MedicationError.SCHEDULE_NO_DAYS -> R.string.error_med_schedule_no_days
-    MedicationError.SCHEDULE_DUPLICATE -> R.string.error_med_schedule_duplicate
+    MedicationError.NAME_DOSAGE_TIME_INVALID -> R.string.s08_toast_check_basic
+    MedicationError.NO_DAYS -> R.string.s08_toast_check_days
+    MedicationError.DATES_INVALID -> R.string.s08_toast_check_dates
+    MedicationError.DUPLICATE_TIME -> R.string.s08_toast_duplicate_time
     MedicationError.NOT_FOUND -> R.string.error_med_not_found
 }
