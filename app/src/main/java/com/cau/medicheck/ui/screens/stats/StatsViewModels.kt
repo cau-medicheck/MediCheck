@@ -54,7 +54,7 @@ class WeekStatsViewModel(
         fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                WeekStatsViewModel(userId, container.doseRepository)
+                WeekStatsViewModel(userId, container.doseRepository, container.clock)
             }
         }
     }
@@ -95,7 +95,7 @@ class MonthStatsViewModel(
         fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                MonthStatsViewModel(userId, container.doseRepository, container.selection)
+                MonthStatsViewModel(userId, container.doseRepository, container.selection, container.clock)
             }
         }
     }
@@ -127,7 +127,7 @@ class SkipPatternViewModel(
         fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                SkipPatternViewModel(userId, container.doseRepository)
+                SkipPatternViewModel(userId, container.doseRepository, container.clock)
             }
         }
     }

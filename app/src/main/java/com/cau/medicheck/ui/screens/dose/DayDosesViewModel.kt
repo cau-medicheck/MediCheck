@@ -168,7 +168,8 @@ class DayDosesViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 DayDosesViewModel(
-                    userId, container.doseRepository, container.selection, container.toastBus, container.appScope
+                    userId, container.doseRepository, container.selection, container.toastBus, container.appScope,
+                    clock = container.clock
                 )
             }
         }

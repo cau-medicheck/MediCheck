@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cau.medicheck.MediCheckApplication
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -48,6 +52,16 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route ?: Routes.S04
     val activeTab = McTab.entries.find { it.route == NavRules.tabRootOf(route) }
+
+    // 휴대폰 알림을 눌러 들어왔으면 그 회차의 상세 화면(S10)을 연다. 한 번 열고 나면 상자를 비운다.
+    val deepLinks = (LocalContext.current.applicationContext as MediCheckApplication).container.deepLinks
+    val pendingDose by deepLinks.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingDose) {
+        pendingDose?.let { key ->
+            deepLinks.clear()
+            go.open(Routes.s10(key))
+        }
+    }
 
     Column(
         modifier = Modifier

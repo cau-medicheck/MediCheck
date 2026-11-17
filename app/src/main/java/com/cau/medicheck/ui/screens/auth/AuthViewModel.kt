@@ -80,7 +80,9 @@ fun AuthUiState.afterSessionChecked(user: User?, onboardingSeen: Boolean): AuthU
 class AuthViewModel(
     private val authRepository: AuthRepository,
     private val appPrefs: AppPrefs,
-    private val toastBus: ToastBus
+    private val toastBus: ToastBus,
+    /** 로그인해 둔 사용자의 설정을 읽는 함수 (SettingsRepository.loadForCurrentUser) */
+    private val loadSettings: suspend () -> Unit = {}
 ) : ViewModel() {
 
     // _uiState는 이 클래스 안에서만 바꿀 수 있고, 화면에는 읽기 전용(uiState)으로 내보낸다.
@@ -91,6 +93,9 @@ class AuthViewModel(
         // 앱이 켜지면 이전에 로그인해 둔 사용자가 있는지, 온보딩을 본 적 있는지 확인한다.
         // viewModelScope.launch: suspend 함수(DB 작업)를 화면을 멈추지 않고 실행하는 방법.
         viewModelScope.launch {
+            // 로그인 뒤 화면을 그리기 전에 그 사람의 설정(시간대 정책 등)을 먼저 읽는다.
+            // 그래야 홈이 "오늘"을 처음부터 맞는 시간대로 계산한다.
+            loadSettings()
             val user = authRepository.currentUser()
             val seen = appPrefs.onboardingSeen()
             _uiState.update { it.afterSessionChecked(user, seen) }
@@ -210,7 +215,10 @@ class AuthViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as MediCheckApplication
-                AuthViewModel(app.container.authRepository, app.container.appPrefs, app.container.toastBus)
+                AuthViewModel(
+                    app.container.authRepository, app.container.appPrefs, app.container.toastBus,
+                    loadSettings = { app.container.settingsRepository.loadForCurrentUser() }
+                )
             }
         }
     }

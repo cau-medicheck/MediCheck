@@ -80,7 +80,7 @@ class MedicationListViewModel(
         fun factory(userId: Long, isSample: Boolean): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                MedicationListViewModel(userId, isSample, container.medicationRepository)
+                MedicationListViewModel(userId, isSample, container.medicationRepository, container.clock)
             }
         }
     }

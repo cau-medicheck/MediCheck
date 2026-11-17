@@ -2,6 +2,7 @@ package com.cau.medicheck.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.ui.theme.DayBtnBorder
@@ -34,15 +36,23 @@ import com.cau.medicheck.ui.theme.DayBtnText
 import com.cau.medicheck.ui.theme.FieldBorder
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.SettingDescText
+import com.cau.medicheck.ui.theme.SettingDivider
 import com.cau.medicheck.ui.theme.Teal
 import java.time.DayOfWeek
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.cau.medicheck.R
 import java.time.LocalTime
@@ -90,7 +100,9 @@ fun ToggleRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    /** 줄 위아래 안쪽 여백. 이 여백까지 눌리는 영역에 들어간다 (48dp 이상의 터치 영역을 만들 때 쓴다). */
+    verticalPadding: Dp = 0.dp
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -98,6 +110,7 @@ fun ToggleRow(
             .fillMaxWidth()
             // toggleable: 줄 전체가 스위치 하나로 동작한다. TalkBack은 "일시중지, 스위치, 꺼짐"처럼 읽는다.
             .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(vertical = verticalPadding)
     ) {
         Column(Modifier.weight(1f)) {
             Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Navy)
@@ -125,7 +138,9 @@ fun RadioRow(
     description: String,
     selected: Boolean,
     onSelect: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** 설명 아래에 덧붙일 한 줄 (예: "등록한 시간대: Asia/Seoul (UTC+09:00)") */
+    extra: String? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -153,6 +168,75 @@ fun RadioRow(
                 color = SettingDescText,
                 modifier = Modifier.padding(top = 4.dp)
             )
+            if (extra != null) {
+                Text(text = extra, fontSize = 11.sp, lineHeight = 16.sp, color = Teal, modifier = Modifier.padding(top = 3.dp))
+            }
+        }
+    }
+}
+
+/**
+ * 설정 화면의 한 줄: 제목 + 설명 + 오른쪽에 붙일 것(배지 등). (v3 .settingrow)
+ * @param onClick 있으면 줄 전체를 누를 수 있고, 오른쪽 끝에 "›"를 그린다
+ */
+@Composable
+fun SettingRow(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    showDivider: Boolean = true,
+    trailing: @Composable () -> Unit = {}
+) {
+    Column(modifier.then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Navy)
+                Text(
+                    text = description,
+                    fontSize = 11.sp,
+                    lineHeight = 16.sp,
+                    color = SettingDescText,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            trailing()
+            if (onClick != null) {
+                // "›"는 장식이라 TalkBack이 읽지 않게 한다.
+                Text("›", fontSize = 16.sp, color = SettingDescText, modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics { })
+            }
+        }
+        if (showDivider) HorizontalDivider(thickness = 1.dp, color = SettingDivider)
+    }
+}
+
+/**
+ * 몇 개 중 하나를 고르는 칸. 누르면 아래로 목록이 펼쳐진다. (v3 select)
+ * @param options 고를 수 있는 값들
+ * @param label 값 → 화면에 보일 글자
+ */
+@Composable
+fun <T> McSelectField(
+    selected: T,
+    options: List<T>,
+    label: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier) {
+        PickerField(text = label(selected), onClick = { expanded = true }, trailing = "▾")
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(label(option), fontSize = 13.sp, color = Navy) },
+                    onClick = {
+                        expanded = false
+                        onSelect(option)
+                    }
+                )
+            }
         }
     }
 }

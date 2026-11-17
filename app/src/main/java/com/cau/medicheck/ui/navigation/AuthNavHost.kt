@@ -3,6 +3,9 @@ package com.cau.medicheck.ui.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.cau.medicheck.MediCheckApplication
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -23,6 +26,12 @@ import com.cau.medicheck.ui.screens.auth.AuthViewModel
 fun AuthNavHost(startRoute: String, vm: AuthViewModel) {
     val nav = rememberNavController()
     val go = remember(nav) { AppNavigator(nav) }
+
+    // 로그인 전에 알림을 눌러 받아 둔 회차는 버린다 (로그인한 뒤 엉뚱한 회차가 열리지 않게).
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        (context.applicationContext as MediCheckApplication).container.deepLinks.clear()
+    }
 
     NavHost(
         navController = nav,

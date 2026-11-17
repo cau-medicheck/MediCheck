@@ -98,7 +98,7 @@ class RecordsCalendarViewModel(
         fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                RecordsCalendarViewModel(userId, container.doseRepository, container.selection)
+                RecordsCalendarViewModel(userId, container.doseRepository, container.selection, container.clock)
             }
         }
     }
@@ -182,7 +182,8 @@ class CsvExportViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 CsvExportViewModel(
-                    userId, container.doseRepository, container.csvFileWriter, container.toastBus, container.appScope
+                    userId, container.doseRepository, container.csvFileWriter, container.toastBus, container.appScope,
+                    clock = container.clock
                 )
             }
         }
