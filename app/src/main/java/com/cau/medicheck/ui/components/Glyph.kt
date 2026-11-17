@@ -34,4 +34,7 @@ object Glyph {
     const val EMPTY_CIRCLE = "○"          // S31 회차 없음
     const val BELL_OFF = "🔕"             // 알림 꺼짐 카드
     const val PLACEHOLDER = "🛠️"         // 임시 화면 "준비 중"
+    const val NOT_FOUND = "📋"            // 약을 찾지 못함 (S07·S08)
+    const val WARNING = "⚠️"              // 삭제 확인(S09) · 중복 확인(S40)
+    const val UPLOAD = "▧"                // 사진 올리기 상자 (S29)
 }

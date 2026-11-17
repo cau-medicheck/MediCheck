@@ -1,6 +1,7 @@
 package com.cau.medicheck.ui.navigation
 
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 
 /**
@@ -65,4 +66,12 @@ class AppNavigator(private val nav: NavHostController) {
     fun openOrReturn(pattern: String) {
         if (!nav.popBackStack(pattern, inclusive = false)) open(pattern)
     }
+
+    /**
+     * 뒤로 가기 기록에 그 화면이 있으면 그 항목을, 없으면 null을 돌려준다.
+     * 적용 범위(S33)·중복 확인(S40)이 약 등록 화면(S08)의 ViewModel을 함께 쓰려고 S08 항목을 꺼낼 때 쓴다.
+     * (화면 항목 = 그 화면의 ViewModel을 맡아 두는 주인)
+     */
+    fun entryOrNull(pattern: String): NavBackStackEntry? =
+        runCatching { nav.getBackStackEntry(pattern) }.getOrNull()
 }

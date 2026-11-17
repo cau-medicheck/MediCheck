@@ -28,10 +28,10 @@ import com.cau.medicheck.ui.navigation.graph.mainGraph
 import com.cau.medicheck.ui.theme.ScreenBackground
 
 /**
- * 3단계·4단계에서 새로 만들기 전까지 예전 화면을 임시로 연결해 둔 곳.
- * 이 화면들은 자기 머리말(TopAppBar)을 직접 그리므로 틀의 머리말을 겹쳐 그리지 않는다.
+ * 4단계에서 새로 만들기 전까지 예전 화면을 임시로 연결해 둔 곳(통계).
+ * 이 화면은 자기 머리말(TopAppBar)을 직접 그리므로 틀의 머리말을 겹쳐 그리지 않는다.
  */
-private val LEGACY_SCREENS = setOf("S06", "S08", "S13")
+private val LEGACY_SCREENS = setOf("S13")
 
 /**
  * 로그인한 뒤의 화면 틀. (구현 명세 00 §1, 02 "공통 틀")
@@ -55,8 +55,6 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
     val route = entry?.destination?.route ?: Routes.S04
     val screenId = NavRules.screenIdOf(route)
     val activeTab = McTab.entries.find { it.route == NavRules.tabRootOf(route) }
-    // 예전 약 등록·수정 화면(임시 S08)은 탭을 숨긴다. 3단계에서 새 S08로 바뀌면 이 조건을 없앤다.
-    val showBottomBar = screenId != "S08"
 
     Column(
         modifier = Modifier
@@ -79,13 +77,7 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .then(
-                    if (showBottomBar) {
-                        Modifier.consumeWindowInsets(
-                            WindowInsets.navigationBars.add(WindowInsets(bottom = McBottomBarHeight))
-                        )
-                    } else Modifier
-                )
+                .consumeWindowInsets(WindowInsets.navigationBars.add(WindowInsets(bottom = McBottomBarHeight)))
         ) {
             NavHost(
                 navController = nav,
@@ -99,8 +91,6 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
                 mainGraph(user, go, onLogout)
             }
         }
-        if (showBottomBar) {
-            McBottomBar(active = activeTab, onTab = { tab -> go.openTab(tab.route) })
-        }
+        McBottomBar(active = activeTab, onTab = { tab -> go.openTab(tab.route) })
     }
 }

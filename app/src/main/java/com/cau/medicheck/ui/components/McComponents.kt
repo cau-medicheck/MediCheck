@@ -562,12 +562,13 @@ fun SegmentedTabs(
  * M3 Switch(52×32dp)는 v3보다 크고, 켤 때 손잡이가 커지는 움직임이 있어서다.
  * 움직임 최소화(LocalReduceMotion)가 켜져 있으면 손잡이가 움직이지 않고 바로 옮겨진다.
  *
+ * @param onCheckedChange 눌렀을 때 부를 함수. null이면 누를 수 없는 그림으로만 그린다
  * @param contentDescription TalkBack이 읽을 이름 (예: "일시중지")
  */
 @Composable
 fun McSwitch(
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     contentDescription: String? = null
 ) {
@@ -583,7 +584,13 @@ fun McSwitch(
             .size(width = 43.dp, height = 25.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(if (checked) SwitchOn else SwitchOff)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            // onCheckedChange가 null이면 그림만 그린다(터치를 받지 않는다). 줄 전체가 스위치 역할을 하는
+            // ToggleRow 안에서 그렇게 쓴다 — 여기서 터치를 받으면 줄의 클릭이 스위치 위에서만 먹히지 않는다.
+            .then(
+                if (onCheckedChange != null) {
+                    Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+                } else Modifier
+            )
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
     ) {
         Box(

@@ -1,5 +1,6 @@
 package com.cau.medicheck.data.repository
 
+import com.cau.medicheck.data.local.DateCount
 import com.cau.medicheck.data.local.DoseRecord
 import com.cau.medicheck.data.local.DoseRecordDao
 import com.cau.medicheck.data.local.DoseRecordRow
@@ -106,9 +107,9 @@ internal class FakeMedicationDao : MedicationDao {
     override suspend fun findById(id: Long): Medication? = medications.value.find { it.id == id }
 
     override fun observeActive(userId: Long): Flow<List<Medication>> =
-        // 진짜 조회문의 ORDER BY name COLLATE NOCASE(대소문자 무시 이름 순)를 흉내 낸다.
+        // 진짜 조회문의 ORDER BY id(등록한 순서)를 흉내 낸다.
         medications.map { list ->
-            list.filter { it.userId == userId && it.deletedAt == null }.sortedBy { it.name.lowercase() }
+            list.filter { it.userId == userId && it.deletedAt == null }.sortedBy { it.id }
         }
 
     override suspend fun findActive(userId: Long): List<Medication> =
@@ -125,6 +126,25 @@ internal class FakeMedicationDao : MedicationDao {
                 if (it.id == medicationId && it.userId == userId && it.deletedAt == null) {
                     changed++
                     it.copy(pausedFrom = date)
+                } else it
+            }
+        }
+        return changed
+    }
+
+    override suspend fun updateSource(
+        userId: Long,
+        medicationId: Long,
+        hospital: String?,
+        department: String?,
+        sourceMemo: String?
+    ): Int {
+        var changed = 0
+        medications.update { list ->
+            list.map {
+                if (it.id == medicationId && it.userId == userId && it.deletedAt == null) {
+                    changed++
+                    it.copy(hospital = hospital, department = department, sourceMemo = sourceMemo)
                 } else it
             }
         }
@@ -273,6 +293,22 @@ internal class FakeDoseRecordDao(
 
     override fun observeOwnedRowByKey(userId: Long, scheduleId: Long, date: String): Flow<DoseRecordRow?> =
         observeRange(userId, date, date).map { rows -> rows.find { it.scheduleId == scheduleId } }
+
+    /** 한 사용자의, 오늘보다 앞선 날짜의 기록들 (삭제한 약의 기록 포함) */
+    private fun pastRecords(list: List<DoseRecord>, userId: Long, today: String): List<DoseRecord> =
+        list.filter { medicationOf(it)?.userId == userId && it.date < today }
+
+    override fun observePastRecordCount(userId: Long, today: String): Flow<Int> =
+        records.map { pastRecords(it, userId, today).size }
+
+    override fun observeRecentPastDates(userId: Long, today: String, limit: Int): Flow<List<DateCount>> =
+        records.map { list ->
+            pastRecords(list, userId, today)
+                .groupBy { it.date }
+                .map { (date, sameDay) -> DateCount(date, sameDay.size) }
+                .sortedByDescending { it.date }
+                .take(limit)
+        }
 
     override suspend fun findOwned(userId: Long, recordId: Long): DoseRecord? =
         records.value.find { it.id == recordId && isMine(it, userId) }

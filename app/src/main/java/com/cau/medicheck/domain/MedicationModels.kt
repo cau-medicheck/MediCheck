@@ -31,7 +31,11 @@ data class MedicationDetail(
     val memo: String,
     val schedules: List<ScheduleItem>,
     /** 일시중지를 시작한 날. 중지 중이 아니면 null */
-    val pausedFrom: LocalDate? = null
+    val pausedFrom: LocalDate? = null,
+    /** 처방 출처 메모(S42): 의료기관 · 진료과 · 추가 메모. 없으면 "" */
+    val hospital: String = "",
+    val department: String = "",
+    val sourceMemo: String = ""
 )
 
 /**
@@ -54,14 +58,22 @@ data class MedicationDraft(
     val schedules: List<ScheduleDraft>
 )
 
-/** 약 저장·삭제가 실패하는 이유의 목록. 화면이 이 값에 맞는 문구를 고른다. */
+/**
+ * 약 저장·삭제가 실패하는 이유의 목록. 화면이 이 값에 맞는 문구를 고른다.
+ * 묶음은 프로토타입의 안내 문구 네 가지에 맞췄다 (검사 순서도 이 순서다).
+ */
 enum class MedicationError {
-    NAME_INVALID,            // 이름이 비었거나 너무 김
-    DOSAGE_INVALID,          // 복용량이 비었거나 너무 김
-    MEMO_TOO_LONG,           // 메모가 너무 김
-    END_BEFORE_START,        // 종료일이 시작일보다 앞
-    NO_SCHEDULE,             // 복용 시간이 하나도 없음
-    SCHEDULE_NO_DAYS,        // 요일을 하나도 고르지 않은 복용 시간이 있음
-    SCHEDULE_DUPLICATE,      // 같은 시간·같은 요일이 겹치는 복용 시간이 있음
-    NOT_FOUND                // 약이 없거나 내 약이 아님
+    NAME_DOSAGE_TIME_INVALID,  // ① 이름·복용량이 비었거나 너무 김, 복용 시간이 하나도 없음
+    NO_DAYS,                   // ② 반복 요일이 하나도 없음
+    DATES_INVALID,             // ③ 종료일이 시작일보다 앞
+    DUPLICATE_TIME,            // ④ 같은 요일에 같은 시각이 두 번
+    NOT_FOUND                  // 약이 없거나 내 약이 아님
 }
+
+/**
+ * 약을 수정할 때 "언제부터 적용할지" (S33 일정 변경 적용 범위).
+ *   FROM_TODAY    : 오늘 이후 회차에 적용. 오늘 아직 시각 전인 회차도 새 설정으로 바뀐다.
+ *   FROM_TOMORROW : 내일부터 적용. 오늘 회차는 옛 설정 그대로 둔다.
+ * 어느 쪽이든 지난 날짜의 기록과 이미 응답한 기록은 바뀌지 않는다.
+ */
+enum class ApplyScope { FROM_TODAY, FROM_TOMORROW }

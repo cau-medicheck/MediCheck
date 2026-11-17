@@ -64,6 +64,28 @@ interface DoseRecordDao {
     )
     fun observeOwnedRowByKey(userId: Long, scheduleId: Long, date: String): Flow<DoseRecordRow?>
 
+    /**
+     * 오늘보다 앞선 날짜의 내 기록 수. (S32 "보존된 과거 복용 회차")
+     * 삭제한 약의 기록도 센다. 상태(완료·건너뜀·미기록)와 상관없이 모두 센다.
+     */
+    @Query(
+        "SELECT COUNT(*) FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND r.date < :today"
+    )
+    fun observePastRecordCount(userId: Long, today: String): Flow<Int>
+
+    /** 오늘보다 앞선 날짜 중 최근 [limit]개 날짜와, 날짜마다의 기록 수. 최신 날짜부터. (S32 "보존된 날짜") */
+    @Query(
+        "SELECT r.date AS date, COUNT(*) AS count FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND r.date < :today " +
+            "GROUP BY r.date ORDER BY r.date DESC LIMIT :limit"
+    )
+    fun observeRecentPastDates(userId: Long, today: String, limit: Int): Flow<List<DateCount>>
+
     /** 기록 하나를 번호로 찾되, 그 기록이 이 사용자의 것일 때만 돌려준다. */
     @Query(
         "SELECT r.* FROM dose_records r " +

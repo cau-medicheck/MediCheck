@@ -19,10 +19,14 @@ object Routes {
     const val S05 = "S05"   // 일정/캘린더
     const val S06 = "S06"   // 내 약 목록
     const val S11 = "S11"   // 기록 캘린더
+    const val S12 = "S12"   // 날짜별 기록 (4단계)
     const val S13 = "S13"   // 주간 통계
     const val S16 = "S16"   // 알림 센터
     const val S19 = "S19"   // 설정 허브
+    const val S29 = "S29"   // 사진으로 약 등록 (시안)
     const val S30 = "S30"   // 복용 변경 이력
+    const val S32 = "S32"   // 과거 기록 보존
+    const val S40 = "S40"   // 중복 약·회차 확인
     const val S34 = "S34"   // 알림 거절/오류 안내
 
     // ----- 인자가 붙는 화면 -----
@@ -33,10 +37,19 @@ object Routes {
     /** 인자가 없다는 뜻으로 쓰는 값 (주소에는 null을 넣을 수 없어서 -1을 약속으로 쓴다) */
     const val NO_ID = -1L
 
+    const val S07 = "S07?$ARG_MED_ID={$ARG_MED_ID}"                                   // 약 상세
     const val S08 = "S08?$ARG_MED_ID={$ARG_MED_ID}"                                   // 약 등록/수정
+    const val S09 = "S09?$ARG_MED_ID={$ARG_MED_ID}"                                   // 삭제 확인
+    const val S33 = "S33?$ARG_MED_ID={$ARG_MED_ID}"                                   // 일정 변경 적용 범위
+    const val S42 = "S42?$ARG_MED_ID={$ARG_MED_ID}"                                   // 처방 출처·진료과
     const val S10 = "S10?$ARG_SCHEDULE_ID={$ARG_SCHEDULE_ID}&$ARG_DATE={$ARG_DATE}"   // 회차 상세/상태
     const val S31 = "S31?$ARG_SCHEDULE_ID={$ARG_SCHEDULE_ID}&$ARG_DATE={$ARG_DATE}"   // 실제 복용 시각 기록
 
+    /** 약 상세의 주소. 예: "S07?medId=3" */
+    fun s07(medId: Long): String = "S07?$ARG_MED_ID=$medId"
+    fun s09(medId: Long): String = "S09?$ARG_MED_ID=$medId"
+    fun s33(medId: Long): String = "S33?$ARG_MED_ID=$medId"
+    fun s42(medId: Long): String = "S42?$ARG_MED_ID=$medId"
     /** 새 약 등록 화면의 주소 */
     fun s08New(): String = "S08"
     /** 약 수정 화면의 주소 */

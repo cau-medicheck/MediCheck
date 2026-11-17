@@ -1,5 +1,6 @@
 package com.cau.medicheck.data.repository
 
+import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
 import com.cau.medicheck.domain.RepeatDays
@@ -113,7 +114,7 @@ class MedicationRepositoryTest {
     fun `규칙에 맞지 않는 입력은 저장하지 않는다`() = runBlocking<Unit> {
         val result = repository.addMedication(me, draft(schedules = emptyList()))
 
-        assertEquals(MedicationResult.Failure(MedicationError.NO_SCHEDULE), result)
+        assertEquals(MedicationResult.Failure(MedicationError.NAME_DOSAGE_TIME_INVALID), result)
         assertTrue(medicationDao.medications.value.isEmpty())
     }
 
@@ -525,5 +526,195 @@ class MedicationRepositoryTest {
 
         assertEquals(UndoResult.NOTHING, doseRepository.undoLast(me, eveningKey))
         assertTrue(eventDao.events.value.all { it.doseRecordId == null })
+    }
+
+    // ---------- 적용 범위 (S33): 오늘 이후 / 내일부터 ----------
+
+    @Test
+    fun `내일부터 적용하면 오늘 기록은 옛 시각과 옛 이름 그대로이고 바뀐 줄은 내일부터다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+
+        // 지금은 10:00. 저녁 20:00 → 21:00, 이름도 바꿔 "내일부터 적용"
+        repository.updateMedication(
+            me, id,
+            draft(
+                name = "타이레놀 500",
+                schedules = listOf(
+                    ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                    ScheduleDraft(savedEvening.id, LocalTime.of(21, 0), savedEvening.days)
+                )
+            ),
+            ApplyScope.FROM_TOMORROW
+        )
+
+        val evening = doseRecordDao.records.value.single { it.scheduleId == savedEvening.id }
+        assertEquals("20:00", evening.scheduledTime)
+        assertEquals("타이레놀", evening.medicationName)
+        assertEquals("2026-11-17", scheduleDao.schedules.value.single { it.id == savedEvening.id }.effectiveFrom)
+        // 손대지 않은 아침 줄에는 적용 시작일을 적지 않는다
+        assertNull(scheduleDao.schedules.value.single { it.id == savedMorning.id }.effectiveFrom)
+    }
+
+    @Test
+    fun `오늘 이후로 적용하면 아직 시각 전인 오늘 기록이 새 시각과 새 이름으로 바뀐다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+
+        repository.updateMedication(
+            me, id,
+            draft(
+                name = "타이레놀 500",
+                schedules = listOf(
+                    ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                    ScheduleDraft(savedEvening.id, LocalTime.of(21, 0), savedEvening.days)
+                )
+            ),
+            ApplyScope.FROM_TODAY
+        )
+
+        val records = doseRecordDao.records.value
+        // 저녁(아직 시각 전)은 새 시각·새 이름, 아침(이미 지남)은 옛 이름 그대로
+        assertEquals("21:00" to "타이레놀 500", records.single { it.scheduleId == savedEvening.id }.let { it.scheduledTime to it.medicationName })
+        assertEquals("타이레놀", records.single { it.scheduleId == savedMorning.id }.medicationName)
+    }
+
+    @Test
+    fun `내일부터 적용으로 더한 새 시간은 오늘 기록을 만들지 않는다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val saved = savedDrafts(id)
+
+        repository.updateMedication(
+            me, id,
+            draft(schedules = saved + ScheduleDraft(time = LocalTime.of(22, 0), days = RepeatDays.EVERY_DAY)),
+            ApplyScope.FROM_TOMORROW
+        )
+
+        assertTrue(doseRecordDao.records.value.none { it.scheduledTime == "22:00" })
+        assertEquals("2026-11-17", scheduleDao.schedules.value.single { it.time == "22:00" }.effectiveFrom)
+    }
+
+    @Test
+    fun `미래였던 시작일을 지난 날짜로 당겨도 지난 날짜와 지난 시각의 기록은 생기지 않는다`() = runBlocking<Unit> {
+        // 다음 주에 시작하는 약: 아직 기록이 없다
+        val id = (repository.addMedication(me, draft(startDate = today.plusDays(7))) as MedicationResult.Success).medicationId
+        assertTrue(doseRecordDao.records.value.isEmpty())
+
+        // 시작일을 사흘 전으로 당겨 "오늘 이후 회차에 적용" (지금은 10:00)
+        repository.updateMedication(me, id, draft(startDate = today.minusDays(3), schedules = savedDrafts(id)))
+
+        // 지난 날짜도, 이미 지난 아침 08:00도 생기지 않고, 아직인 저녁 20:00만 생긴다
+        assertEquals(listOf(today.toString() to "20:00"), doseRecordDao.records.value.map { it.date to it.scheduledTime })
+    }
+
+    @Test
+    fun `미래였던 시작일을 당기면서 내일부터 적용하면 오늘 기록은 생기지 않는다`() = runBlocking<Unit> {
+        val id = (repository.addMedication(me, draft(startDate = today.plusDays(7))) as MedicationResult.Success).medicationId
+
+        repository.updateMedication(
+            me, id, draft(startDate = today.minusDays(3), schedules = savedDrafts(id)), ApplyScope.FROM_TOMORROW
+        )
+
+        assertTrue(doseRecordDao.records.value.isEmpty())
+        assertTrue(scheduleDao.schedules.value.all { it.effectiveFrom == "2026-11-17" })
+    }
+
+    // ---------- 일시중지 · 재개 (S07) ----------
+
+    @Test
+    fun `일시중지하면 오늘 시각 전인 미기록만 지워지고 지난 것은 남는다`() = runBlocking<Unit> {
+        val id = addTylenol()
+
+        val result = repository.setPaused(me, id, paused = true)
+
+        assertEquals(MedicationResult.Success(id), result)
+        assertEquals(today.toString(), medicationDao.medications.value.single().pausedFrom)
+        // 아침 08:00(이미 지남)은 남고 저녁 20:00(아직)은 지워진다
+        assertEquals(listOf("08:00"), doseRecordDao.records.value.map { it.scheduledTime })
+    }
+
+    @Test
+    fun `일시중지한 동안에는 날짜가 지나도 기록이 생기지 않고 재개하면 그날부터 다시 생긴다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        repository.setPaused(me, id, paused = true)
+
+        // 이틀 뒤(11/18 수요일 10:00)의 시계로 본다
+        val later = Clock.fixed(Instant.parse("2026-11-18T10:00:00Z"), ZoneOffset.UTC)
+        val laterGenerator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, later)
+        val laterRepository = MedicationRepository(
+            medicationDao = medicationDao, scheduleDao = scheduleDao, transaction = FakeTransactionRunner(),
+            doseRecordGenerator = laterGenerator, now = { 6_000L }, clock = later
+        )
+        laterGenerator.generateForUser(me)
+        assertTrue(doseRecordDao.records.value.none { it.date > today.toString() })
+
+        laterRepository.setPaused(me, id, paused = false)
+
+        assertNull(medicationDao.medications.value.single().pausedFrom)
+        assertTrue(scheduleDao.schedules.value.all { it.effectiveFrom == "2026-11-18" })
+        // 재개한 날(18일) 치만 생기고, 중지했던 17일은 비어 있다
+        val after = doseRecordDao.records.value.filter { it.date > today.toString() }
+        assertEquals(setOf("2026-11-18"), after.map { it.date }.toSet())
+        assertEquals(2, after.size)
+    }
+
+    @Test
+    fun `이미 그 상태인 일시중지는 아무것도 바꾸지 않고 남의 약은 중지할 수 없다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val before = doseRecordDao.records.value
+
+        assertEquals(MedicationResult.Success(id), repository.setPaused(me, id, paused = false))
+        assertEquals(before, doseRecordDao.records.value)
+        assertEquals(
+            MedicationResult.Failure(MedicationError.NOT_FOUND),
+            repository.setPaused(someoneElse, id, paused = true)
+        )
+        assertNull(medicationDao.medications.value.single().pausedFrom)
+    }
+
+    // ---------- 처방 출처 (S42) · 같은 이름 찾기 (S40) ----------
+
+    @Test
+    fun `처방 출처는 앞뒤 공백을 지우고 빈 값은 null로 저장하며 기록과 규칙은 그대로다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val recordsBefore = doseRecordDao.records.value
+        val schedulesBefore = scheduleDao.schedules.value
+
+        repository.updateSource(me, id, hospital = "  ABC Clinic ", department = "   ", sourceMemo = "3개월마다")
+
+        val saved = medicationDao.medications.value.single()
+        assertEquals("ABC Clinic", saved.hospital)
+        assertNull(saved.department)
+        assertEquals("3개월마다", saved.sourceMemo)
+        assertEquals(recordsBefore, doseRecordDao.records.value)
+        assertEquals(schedulesBefore, scheduleDao.schedules.value)
+        // 읽을 때는 빈 값이 ""로 나온다
+        assertEquals("ABC Clinic" to "", repository.getMedication(me, id)!!.let { it.hospital to it.department })
+    }
+
+    @Test
+    fun `남의 약에는 처방 출처를 저장할 수 없다`() = runBlocking<Unit> {
+        val id = addTylenol()
+
+        val result = repository.updateSource(someoneElse, id, "병원", "내과", "")
+
+        assertEquals(MedicationResult.Failure(MedicationError.NOT_FOUND), result)
+        assertNull(medicationDao.medications.value.single().hospital)
+    }
+
+    @Test
+    fun `같은 이름 찾기는 공백과 대소문자를 무시하고 삭제한 약과 남의 약은 뺀다`() = runBlocking<Unit> {
+        val vitamin = (repository.addMedication(me, draft(name = "Vitamin D")) as MedicationResult.Success).medicationId
+        val paused = (repository.addMedication(me, draft(name = "vitamin d")) as MedicationResult.Success).medicationId
+        val deleted = (repository.addMedication(me, draft(name = "VITAMIN D")) as MedicationResult.Success).medicationId
+        repository.addMedication(me, draft(name = "Vitamin C"))
+        repository.addMedication(someoneElse, draft(name = "Vitamin D"))
+        repository.setPaused(me, paused, paused = true)
+        repository.deleteMedication(me, deleted)
+
+        val same = repository.findSameName(me, "  vitamin D ")
+
+        // 일시중지한 약은 포함, 삭제한 약·남의 약·다른 이름은 제외. 등록한 순서로 나온다.
+        assertEquals(listOf(vitamin, paused), same.map { it.id })
     }
 }

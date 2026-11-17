@@ -36,7 +36,7 @@ interface MedicationDao {
     @Query(
         "SELECT * FROM medications " +
             "WHERE user_id = :userId AND deleted_at IS NULL " +
-            "ORDER BY name COLLATE NOCASE"
+            "ORDER BY id"   // 등록한 순서 (프로토타입의 목록 순서)
     )
     fun observeActive(userId: Long): Flow<List<Medication>>
 
@@ -59,6 +59,23 @@ interface MedicationDao {
             "WHERE id = :medicationId AND user_id = :userId AND deleted_at IS NULL"
     )
     suspend fun setPausedFrom(userId: Long, medicationId: Long, date: String?): Int
+
+    /**
+     * 처방 출처 메모(의료기관·진료과·추가 메모)를 고친다. (S42)
+     * 일정과 상관없는 정보라 이 세 칸만 바꾼다.
+     * @return 바뀐 줄 수 (내 약이 아니거나 삭제된 약이면 0)
+     */
+    @Query(
+        "UPDATE medications SET hospital = :hospital, department = :department, source_memo = :sourceMemo " +
+            "WHERE id = :medicationId AND user_id = :userId AND deleted_at IS NULL"
+    )
+    suspend fun updateSource(
+        userId: Long,
+        medicationId: Long,
+        hospital: String?,
+        department: String?,
+        sourceMemo: String?
+    ): Int
 
     /**
      * 한 사용자의 약 줄을 모두 지운다(물리 삭제). 샘플 계정 다시 만들기에서만 쓴다.

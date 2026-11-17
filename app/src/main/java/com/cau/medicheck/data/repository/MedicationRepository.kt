@@ -5,6 +5,7 @@ import com.cau.medicheck.data.local.MedicationDao
 import com.cau.medicheck.data.local.Schedule
 import com.cau.medicheck.data.local.ScheduleDao
 import com.cau.medicheck.data.local.TransactionRunner
+import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
@@ -40,7 +41,7 @@ sealed interface MedicationResult {
  *     새 규칙으로 다시 만든다 (DoseRecordGenerator.reconcileUpcomingToday).
  *   - 수정 때 시각·요일이 바뀐 줄과 새로 더한 줄에는 적용 시작일(effective_from)을 적는다.
  *     그래서 지난 날짜가 새 설정으로 거슬러 채워지지 않는다.
- *     (지금 앱의 수정은 "오늘부터 적용"이다. "내일부터 적용"을 고르는 화면 S33은 3단계)
+ *     (언제부터 적용할지는 S33에서 고른다: 오늘 이후 / 내일부터 — ApplyScope)
  *
  * @param clock "오늘"과 "지금 시각"을 알려 주는 시계. 테스트에서는 멈춘 시계를 넣는다.
  * @param onChanged 약이 등록·수정·삭제된 뒤에 부를 함수. 앱에서는 "알림을 다시 예약하라"가 들어온다.
@@ -125,29 +126,39 @@ class MedicationRepository(
      * 적용일("오늘 시각 규칙"): 그 줄의 새 시각이 지금보다 뒤면 오늘, 이미 지났으면 내일.
      * 저장하자마자 '기한 경과'가 되는 회차가 생기지 않게 하기 위해서다.
      *
+     * [scope]가 FROM_TOMORROW("내일부터 적용")이면 적용일은 언제나 내일이고, 오늘 치 기록은 건드리지 않는다.
+     *
      * 종료일: 끝난 약의 종료일을 늘리면 규칙 줄의 적용 시작일을 적용일까지 올리고(끝나 있던 날을 채우지 않게),
      * 종료일을 앞으로 당기면 새 종료일 뒤의 미기록을 지운다 (DB_DESIGN ⑤·⑧).
      */
     suspend fun updateMedication(
         userId: Long,
         medicationId: Long,
-        draft: MedicationDraft
+        draft: MedicationDraft,
+        scope: ApplyScope = ApplyScope.FROM_TODAY
     ): MedicationResult {
         MedicationValidator.validate(draft)?.let { return MedicationResult.Failure(it) }
-        val existing = findOwned(userId, medicationId)
+        val found = findOwned(userId, medicationId)
             ?: return MedicationResult.Failure(MedicationError.NOT_FOUND)
 
         val changedAt = now()
         val today = LocalDate.now(clock)
         val nowTime = LocalTime.now(clock).format(TIME_FORMAT)
-        val updated = existing.copy(
-            name = draft.name.trim(),
-            dosage = draft.dosage.trim(),
-            startDate = draft.startDate.toString(),
-            endDate = draft.endDate?.toString(),
-            memo = draft.memo.trim().ifEmpty { null }
-        )
+        // 줄 하나의 적용일. "내일부터 적용"이면 언제나 내일, "오늘 이후"면 오늘 시각 규칙(아직이면 오늘, 지났으면 내일).
+        fun applyDateOf(time: String): String =
+            if (scope == ApplyScope.FROM_TOMORROW) today.plusDays(1).toString()
+            else applyDate(time, today, nowTime).toString()
         transaction.run {
+            // 트랜잭션 안에서 약을 다시 읽는다. 밖에서 읽은 값으로 줄 전체를 덮어쓰면, 그 사이에 저장된
+            // 일시중지·처방 출처가 옛 값으로 되돌아갈 수 있다.
+            val existing = findOwned(userId, medicationId) ?: found
+            val updated = existing.copy(
+                name = draft.name.trim(),
+                dosage = draft.dosage.trim(),
+                startDate = draft.startDate.toString(),
+                endDate = draft.endDate?.toString(),
+                memo = draft.memo.trim().ifEmpty { null }
+            )
             // 바꾸기 전에, 지금까지의 규칙으로 오늘까지의 기록을 먼저 채워 둔다.
             doseRecordGenerator.generateForMedication(existing)
 
@@ -168,10 +179,12 @@ class MedicationRepository(
                             savedSchedule.copy(
                                 time = newTime,
                                 repeatDays = newDays,
-                                effectiveFrom = applyDate(newTime, today, nowTime).toString()
+                                effectiveFrom = applyDateOf(newTime)
                             )
                         )
-                    } else if (savedSchedule.effectiveFrom != null && savedSchedule.effectiveFrom > today.toString()) {
+                    } else if (scope == ApplyScope.FROM_TODAY &&
+                        savedSchedule.effectiveFrom != null && savedSchedule.effectiveFrom > today.toString()
+                    ) {
                         // 같은 날 앞서 "내일부터"로 바꿔 둔 줄을 "오늘부터"로 다시 저장한 경우.
                         // 무조건 오늘로 내리면 안 된다: 시각이 이미 지난 줄을 오늘로 내리면 오늘 기록이 새로 생기자마자
                         // '기한 경과'가 된다(오늘 시각 규칙을 거스름). 그래서 바뀐 줄과 같은 규칙으로 적용일을 다시 구해,
@@ -188,7 +201,7 @@ class MedicationRepository(
                             time = newTime,
                             repeatDays = newDays,
                             createdAt = changedAt,
-                            effectiveFrom = applyDate(newTime, today, nowTime).toString()
+                            effectiveFrom = applyDateOf(newTime)
                         )
                     )
                 }
@@ -199,10 +212,13 @@ class MedicationRepository(
             // 끝난 약의 종료일을 늘린 경우 (DB_DESIGN ⑤ "종료일을 늘릴 때").
             // 그냥 두면 생성기가 "마지막 기록일 + 1일"부터 오늘까지 채워서, 약이 끝나 있던 날들이
             // 모두 '기한 경과 · 미기록'이 된다. 그래서 남은 규칙 줄마다 적용 시작일을 적용일까지 올린다.
-            if (extendsEndedMedication(existing, updated, today)) {
+            // 미래였던 시작일을 오늘이나 그 전으로 당긴 경우도 같다: 그냥 두면 새 시작일부터 오늘까지가
+            // 한꺼번에 채워져 '기한 경과'가 되고, "내일부터 적용"을 골랐는데도 오늘 기록이 생긴다.
+            val startPulledIn = existing.startDate > today.toString() && updated.startDate <= today.toString()
+            if (extendsEndedMedication(existing, updated, today) || startPulledIn) {
                 scheduleDao.findActiveByMedication(medicationId).forEach { schedule ->
                     // 줄마다 "오늘 시각 규칙"을 쓴다: 시각이 아직이면 오늘부터, 지났으면 내일부터.
-                    val target = applyDate(schedule.time, today, nowTime).toString()
+                    val target = applyDateOf(schedule.time)
                     if (schedule.effectiveFrom == null || schedule.effectiveFrom < target) {
                         scheduleDao.update(schedule.copy(effectiveFrom = target))
                     }
@@ -217,9 +233,10 @@ class MedicationRepository(
                 doseRecordGenerator.deletePendingAfterEnd(userId, medicationId, LocalDate.parse(newEnd))
             }
 
-            // 아직 시각이 안 된 오늘 치 기록은 옛 값으로 만든 것이므로 새 값으로 고치거나 지우고,
-            // 지운 자리는 새 규칙으로 다시 만든다.
-            doseRecordGenerator.reconcileUpcomingToday(userId, updated)
+            // "오늘 이후 회차에 적용": 아직 시각이 안 된 오늘 치 기록은 옛 값으로 만든 것이므로 새 값으로
+            // 고치거나 지우고, 지운 자리는 새 규칙으로 다시 만든다.
+            // "내일부터 적용": 오늘 치는 옛 설정 그대로 둔다(바뀐 줄의 적용 시작일이 내일이라 새로 생기지도 않는다).
+            if (scope == ApplyScope.FROM_TODAY) doseRecordGenerator.reconcileUpcomingToday(userId, updated)
             doseRecordGenerator.generateForMedication(updated)
         }
         onChanged()
@@ -244,6 +261,66 @@ class MedicationRepository(
         }
         onChanged()
         return MedicationResult.Success(medicationId)
+    }
+
+    /**
+     * 일시중지를 켜거나(paused = true) 끈다(재개). (S07의 스위치, DB_DESIGN ⑧-2)
+     *
+     * 켤 때: ① 지금까지의 규칙으로 오늘까지 기록을 채우고 ② 중지 시작일 = 오늘 ③ 오늘 아직 시각 전인 미기록을 지운다.
+     *        이미 응답한 기록과 시각이 지난 오늘 기록, 지난 날짜 기록은 남는다. 중지한 동안에는 기록이 생기지 않는다.
+     * 끌 때: ① 중지 시작일을 지우고 ② 규칙마다 적용 시작일을 오늘로 올린 뒤(중지했던 날짜를 다시 채우지 않게)
+     *        ③ 오늘 치 기록을 다시 만든다.
+     * 이미 그 상태면 아무것도 하지 않는다(두 번 눌림 대비).
+     */
+    suspend fun setPaused(userId: Long, medicationId: Long, paused: Boolean): MedicationResult {
+        val existing = findOwned(userId, medicationId)
+            ?: return MedicationResult.Failure(MedicationError.NOT_FOUND)
+        if ((existing.pausedFrom != null) == paused) return MedicationResult.Success(medicationId)
+
+        val today = LocalDate.now(clock).toString()
+        transaction.run {
+            if (paused) {
+                doseRecordGenerator.generateForMedication(existing)
+                medicationDao.setPausedFrom(userId, medicationId, today)
+                doseRecordGenerator.reconcileUpcomingToday(userId, existing.copy(pausedFrom = today))
+            } else {
+                medicationDao.setPausedFrom(userId, medicationId, null)
+                scheduleDao.raiseEffectiveFrom(userId, medicationId, today)
+                // 생성기는 넘겨받은 약의 값으로 계산하므로, 중지가 풀린 값을 넘겨야 오늘 치가 생긴다.
+                doseRecordGenerator.generateForMedication(existing.copy(pausedFrom = null))
+            }
+        }
+        onChanged()   // 알림을 다시 계산한다 (중지한 약은 알림 대상에서 빠진다)
+        return MedicationResult.Success(medicationId)
+    }
+
+    /**
+     * 처방 출처 메모를 저장한다. (S42) 앞뒤 공백을 빼고, 빈 값은 "없음"(NULL)으로 저장한다.
+     * 일정과 상관없는 정보라 복용 기록이나 알림은 건드리지 않는다.
+     */
+    suspend fun updateSource(
+        userId: Long,
+        medicationId: Long,
+        hospital: String,
+        department: String,
+        sourceMemo: String
+    ): MedicationResult {
+        fun clean(text: String) = text.trim().ifEmpty { null }
+        val changed = medicationDao.updateSource(userId, medicationId, clean(hospital), clean(department), clean(sourceMemo))
+        return if (changed > 0) MedicationResult.Success(medicationId)
+        else MedicationResult.Failure(MedicationError.NOT_FOUND)
+    }
+
+    /**
+     * 같은 이름의 내 약들. 앞뒤 공백과 대소문자는 무시한다. (S08 등록 → S40 중복 확인)
+     * 일시중지·종료된 약도 포함하고, 삭제한 약과 다른 사람의 약은 빠진다. 등록한 순서로 돌려준다.
+     */
+    suspend fun findSameName(userId: Long, name: String): List<MedicationDetail> {
+        val needle = name.trim().lowercase()
+        return medicationDao.findActive(userId)
+            .filter { it.name.trim().lowercase() == needle }
+            .sortedBy { it.id }
+            .map { it.toDetail(scheduleDao.findActiveByMedication(it.id)) }
     }
 
     /**
@@ -286,7 +363,10 @@ class MedicationRepository(
                 )
             }
             .sortedBy { it.time },
-        pausedFrom = pausedFrom?.let(LocalDate::parse)
+        pausedFrom = pausedFrom?.let(LocalDate::parse),
+        hospital = hospital.orEmpty(),
+        department = department.orEmpty(),
+        sourceMemo = sourceMemo.orEmpty()
     )
 
     private companion object {

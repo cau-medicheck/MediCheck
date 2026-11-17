@@ -573,4 +573,38 @@ class DoseRepositoryTest {
         )
         assertTrue(history.all { it.medicationName == "타이레놀" && it.date == today })
     }
+
+    // ---------- 과거 기록 보존 (S32) ----------
+
+    @Test
+    fun `과거 기록 보존은 오늘 기록과 남의 기록을 빼고 삭제한 약의 기록은 센다`() = runBlocking<Unit> {
+        val mine = insertMedication(startDate = today.minusDays(3))                 // 지난 3일 + 오늘
+        insertMedication(userId = someoneElse, startDate = today.minusDays(3))
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+        // 약을 삭제해도 지난 기록은 남는다
+        scheduleDao.softDeleteByMedication(mine, deletedAt = 1)
+        medicationDao.softDelete(mine, deletedAt = 1)
+
+        val archive = repository.observeArchive(me, today).first()
+
+        assertEquals(3, archive.total)
+        assertEquals(
+            listOf(today.minusDays(1) to 1, today.minusDays(2) to 1, today.minusDays(3) to 1),
+            archive.days
+        )
+    }
+
+    @Test
+    fun `보존된 날짜는 최근 날짜부터 정해진 개수까지만 나온다`() = runBlocking<Unit> {
+        insertMedication(startDate = today.minusDays(15))
+        repository.refresh(me)
+
+        val archive = repository.observeArchive(me, today, dayLimit = 10).first()
+
+        assertEquals(15, archive.total)
+        assertEquals(10, archive.days.size)
+        assertEquals(today.minusDays(1), archive.days.first().first)
+        assertEquals(today.minusDays(10), archive.days.last().first)
+    }
 }
