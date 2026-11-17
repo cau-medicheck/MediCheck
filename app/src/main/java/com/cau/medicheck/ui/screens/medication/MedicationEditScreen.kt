@@ -390,7 +390,7 @@ private fun TimePickerPopup(
 @Preview(showBackground = true, heightDp = 900)
 @Composable
 private fun MedicationEditScreenPreview() {
-    MediCheckTheme(dynamicColor = false) {
+    MediCheckTheme {
         MedicationEditScreen(
             state = MedicationEditUiState(
                 isNew = false,

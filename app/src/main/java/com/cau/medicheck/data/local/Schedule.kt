@@ -14,6 +14,9 @@ import androidx.room.PrimaryKey
  * - repeat_days: "MON,WED,FRI"처럼 요일을 쉼표로 이은 글자. 매일이면 7개 전부.
  *   글자 ↔ 요일 묶음 변환은 domain/RepeatDays.kt가 한다.
  * - deleted_at: medications와 같은 soft delete.
+ * - effective_from: 이 규칙(지금 값)이 회차를 만들기 시작하는 날. null이면 약의 시작일부터.
+ *   약을 고칠 때 "오늘부터/내일부터 적용"을 지키고, 새로 더한 시간이 지난 날짜까지
+ *   거슬러 채워지지 않게 하려고 둔 칸이다.
  */
 @Entity(
     tableName = "schedules",
@@ -43,12 +46,17 @@ data class Schedule(
     val createdAt: Long,
 
     @ColumnInfo(name = "deleted_at")
-    val deletedAt: Long? = null
+    val deletedAt: Long? = null,
+
+    @ColumnInfo(name = "effective_from")
+    val effectiveFrom: String? = null
 )
 
 /**
  * 알림을 예약하는 데 필요한 것만 모은 조회 결과: 규칙 한 줄 + 그 약의 이름·복용량·기간.
  * 표가 아니라 schedules와 medications를 이어 붙여 읽은 결과의 모양이다.
+ *
+ * 일시중지 칸(pausedFrom)은 두지 않는다. 조회문(WHERE)에서 중지 중인 약을 이미 뺐기 때문이다.
  */
 data class ReminderRow(
     val scheduleId: Long,
@@ -58,5 +66,6 @@ data class ReminderRow(
     val startDate: String,
     val endDate: String?,
     val time: String,
-    val repeatDays: String
+    val repeatDays: String,
+    val effectiveFrom: String?
 )

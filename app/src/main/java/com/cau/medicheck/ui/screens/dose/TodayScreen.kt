@@ -110,7 +110,7 @@ private fun TodayScreenPreview() {
         item = DoseItem(id, id, name, "1 tablet", today, LocalTime.of(hour, 0), status, null),
         displayStatus = display
     )
-    MediCheckTheme(dynamicColor = false) {
+    MediCheckTheme {
         TodayScreen(
             displayName = "Suhwan",
             state = DayDosesUiState(

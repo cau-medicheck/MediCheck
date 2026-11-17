@@ -9,6 +9,9 @@ import java.time.temporal.ChronoUnit
 /**
  * 알림을 보내는 데 필요한 정보만 모은 "규칙 하나".
  * 복용 시간 규칙(schedules)에 그 약의 이름·복용량·기간을 붙인 것이다.
+ *
+ * 일시중지 중인 약은 DB 조회에서 이미 빠져 들어오므로 일시중지 칸은 없다.
+ * @param effectiveFrom 이 규칙의 적용 시작일. 이날 전에는 알리지 않는다. null이면 약의 시작일부터.
  */
 data class ReminderRule(
     val scheduleId: Long,
@@ -18,8 +21,16 @@ data class ReminderRule(
     val startDate: LocalDate,
     val endDate: LocalDate?,
     val time: LocalTime,
-    val days: Set<DayOfWeek>
-)
+    val days: Set<DayOfWeek>,
+    val effectiveFrom: LocalDate? = null
+) {
+    /**
+     * 날짜 [date]에 이 규칙의 회차가 있는가. 기록 보충과 같은 식(DosePlanner.occursOn)을 쓴다.
+     * 일시중지 칸은 없으므로 pausedFrom = null, 그래서 today 값은 결과에 영향이 없다.
+     */
+    fun occursOn(date: LocalDate): Boolean =
+        DosePlanner.occursOn(date, startDate, endDate, days, effectiveFrom, pausedFrom = null, today = date)
+}
 
 /**
  * "다음 알림은 언제인가", "지금 알려야 할 약은 무엇인가"를 계산한다.
@@ -34,11 +45,13 @@ object ReminderPlanner {
      * 반복 요일은 일주일 단위라서, 앞으로 8일만 살펴보면 다음 날짜를 반드시 찾는다.
      */
     fun nextOccurrence(rule: ReminderRule, after: LocalDateTime): LocalDateTime? {
-        val firstDate = maxOf(after.toLocalDate(), rule.startDate)
+        // 시작일·적용 시작일 전에는 회차가 없으므로 그중 가장 늦은 날부터 살펴본다.
+        var firstDate = maxOf(after.toLocalDate(), rule.startDate)
+        if (rule.effectiveFrom != null) firstDate = maxOf(firstDate, rule.effectiveFrom)
         for (offset in 0L..7L) {
             val date = firstDate.plusDays(offset)
             if (rule.endDate != null && date.isAfter(rule.endDate)) return null
-            if (date.dayOfWeek !in rule.days) continue
+            if (!rule.occursOn(date)) continue
 
             val candidate = LocalDateTime.of(date, rule.time)
             if (candidate.isAfter(after)) return candidate
@@ -57,11 +70,6 @@ object ReminderPlanner {
     fun dueAt(rules: List<ReminderRule>, at: LocalDateTime): List<ReminderRule> {
         val minute = at.truncatedTo(ChronoUnit.MINUTES)
         val date = minute.toLocalDate()
-        return rules.filter { rule ->
-            rule.time == minute.toLocalTime() &&
-                date.dayOfWeek in rule.days &&
-                !date.isBefore(rule.startDate) &&
-                (rule.endDate == null || !date.isAfter(rule.endDate))
-        }
+        return rules.filter { rule -> rule.time == minute.toLocalTime() && rule.occursOn(date) }
     }
 }

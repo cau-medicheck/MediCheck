@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.MediCheck" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- 창 바탕을 화면 바탕색(#F8FBFC)으로: 앱을 켤 때 Compose가 그리기 전 잠깐 흰 화면이 번쩍이지 않게 -->
+    <style name="Theme.MediCheck" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/screen_background</item>
+    </style>
 </resources>

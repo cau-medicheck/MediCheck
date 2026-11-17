@@ -7,19 +7,27 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * dose_records 표: "2026-11-16 08:00 타이레놀 → 복용 완료" 같은 실제 건 하나가 한 줄. (docs/DB_DESIGN.md ⑥)
+ * dose_records 표: "2026-11-16 08:00 비타민 D 1정 → 복용 완료" 같은 실제 회차 하나가 한 줄. (docs/DB_DESIGN.md ⑥)
  *
- * schedules가 "매일 08:00"이라는 규칙이라면, 이 표는 그 규칙이 날짜마다 만들어 낸 실제 건이다.
+ * schedules가 "매일 08:00"이라는 규칙이라면, 이 표는 그 규칙이 날짜마다 만들어 낸 실제 회차다.
  *
- * - schedule_id: 어느 규칙에서 나온 건인지.
+ * - schedule_id: 어느 규칙에서 나온 회차인지.
  * - date: 복용 예정 날짜 ("2026-11-16").
- * - scheduled_time: 이 줄을 만들 당시의 예정 시각 ("08:00"). 나중에 규칙의 시간이 바뀌어도 그대로 남는다.
- * - status: "PENDING"(아직 응답 없음) / "TAKEN"(복용 완료) / "SKIPPED"(일부러 건너뜀).
- *           "깜빡함(MISSED)"은 저장하지 않는다. PENDING인데 시각이 지났으면 깜빡한 것으로 계산한다.
- * - acted_at: 사용자가 버튼을 누른 실제 시각. 아직 누르지 않았으면 null.
+ * - 스냅샷(snapshot = 그때의 값을 복사해 찍어 둔 사본) 4칸:
+ *     scheduled_time(예정 시각), medication_name(약 이름), dosage(복용량), memo(약 메모).
+ *   기록을 만들 때 한 번 채우고 그 뒤로는 바꾸지 않는다. 그래서 나중에 약 이름을 고치거나
+ *   약을 지워도 지난 회차는 "그때의 이름·복용량·시각"으로 보인다.
+ *   (예외 하나: 오늘·아직 응답 없음·예정 시각 전인 기록은 약을 고칠 때 새 값으로 다시 맞춘다 — DB_DESIGN ⑧)
+ * - status: "PENDING"(미기록) / "TAKEN"(복용 완료) / "SKIPPED"(건너뜀).
+ *           "기한 경과"는 저장하지 않는다. PENDING인데 시각이 지났으면 볼 때마다 계산한다.
+ * - acted_at: 복용 완료면 실제 복용 시각(처음엔 누른 시각), 건너뜀이면 누른 시각, 미기록이면 null.
  *
  * indices의 unique = true: 같은 규칙·같은 날짜의 줄은 하나만 있을 수 있다.
  * 그래서 앱을 여러 번 열어 기록 생성이 반복되어도 중복으로 생기지 않는다.
+ * 이 두 값(schedule_id, date)이 "회차의 열쇠"(domain의 DoseKey)다.
+ *
+ * medicationName·dosage에 Kotlin 기본값을 두지 않은 이유: 빈 이름으로 기록이 만들어지면
+ * 화면에 빈 약 이름이 보이므로, 기록을 만드는 모든 곳에서 값을 빠뜨리면 컴파일 오류가 나게 했다.
  */
 @Entity(
     tableName = "dose_records",
@@ -45,6 +53,13 @@ data class DoseRecord(
     @ColumnInfo(name = "scheduled_time")
     val scheduledTime: String,
 
+    @ColumnInfo(name = "medication_name")
+    val medicationName: String,
+
+    val dosage: String,
+
+    val memo: String? = null,
+
     val status: String,
 
     @ColumnInfo(name = "acted_at")
@@ -55,9 +70,11 @@ data class DoseRecord(
 )
 
 /**
- * 복용 기록 한 줄에 약 이름·복용량을 붙인 조회 결과.
+ * 복용 기록 한 줄을 화면이 읽기 좋게 모은 조회 결과.
  *
  * 표가 아니라 "세 표(dose_records, schedules, medications)를 이어 붙여 읽은 결과"의 모양이다.
+ * 약 이름·복용량·메모는 기록의 스냅샷 칸에서 읽는다. medications는 "내 기록인지" 확인과
+ * 약 번호(medicationId)를 얻는 데만 쓴다.
  * DoseRecordDao의 조회문에서 `AS 이름`으로 붙인 이름과 여기 필드 이름이 같아야 Room이 채워 준다.
  */
 data class DoseRecordRow(
@@ -69,5 +86,6 @@ data class DoseRecordRow(
     val actedAt: Long?,
     val medicationId: Long,
     val medicationName: String,
-    val dosage: String
+    val dosage: String,
+    val memo: String?
 )
