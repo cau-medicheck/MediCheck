@@ -16,6 +16,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneOffset
 
 /**
@@ -84,6 +85,8 @@ class DoseRepositoryTest {
         )
         return medicationId
     }
+
+    private fun day(dayOfMonth: Int) = LocalDate.of(2026, 11, dayOfMonth)
 
     /** 첫 번째 규칙(id 1)의 오늘 회차 열쇠 */
     private val todayKey get() = DoseKey(scheduleId = 1, date = today)
@@ -606,5 +609,82 @@ class DoseRepositoryTest {
         assertEquals(10, archive.days.size)
         assertEquals(today.minusDays(1), archive.days.first().first)
         assertEquals(today.minusDays(10), archive.days.last().first)
+    }
+
+    // ---------- 달력의 점 (S11) · CSV 내보내기 (S43) ----------
+
+    @Test
+    fun `달력의 점은 오늘까지는 기록이 있는 날 내일부터는 규칙으로 계산한 날이다`() = runBlocking<Unit> {
+        // 11/14(토)부터 월·수·금만 먹는 약. 오늘은 11/16(월)
+        insertMedication(startDate = today.minusDays(2), endDate = today.plusDays(5), repeatDays = "MON,WED,FRI")
+        insertMedication(userId = someoneElse, startDate = today.minusDays(2))
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+
+        val dots = repository.observeDatesWithDoses(me, YearMonth.of(2026, 11), today).first()
+
+        // 16(월, 기록) · 18(수) · 20(금) — 종료일(21일) 뒤와 다른 요일, 남의 약의 날짜는 없다
+        assertEquals(setOf(day(16), day(18), day(20)), dots)
+        // 미래 날짜는 계산만 하고 DB에 저장하지 않는다
+        assertTrue(doseRecordDao.records.value.none { it.date > today.toString() })
+    }
+
+    @Test
+    fun `약을 삭제해도 지난 날짜의 점은 남고 앞으로의 점은 사라진다`() = runBlocking<Unit> {
+        val medicationId = insertMedication(startDate = today.minusDays(2))
+        repository.refresh(me)
+        scheduleDao.softDeleteByMedication(medicationId, deletedAt = 1)
+        medicationDao.softDelete(medicationId, deletedAt = 1)
+
+        val dots = repository.observeDatesWithDoses(me, YearMonth.of(2026, 11), today).first()
+
+        assertEquals(setOf(day(14), day(15), day(16)), dots)
+    }
+
+    @Test
+    fun `과거 날짜 수는 오늘과 남의 기록을 빼고 센다`() = runBlocking<Unit> {
+        insertMedication(startDate = today.minusDays(3), time = "08:00")
+        insertMedication(startDate = today.minusDays(1), time = "20:00")   // 같은 날짜에 기록이 둘이어도 하루로 센다
+        insertMedication(userId = someoneElse, startDate = today.minusDays(10))
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+
+        assertEquals(3, repository.observePastDateCount(me, today).first())
+    }
+
+    @Test
+    fun `내보낼 회차는 내 기록 전부와 앞으로 7일의 예정 회차다`() = runBlocking<Unit> {
+        val deleted = insertMedication(name = "지운 약", startDate = today.minusDays(1))
+        insertMedication(name = "타이레놀", startDate = today.minusDays(1))
+        insertMedication(userId = someoneElse, name = "남의 약", startDate = today.minusDays(1))
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+        scheduleDao.softDeleteByMedication(deleted, deletedAt = 1)
+        medicationDao.softDelete(deleted, deletedAt = 1)
+
+        val items = repository.exportItems(me)
+
+        // 기록: 지운 약 2(어제·오늘) + 타이레놀 2 / 예정: 타이레놀 7일 (지운 약은 앞으로의 회차가 없다)
+        assertEquals(4, items.count { it.recordId != null })
+        assertEquals(7, items.count { it.recordId == null })
+        assertTrue(items.none { it.medicationName == "남의 약" })
+        assertTrue(items.filter { it.recordId == null }.all { it.medicationName == "타이레놀" && it.date.isAfter(today) })
+        assertEquals(today.plusDays(7), items.maxOf { it.date })
+    }
+
+    @Test
+    fun `폰의 날짜가 뒤로 가서 내일 기록이 이미 있어도 내보낼 회차는 겹치지 않는다`() = runBlocking<Unit> {
+        insertMedication()
+        // 내일(11/17)의 시계로 기록을 만들어 둔다 → DB에 11/16·11/17 기록이 있다
+        val tomorrowClock = Clock.fixed(Instant.parse("2026-11-17T10:00:00Z"), ZoneOffset.UTC)
+        DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, tomorrowClock).generateForUser(me)
+
+        // 오늘(11/16)의 시계로 내보낸다
+        val items = repository.exportItems(me)
+
+        val keys = items.map { it.key }
+        assertEquals(keys.size, keys.toSet().size)
+        // 11/17은 기록 쪽이 쓰인다
+        assertTrue(items.single { it.date == today.plusDays(1) }.recordId != null)
     }
 }

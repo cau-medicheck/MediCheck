@@ -133,11 +133,6 @@
     <string name="action_clear_end_date">종료일 지우기</string>
     <string name="error_med_not_found">약을 찾지 못했어요</string>
 
-    <!-- 예전 통계 화면(임시 S13)이 쓰는 상태 낱말 — 4단계에서 정리 -->
-    <string name="status_missed">깜빡함</string>
-    <string name="status_taken">복용 완료</string>
-    <string name="status_skipped">건너뜀</string>
-
     <!-- 알림 -->
     <string name="reminder_channel_name">복약 알림</string>
     <string name="reminder_channel_description">약 먹을 시간이 되면 알려 줍니다</string>
@@ -146,18 +141,6 @@
 
     <!-- 통계 -->
     <string name="tab_stats">통계</string>
-    <string name="period_range">%1$s ~ %2$s</string>
-    <string name="stats_title">주간 통계</string>
-    <string name="stats_this_week">이번 주</string>
-    <string name="stats_rate_label">복약 완료율</string>
-    <string name="stats_rate_value">%1$d%%</string>
-    <string name="stats_rate_detail">%2$d회 중 %1$d회 복용</string>
-    <string name="stats_no_records">기록 없음</string>
-    <string name="stats_daily_title">요일별 복약</string>
-    <string name="stats_day_count">%1$d/%2$d</string>
-    <string name="stats_rate_help">완료율 = 복용 완료 ÷ (복용 완료 + 건너뜀 + 깜빡함). 아직 시간이 안 된 복약은 계산에 넣지 않습니다.</string>
-    <string name="action_previous_week">이전 주</string>
-    <string name="action_next_week">다음 주</string>
 
     <!-- ===== 로그인 뒤 틀: 머리말 버튼 · 하단 탭 · 여러 화면 공통 (2단계) ===== -->
     <string name="header_cd_notifications">알림</string>
@@ -435,4 +418,74 @@
     <string name="s42_btn_save">메모 저장</string>
     <string name="s42_notice">처방 출처는 개인이 입력하는 메모이며, 처방전이나 의약품 데이터베이스 검증 기능은 아닙니다.</string>
     <string name="s42_toast_saved">처방 출처 메모를 저장했습니다.</string>
+
+    <!-- ===== 기록·통계 공통 (4단계) ===== -->
+    <string name="common_month_title">%1$d년 %2$d월</string>
+    <string name="common_cd_prev_month">이전 달</string>
+    <string name="common_cd_next_month">다음 달</string>
+    <string name="common_count_taken">완료</string>
+    <string name="common_count_skipped">건너뜀</string>
+    <string name="common_count_missed">미기록</string>
+    <string name="stats_tab_week">주간</string>
+    <string name="stats_tab_month">월간</string>
+    <string name="stats_tab_pattern">누락 분석</string>
+    <string name="stats_badge_extra">추가 기능</string>
+
+    <!-- ===== S11 기록 캘린더 ===== -->
+    <string name="s11_title">복약 기록</string>
+    <string name="s11_subtitle">지난 복용 내역을 날짜별로 확인하세요.</string>
+    <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미기록 %3$d</string>
+    <string name="s11_btn_open">기록 보기 ›</string>
+    <string name="s11_notice">달력 점은 해당 날짜에 등록된 복용 일정이 있음을 뜻합니다.</string>
+    <string name="s11_cd_day_with_dose">%1$s, 복용 일정 있음</string>
+
+    <!-- ===== S12 날짜별 기록 ===== -->
+    <string name="s12_back">기록 캘린더</string>
+    <string name="s12_rate_label">복약 완료율</string>
+    <string name="s12_total">총 %1$d회</string>
+    <string name="s12_section_list">상세 복용 내역</string>
+    <string name="s12_empty_title">기록이 없어요</string>
+    <string name="s12_empty_body">해당 날짜에 예정된 복용 일정이 없습니다.</string>
+
+    <!-- ===== S13 주간 통계 ===== -->
+    <string name="s13_title">복약 통계</string>
+    <string name="s13_subtitle">기록을 바탕으로 복약 습관을 확인하세요.</string>
+    <string name="s13_rate_label">최근 7일 복약 완료율</string>
+    <string name="s13_section_daily">요일별 완료율</string>
+    <string name="s13_cd_bar">%1$s %2$s</string>
+    <!-- 프로토타입 원문("…전체 예정 복용 중 완료한 비율입니다. 이는 임시 산식입니다.")은 실제 계산과 달라 실제 계산대로 썼다 -->
+    <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 기한 경과 미기록은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
+
+    <!-- ===== S14 월간 통계 ===== -->
+    <string name="s14_subtitle">한 달 단위로 복약 흐름을 확인하세요.</string>
+    <string name="s14_rate_label">월간 완료율</string>
+    <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미기록 %3$d회</string>
+    <string name="s14_section_daily">일자별 복약 완료율</string>
+    <string name="s14_first_day">1일</string>
+    <string name="s14_last_day">%1$d일</string>
+    <string name="s14_cd_bar">%1$s: %2$s</string>
+
+    <!-- ===== S15 건너뜀 패턴 ===== -->
+    <string name="s15_title">건너뜀 패턴 분석</string>
+    <string name="s15_subtitle">최근 30일간 명시적으로 건너뛴 기록만 집계합니다.</string>
+    <string name="s15_total_label">최근 30일 건너뜀 횟수</string>
+    <string name="s15_unit">회</string>
+    <string name="s15_section_periods">시간대별 분포</string>
+    <string name="s15_count">%1$d회</string>
+    <string name="s15_notice">기한이 지난 미기록은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+
+    <!-- ===== S43 복약 기록 내보내기 ===== -->
+    <string name="s43_subtitle">주간·월간 기록을 CSV 파일로 저장합니다.</string>
+    <string name="s43_kicker">내보내기 형식</string>
+    <string name="s43_format">CSV (.csv)</string>
+    <string name="s43_format_badge">파일 형식</string>
+    <string name="s43_label_target">대상</string>
+    <!-- 프로토타입 원문 "복약 기록 전체(데모)"의 "(데모)"는 실제 앱에서 사실이 아니라 뺐다 -->
+    <string name="s43_target">복약 기록 전체</string>
+    <string name="s43_label_days">과거 스냅샷 날짜</string>
+    <string name="s43_days">%1$d일</string>
+    <string name="s43_btn_download">CSV 다운로드</string>
+    <string name="s43_notice">다운로드된 파일에 약 이름 및 복약 기록이 포함되므로 파일 보관·공유에 주의해주세요.</string>
+    <string name="s43_toast_saved">CSV 파일을 내려받았습니다.</string>
+    <string name="s43_toast_failed">파일을 저장하지 못했습니다. 다시 시도해주세요.</string>
 </resources>

@@ -2,6 +2,7 @@ package com.cau.medicheck
 
 import android.app.Application
 import android.content.Context
+import com.cau.medicheck.data.export.CsvFileWriter
 import com.cau.medicheck.data.local.AppDatabase
 import com.cau.medicheck.data.local.AppPrefs
 import com.cau.medicheck.data.local.RoomTransactionRunner
@@ -57,6 +58,9 @@ class AppContainer(context: Context) {
 
     /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
     val selection: SelectionStore by lazy { SelectionStore() }
+
+    /** 사용자가 고른 파일에 CSV를 쓰는 도구 (S43) */
+    val csvFileWriter: CsvFileWriter by lazy { CsvFileWriter(appContext) }
 
     // ---------- 알림 ----------
 

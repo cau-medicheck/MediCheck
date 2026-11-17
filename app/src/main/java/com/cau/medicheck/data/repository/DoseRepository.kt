@@ -19,6 +19,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
 /** 상태 바꾸기의 결과 (DB_DESIGN ⑩ 10.3) */
@@ -157,6 +158,43 @@ class DoseRepository(
             doseRecordDao.observeRecentPastDates(userId, today.toString(), dayLimit)
         ) { total, dates -> DoseArchive(total, dates.map { LocalDate.parse(it.date) to it.count }) }
 
+    /**
+     * 그 달에서 "회차가 있는 날짜" 모음. (S11 달력의 점)
+     *   오늘까지 = 기록이 있는 날 (약을 지우거나 고쳐도 지난 날짜의 점은 남는다)
+     *   내일 이후 = 지금의 약·규칙으로 계산했을 때 회차가 있는 날
+     * 점은 "회차가 있다"는 뜻이지 복용했는지와는 상관없다.
+     */
+    fun observeDatesWithDoses(userId: Long, month: YearMonth, today: LocalDate): Flow<Set<LocalDate>> =
+        combine(
+            doseRecordDao.observeDoseDates(userId, month.atDay(1).toString(), month.atEndOfMonth().toString()),
+            observeMedications(userId)
+        ) { recordDates, meds ->
+            val past = recordDates.map(LocalDate::parse).filter { !it.isAfter(today) }
+            val future = (1..month.lengthOfMonth())
+                .map { month.atDay(it) }
+                .filter { it.isAfter(today) && DosePlanner.plannedDoses(it, meds, today).isNotEmpty() }
+            (past + future).toSet()
+        }
+
+    /** 오늘보다 앞선 날짜 중 기록이 있는 날짜의 수. (S43 "과거 스냅샷 날짜") */
+    fun observePastDateCount(userId: Long, today: LocalDate): Flow<Int> =
+        doseRecordDao.observePastDateCount(userId, today.toString())
+
+    /**
+     * CSV로 내보낼 회차들: 기록 전부(오늘까지, 삭제한 약 포함) + 내일부터 [futureDays]일의 예정 회차.
+     * 모으기만 한다. 글자로 바꾸는 일과 정렬은 CsvExporter가 한다.
+     */
+    suspend fun exportItems(userId: Long, futureDays: Long = EXPORT_FUTURE_DAYS): List<DoseItem> {
+        val today = LocalDate.now(clock)
+        val records = doseRecordDao.findAllRowsForUser(userId).map { it.toItem() }
+        val meds = observeMedications(userId).first()
+        val planned = (1..futureDays).flatMap { DosePlanner.plannedDoses(today.plusDays(it), meds, today) }
+        // 같은 회차가 두 번 나오지 않게 한다: 기록이 이미 있는 회차는 기록 쪽만 쓴다.
+        // (평소에는 기록이 오늘까지만 있어 겹치지 않지만, 폰의 날짜가 뒤로 가면 "내일" 기록이 이미 있을 수 있다)
+        val recorded = records.map { it.key }.toSet()
+        return records + planned.filter { it.key !in recorded }
+    }
+
     /** 한 사용자의 상태 변경 이력, 최신순. 기록이 지워진 회차의 이력도 포함한다. (S30) */
     fun observeHistory(userId: Long): Flow<List<DoseHistoryItem>> =
         statusEventDao.observeForUser(userId).map { events ->
@@ -268,6 +306,11 @@ class DoseRepository(
         changedAt = clock.millis(),
         isUndo = isUndo
     )
+
+    private companion object {
+        /** CSV에 함께 넣는 "앞으로의 예정" 날 수 (프로토타입: 오늘부터 8일치 = 오늘 + 7일) */
+        const val EXPORT_FUTURE_DAYS = 7L
+    }
 
     private suspend fun findByKey(userId: Long, key: DoseKey): DoseRecord? =
         doseRecordDao.findOwnedByKey(userId, key.scheduleId, key.date.toString())

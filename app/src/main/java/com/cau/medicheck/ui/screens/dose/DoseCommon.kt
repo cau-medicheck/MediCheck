@@ -6,8 +6,15 @@ import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseStatus
 import com.cau.medicheck.ui.components.DoseRowUi
 import com.cau.medicheck.ui.navigation.SelectionStore
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import java.time.Clock
@@ -65,4 +72,41 @@ suspend fun resolveDoseKey(
     val last = selection.lastDose.value
     if (last != null && exists(last)) return last
     return doseRepository.firstDoseOf(userId, selection.selectedDay.value)
+}
+
+/**
+ * "지금 시각"이 필요한 화면의 ViewModel들이 물려받는 부모 클래스. (기록 캘린더·통계 화면)
+ *
+ * 완료율과 "기한 경과"는 저장된 값이 아니라 지금 시각과 비교해 계산하는 값이다. 그래서
+ *   - 30초마다 지금 시각을 다시 읽고 (now)
+ *   - 화면이 다시 보일 때도 바로 다시 읽고 (refresh — 앱을 밤새 뒤에 두었다 열었을 때를 위해)
+ *   - 자정이 지나면 새 날의 기록을 만든다.
+ * 자식 클래스는 now와 today를 자기 화면 상태에 엮어 쓰기만 하면 된다.
+ *
+ * (abstract class = 그대로는 만들 수 없고, 물려받아 써야 하는 클래스. Java의 abstract class와 같다)
+ */
+abstract class ClockViewModel(
+    protected val userId: Long,
+    protected val doseRepository: DoseRepository,
+    protected val clock: Clock
+) : ViewModel() {
+
+    /** 지금 시각. 30초마다, 그리고 refresh() 때 새 값이 들어온다. */
+    protected val now = MutableStateFlow(LocalDateTime.now(clock))
+
+    /** 오늘 날짜. 자정이 지날 때만 값이 바뀐다. */
+    protected val today: Flow<LocalDate> = now.map { it.toLocalDate() }.distinctUntilChanged()
+
+    init {
+        viewModelScope.launch { tickerFlow(clock).collect { now.value = it } }
+        // drop(1): 처음 값(지금의 오늘)은 건너뛰고, 날짜가 "바뀔 때"만 새 날의 기록을 만든다.
+        viewModelScope.launch { today.drop(1).collect { doseRepository.refresh(userId) } }
+        refresh()
+    }
+
+    /** 화면이 다시 보일 때마다 부른다: 지금 시각을 다시 읽고, 비어 있는 날짜의 기록을 오늘까지 채운다. */
+    fun refresh() {
+        now.value = LocalDateTime.now(clock)
+        viewModelScope.launch { doseRepository.refresh(userId) }
+    }
 }

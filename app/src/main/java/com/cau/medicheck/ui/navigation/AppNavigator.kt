@@ -62,6 +62,20 @@ class AppNavigator(private val nav: NavHostController) {
         }
     }
 
+    /**
+     * 지금 화면을 그 화면으로 "바꿔 끼운다"(쌓지 않는다). 지금 화면이 이미 그 화면이면 아무것도 하지 않는다.
+     * 통계 화면 위쪽의 탭(주간 | 월간 | 누락 분석)이 쓴다.
+     * "지금 화면"은 누른 순간의 실제 화면에서 읽는다 — 탭을 아주 빠르게 연달아 눌러도 화면이 쌓이지 않는다.
+     */
+    fun swap(route: String) {
+        val current = nav.currentDestination?.route
+        if (current == route) return
+        nav.navigate(route) {
+            if (current != null) popUpTo(current) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
     /** 기록에 있으면 거기까지 돌아가고, 없으면 open (머리말 ♧·⚙ 버튼용, 2단계) */
     fun openOrReturn(pattern: String) {
         if (!nav.popBackStack(pattern, inclusive = false)) open(pattern)
