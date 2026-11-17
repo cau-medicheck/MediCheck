@@ -507,7 +507,7 @@ class MedicationRepositoryTest {
         val doseRepository = DoseRepository(
             doseRecordDao, eventDao,
             DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock),
-            FakeTransactionRunner(), clock
+            FakeTransactionRunner(), { kotlinx.coroutines.flow.flowOf(emptyList()) }, clock
         )
         val eveningKey = com.cau.medicheck.domain.DoseKey(savedEvening.id, today)
         // 저녁 회차를 복용 완료로 했다가 다시 미기록으로 (실행취소할 거리가 있는 상태)

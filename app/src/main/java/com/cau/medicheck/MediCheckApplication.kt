@@ -18,6 +18,7 @@ import com.cau.medicheck.data.repository.SampleAccountSeeder
 import com.cau.medicheck.notification.ReminderNotifier
 import com.cau.medicheck.notification.ReminderScheduler
 import com.cau.medicheck.ui.components.ToastBus
+import com.cau.medicheck.ui.navigation.SelectionStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +35,12 @@ import kotlinx.coroutines.launch
  */
 class AppContainer(context: Context) {
 
+    /**
+     * 화면과 상관없이 앱이 살아 있는 동안 쓰는 작업 공간. (화면이 닫혀도 하던 일을 끝낸다)
+     * 예: 토스트의 "실행취소"는 그 화면을 떠난 뒤에 눌려도 끝까지 실행돼야 한다.
+     */
+    val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     private val appContext: Context = context.applicationContext
 
     private val database: AppDatabase by lazy { AppDatabase.create(appContext) }
@@ -47,6 +54,9 @@ class AppContainer(context: Context) {
 
     /** 토스트(잠깐 떴다 사라지는 안내 글)를 띄워 달라는 요청이 지나가는 통로. 앱 전체에 하나. */
     val toastBus: ToastBus by lazy { ToastBus() }
+
+    /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
+    val selection: SelectionStore by lazy { SelectionStore() }
 
     // ---------- 알림 ----------
 
@@ -90,6 +100,8 @@ class AppContainer(context: Context) {
             onSessionChanged = {
                 // 로그아웃했다면 앞 사람의 약 알림이 화면에 남아 있지 않게 지운다.
                 if (sessionStore.getLoggedInUserId() == null) reminderNotifier.cancelAll()
+                // 앞 사람이 보던 날짜·회차가 다음 사람에게 남지 않게 처음 값으로.
+                selection.reset()
                 reminderScheduler.reschedule()
             }
         )
@@ -123,7 +135,9 @@ class AppContainer(context: Context) {
             doseRecordDao = database.doseRecordDao(),
             statusEventDao = database.doseStatusEventDao(),
             generator = doseRecordGenerator,
-            transaction = transactionRunner
+            transaction = transactionRunner,
+            // 내일 이후의 예정 회차는 지금의 약·규칙에서 계산한다.
+            observeMedications = { userId -> medicationRepository.observeMedications(userId) }
         )
     }
 }
@@ -137,9 +151,6 @@ class MediCheckApplication : Application() {
     lateinit var container: AppContainer
         private set
 
-    /** 화면과 상관없이 앱이 살아 있는 동안 쓰는 작업 공간. (화면이 닫혀도 하던 일을 끝낸다) */
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
@@ -148,6 +159,6 @@ class MediCheckApplication : Application() {
         container.reminderNotifier.ensureChannel()
 
         // 앱이 켜질 때마다 다음 알림을 다시 건다. 알람이 어떤 이유로 사라졌더라도 여기서 복구된다.
-        applicationScope.launch { container.reminderScheduler.reschedule() }
+        container.appScope.launch { container.reminderScheduler.reschedule() }
     }
 }

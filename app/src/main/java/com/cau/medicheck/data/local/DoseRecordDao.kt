@@ -48,6 +48,22 @@ interface DoseRecordDao {
     )
     fun observeRange(userId: Long, fromDate: String, toDate: String): Flow<List<DoseRecordRow>>
 
+    /**
+     * 회차 하나(규칙 번호 + 날짜)의 기록을 계속 흘려 보낸다. 내 기록이 아니거나 없으면 null. (S10·S31)
+     * 고르는 칸은 observeRange와 같다.
+     */
+    @Query(
+        "SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date, " +
+            "r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt, " +
+            "m.id AS medicationId, r.medication_name AS medicationName, " +
+            "r.dosage AS dosage, r.memo AS memo " +
+            "FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND r.schedule_id = :scheduleId AND r.date = :date"
+    )
+    fun observeOwnedRowByKey(userId: Long, scheduleId: Long, date: String): Flow<DoseRecordRow?>
+
     /** 기록 하나를 번호로 찾되, 그 기록이 이 사용자의 것일 때만 돌려준다. */
     @Query(
         "SELECT r.* FROM dose_records r " +

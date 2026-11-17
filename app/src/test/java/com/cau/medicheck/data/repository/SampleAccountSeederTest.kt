@@ -119,7 +119,7 @@ class SampleAccountSeederTest {
         val doseRepository = DoseRepository(
             doseRecordDao, eventDao,
             DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, todayClock),
-            FakeTransactionRunner(), todayClock
+            FakeTransactionRunner(), { kotlinx.coroutines.flow.flowOf(emptyList()) }, todayClock
         )
         doseRepository.changeStatus(old.id, DoseKey(1, today), DoseStatus.SKIPPED)
         assertEquals(1, eventDao.events.value.size)

@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.cau.medicheck.ui.components.TimePickerPopup
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.RepeatDays
 import com.cau.medicheck.ui.components.DatePickerPopup
@@ -356,33 +357,6 @@ private fun ScheduleRowCard(
             }
         }
     }
-}
-
-/** 시각을 고르는 창 (24시간제) */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerPopup(
-    initialTime: LocalTime,
-    onDismiss: () -> Unit,
-    onTimePicked: (LocalTime) -> Unit
-) {
-    val pickerState = rememberTimePickerState(
-        initialHour = initialTime.hour,
-        initialMinute = initialTime.minute,
-        is24Hour = true
-    )
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { onTimePicked(LocalTime.of(pickerState.hour, pickerState.minute)) }) {
-                Text(stringResource(R.string.action_ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-        },
-        text = { TimePicker(state = pickerState) }
-    )
 }
 
 // 아래는 Android Studio 미리 보기용 코드다. 앱 실행에는 쓰이지 않는다.

@@ -44,7 +44,18 @@ class DoseRepositoryTest {
         doseRecordDao = FakeDoseRecordDao(medicationDao, scheduleDao)
         eventDao = FakeDoseStatusEventDao()
         generator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock)
-        repository = DoseRepository(doseRecordDao, eventDao, generator, FakeTransactionRunner(), clock)
+        // 내일 이후의 예정 회차는 "지금의 약·규칙"에서 계산하므로 약 Repository의 흐름을 넘겨준다.
+        val medicationRepository = MedicationRepository(
+            medicationDao = medicationDao,
+            scheduleDao = scheduleDao,
+            transaction = FakeTransactionRunner(),
+            doseRecordGenerator = generator,
+            clock = clock
+        )
+        repository = DoseRepository(
+            doseRecordDao, eventDao, generator, FakeTransactionRunner(),
+            { userId -> medicationRepository.observeMedications(userId) }, clock
+        )
     }
 
     /** 약 하나와 규칙 하나를 표에 직접 넣는다. (기록은 만들지 않는다) */
@@ -224,11 +235,10 @@ class DoseRepositoryTest {
     fun `복용 완료로 바꾸면 상태와 누른 시각이 기록된다`() = runBlocking<Unit> {
         insertMedication()
         repository.refresh(me)
-        val recordId = todayDoses().single().id
 
-        val changed = repository.setStatus(me, recordId, DoseStatus.TAKEN)
+        val result = repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
 
-        assertTrue(changed)
+        assertEquals(StatusChangeResult.CHANGED, result)
         val dose = todayDoses().single()
         assertEquals(DoseStatus.TAKEN, dose.status)
         assertEquals(clock.millis(), dose.actedAt)
@@ -238,22 +248,20 @@ class DoseRepositoryTest {
     fun `복용 완료와 건너뜀 사이를 바꿀 수 있다`() = runBlocking<Unit> {
         insertMedication()
         repository.refresh(me)
-        val recordId = todayDoses().single().id
 
-        repository.setStatus(me, recordId, DoseStatus.TAKEN)
-        repository.setStatus(me, recordId, DoseStatus.SKIPPED)
+        repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
+        repository.changeStatus(me, todayKey, DoseStatus.SKIPPED)
 
         assertEquals(DoseStatus.SKIPPED, todayDoses().single().status)
     }
 
     @Test
-    fun `되돌리면 응답 전 상태가 되고 누른 시각이 지워진다`() = runBlocking<Unit> {
+    fun `미기록으로 바꾸면 누른 시각이 지워진다`() = runBlocking<Unit> {
         insertMedication()
         repository.refresh(me)
-        val recordId = todayDoses().single().id
-        repository.setStatus(me, recordId, DoseStatus.TAKEN)
+        repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
 
-        repository.setStatus(me, recordId, DoseStatus.PENDING)
+        repository.changeStatus(me, todayKey, DoseStatus.PENDING)
 
         val dose = todayDoses().single()
         assertEquals(DoseStatus.PENDING, dose.status)
@@ -265,9 +273,8 @@ class DoseRepositoryTest {
         insertMedication(startDate = today.minusDays(1))
         repository.refresh(me)
         val yesterday = today.minusDays(1)
-        val recordId = repository.observeDoses(me, yesterday, yesterday).first().single().id
 
-        repository.setStatus(me, recordId, DoseStatus.TAKEN)
+        repository.changeStatus(me, DoseKey(1, yesterday), DoseStatus.TAKEN)
 
         assertEquals(DoseStatus.TAKEN, repository.observeDoses(me, yesterday, yesterday).first().single().status)
     }
@@ -276,17 +283,16 @@ class DoseRepositoryTest {
     fun `다른 사람의 기록은 바꿀 수 없다`() = runBlocking<Unit> {
         insertMedication(userId = someoneElse)
         repository.refresh(someoneElse)
-        val recordId = todayDoses(userId = someoneElse).single().id
 
-        val changed = repository.setStatus(me, recordId, DoseStatus.TAKEN)
+        val result = repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
 
-        assertFalse(changed)
+        assertEquals(StatusChangeResult.NOT_FOUND, result)
         assertEquals(DoseStatus.PENDING, todayDoses(userId = someoneElse).single().status)
     }
 
     @Test
-    fun `없는 기록을 바꾸려 하면 false를 돌려준다`() = runBlocking<Unit> {
-        assertFalse(repository.setStatus(me, recordId = 999, status = DoseStatus.TAKEN))
+    fun `없는 회차를 바꾸려 하면 NOT_FOUND다`() = runBlocking<Unit> {
+        assertEquals(StatusChangeResult.NOT_FOUND, repository.changeStatus(me, DoseKey(999, today), DoseStatus.TAKEN))
     }
 
     // ---------- 상태 변경 이력 · 회차 열쇠 · 실행취소 ----------
@@ -324,19 +330,6 @@ class DoseRepositoryTest {
 
         assertEquals(StatusChangeResult.UNCHANGED, result)
         assertEquals(1, eventDao.events.value.size)
-    }
-
-    @Test
-    fun `기록 번호로 바꿔도 이력이 남는다`() = runBlocking<Unit> {
-        insertMedication()
-        repository.refresh(me)
-        val recordId = todayDoses().single().id
-
-        repository.setStatus(me, recordId, DoseStatus.SKIPPED)
-        repository.setStatus(me, recordId, DoseStatus.PENDING)
-
-        assertEquals(listOf("PENDING" to "SKIPPED", "SKIPPED" to "PENDING"),
-            eventDao.events.value.map { it.fromStatus to it.toStatus })
     }
 
     @Test
@@ -436,5 +429,148 @@ class DoseRepositoryTest {
         val result = repository.changeStatus(me, DoseKey(1, today.minusDays(1)), DoseStatus.TAKEN)
 
         assertEquals(StatusChangeResult.CHANGED, result)
+    }
+
+    // ---------- 하루치 보기 · 회차 하나 보기 (2단계) ----------
+
+    @Test
+    fun `지난 날과 오늘은 저장된 기록을 보여 준다`() = runBlocking<Unit> {
+        val medicationId = insertMedication(startDate = today.minusDays(1))
+        repository.refresh(me)
+        // 약 이름을 바꿔도 기록은 그때 이름(스냅샷)으로 나온다
+        medicationDao.update(medicationDao.medications.value.single { it.id == medicationId }.copy(name = "새 이름"))
+
+        val yesterday = repository.observeDay(me, today.minusDays(1), today).first()
+
+        assertEquals(listOf("타이레놀"), yesterday.map { it.medicationName })
+        assertTrue(yesterday.single().recordId != null)
+    }
+
+    @Test
+    fun `내일 이후는 지금의 약과 규칙으로 계산한 예정 회차를 보여 준다`() = runBlocking<Unit> {
+        insertMedication(name = "저녁 약", time = "20:00")
+        insertMedication(name = "아침 약", time = "08:00")
+        insertMedication(name = "끝난 약", endDate = today)
+        insertMedication(userId = someoneElse, name = "남의 약")
+        repository.refresh(me)
+
+        val tomorrow = repository.observeDay(me, today.plusDays(1), today).first()
+
+        assertEquals(listOf("아침 약", "저녁 약"), tomorrow.map { it.medicationName })
+        assertTrue(tomorrow.all { it.recordId == null && it.status == DoseStatus.PENDING })
+        // DB에는 미래 기록을 만들지 않는다
+        assertTrue(doseRecordDao.records.value.none { it.date > today.toString() })
+    }
+
+    @Test
+    fun `회차 하나를 열쇠로 본다 - 오늘은 기록 내일은 예정 회차`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+
+        assertEquals(today, repository.observeDose(me, todayKey, today).first()?.date)
+        val tomorrowDose = repository.observeDose(me, DoseKey(1, today.plusDays(1)), today).first()
+        assertNull(tomorrowDose?.recordId)
+        assertEquals("타이레놀", tomorrowDose?.medicationName)
+        // 없는 규칙, 남의 회차는 null
+        assertNull(repository.observeDose(me, DoseKey(999, today), today).first())
+        assertNull(repository.observeDose(someoneElse, todayKey, today).first())
+    }
+
+    @Test
+    fun `그 날짜의 첫 회차는 시각이 가장 이른 회차다`() = runBlocking<Unit> {
+        insertMedication(name = "저녁 약", time = "20:00")   // 규칙 1
+        insertMedication(name = "아침 약", time = "08:00")   // 규칙 2
+        repository.refresh(me)
+
+        assertEquals(DoseKey(2, today), repository.firstDoseOf(me, today))
+        // 미래 날짜면 예정 회차에서 고른다
+        assertEquals(DoseKey(2, today.plusDays(3)), repository.firstDoseOf(me, today.plusDays(3)))
+        // 회차가 없는 날이면 null
+        assertNull(repository.firstDoseOf(me, today.minusDays(10)))
+    }
+
+    // ---------- 실제 복용 시각 (S31) ----------
+
+    @Test
+    fun `실제 복용 시각을 적으면 복용 완료가 되고 그 시각이 저장된다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+
+        val result = repository.recordActualTime(me, todayKey, LocalTime.of(7, 50))
+
+        assertEquals(ActualTimeResult.SAVED, result)
+        val dose = todayDoses().single()
+        assertEquals(DoseStatus.TAKEN, dose.status)
+        assertEquals(LocalTime.of(7, 50), dose.actualTimeOrNull(ZoneOffset.UTC))
+        assertEquals(listOf("PENDING" to "TAKEN"), eventDao.events.value.map { it.fromStatus to it.toStatus })
+    }
+
+    @Test
+    fun `지금보다 늦은 실제 복용 시각은 받지 않는다`() = runBlocking<Unit> {
+        insertMedication(startDate = today.minusDays(1))
+        repository.refresh(me)
+
+        // 지금은 10:00
+        assertEquals(ActualTimeResult.TIME_IN_FUTURE, repository.recordActualTime(me, todayKey, LocalTime.of(11, 0)))
+        assertEquals(DoseStatus.PENDING, todayDoses().single().status)
+        // 어제 회차에는 23:00도 저장된다
+        val yesterdayKey = DoseKey(1, today.minusDays(1))
+        assertEquals(ActualTimeResult.SAVED, repository.recordActualTime(me, yesterdayKey, LocalTime.of(23, 0)))
+    }
+
+    @Test
+    fun `같은 실제 복용 시각을 다시 저장하면 이력이 늘지 않는다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        repository.recordActualTime(me, todayKey, LocalTime.of(7, 50))
+
+        assertEquals(ActualTimeResult.UNCHANGED, repository.recordActualTime(me, todayKey, LocalTime.of(7, 50)))
+        assertEquals(1, eventDao.events.value.size)
+    }
+
+    @Test
+    fun `미래 회차와 없는 회차에는 실제 복용 시각을 적을 수 없다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+
+        val tomorrowKey = DoseKey(1, today.plusDays(1))
+        assertEquals(ActualTimeResult.FUTURE_DOSE, repository.recordActualTime(me, tomorrowKey, LocalTime.of(8, 0)))
+        assertEquals(ActualTimeResult.NOT_FOUND, repository.recordActualTime(me, DoseKey(999, today), LocalTime.of(8, 0)))
+        assertEquals(ActualTimeResult.NOT_FOUND, repository.recordActualTime(someoneElse, todayKey, LocalTime.of(8, 0)))
+    }
+
+    @Test
+    fun `실제 복용 시각 저장을 실행취소하면 상태와 시각이 함께 돌아간다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        repository.changeStatus(me, todayKey, DoseStatus.TAKEN)          // 누른 시각 10:00
+        repository.recordActualTime(me, todayKey, LocalTime.of(7, 50))   // 07:50으로 고침
+
+        assertEquals(UndoResult.UNDONE, repository.undoLast(me, todayKey))
+
+        val dose = todayDoses().single()
+        assertEquals(DoseStatus.TAKEN, dose.status)
+        assertEquals(clock.millis(), dose.actedAt)
+    }
+
+    // ---------- 변경 이력 (S30) ----------
+
+    @Test
+    fun `변경 이력은 최신순이고 다른 사람의 이력은 빠진다`() = runBlocking<Unit> {
+        insertMedication()                                        // 규칙 1 (나)
+        insertMedication(userId = someoneElse, name = "남의 약")   // 규칙 2 (남)
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+        repository.changeStatus(me, todayKey, DoseStatus.SKIPPED)
+        repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
+        repository.changeStatus(someoneElse, DoseKey(2, today), DoseStatus.TAKEN)
+
+        val history = repository.observeHistory(me).first()
+
+        assertEquals(
+            listOf(DoseStatus.SKIPPED to DoseStatus.TAKEN, DoseStatus.PENDING to DoseStatus.SKIPPED),
+            history.map { it.from to it.to }
+        )
+        assertTrue(history.all { it.medicationName == "타이레놀" && it.date == today })
     }
 }

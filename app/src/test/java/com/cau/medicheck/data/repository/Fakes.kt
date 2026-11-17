@@ -271,6 +271,9 @@ internal class FakeDoseRecordDao(
             }.sortedWith(compareBy({ it.date }, { it.scheduledTime }, { it.medicationName.lowercase() }))
         }
 
+    override fun observeOwnedRowByKey(userId: Long, scheduleId: Long, date: String): Flow<DoseRecordRow?> =
+        observeRange(userId, date, date).map { rows -> rows.find { it.scheduleId == scheduleId } }
+
     override suspend fun findOwned(userId: Long, recordId: Long): DoseRecord? =
         records.value.find { it.id == recordId && isMine(it, userId) }
 

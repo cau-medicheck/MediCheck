@@ -8,12 +8,17 @@ import com.cau.medicheck.data.local.DoseStatusEventDao
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.DoseKey
+import com.cau.medicheck.domain.DosePlanner
 import com.cau.medicheck.domain.DoseStatus
+import com.cau.medicheck.domain.MedicationDetail
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 /** 상태 바꾸기의 결과 (DB_DESIGN ⑩ 10.3) */
 enum class StatusChangeResult {
@@ -29,14 +34,39 @@ enum class UndoResult {
     NOTHING      // 되돌릴 것이 없다 (화면 문구: '실행취소할 기록이 없습니다.')
 }
 
+/** 실제 복용 시각 저장(S31)의 결과 */
+enum class ActualTimeResult {
+    SAVED,           // 복용 완료 + 실제 시각을 저장했다
+    UNCHANGED,       // 이미 복용 완료이고 같은 시각이라 아무것도 쓰지 않았다
+    FUTURE_DOSE,     // 아직 오지 않은 날짜의 회차
+    TIME_IN_FUTURE,  // 적은 시각이 지금보다 늦다
+    NOT_FOUND        // 내 기록이 아니거나 없는 회차
+}
+
+/** 변경 이력 화면(S30)의 한 줄 */
+data class DoseHistoryItem(
+    val eventId: Long,
+    val medicationName: String,
+    val date: LocalDate,
+    val from: DoseStatus,
+    val to: DoseStatus,
+    /** 바꾼 시각 (밀리초) */
+    val changedAt: Long
+)
+
 /**
  * 날짜별 복용 기록의 조회와 상태 변경을 담당한다.
  *
  * 화면(ViewModel)은 이 클래스의 함수만 부른다.
  *   - refresh: 비어 있는 날짜의 기록을 오늘까지 채운다 (앱을 열 때)
- *   - observeDoses: 날짜 범위의 기록을 계속 흘려 보낸다 (약 이름·복용량은 기록의 스냅샷에서)
- *   - changeStatus / setStatus: 복용 완료 / 건너뜀 / 미기록으로
+ *   - observeDoses: 날짜 범위의 기록을 계속 흘려 보낸다 (통계용. 약 이름·복용량은 기록의 스냅샷에서)
+ *   - observeDay / observeDose: 하루치 / 회차 하나. 내일 이후는 규칙에서 계산한 "예정 회차"
+ *   - changeStatus: 복용 완료 / 건너뜀 / 미기록으로
+ *   - recordActualTime: 실제 복용 시각을 적고 복용 완료로
  *   - undoLast: 그 회차의 마지막 변경 실행취소
+ *   - observeHistory: 변경 이력
+ *
+ * 상태를 바꾸는 길은 changeStatus·recordActualTime·undoLast 셋뿐이다.
  *
  * 상태를 바꿀 때는 언제나 "기록 고치기 + 이력(dose_status_events) 한 줄 쓰기"를 한 트랜잭션으로 한다.
  * 그래서 변경 이력 화면(S30)과 실행취소가 빠짐없이 동작한다.
@@ -46,6 +76,8 @@ class DoseRepository(
     private val statusEventDao: DoseStatusEventDao,
     private val generator: DoseRecordGenerator,
     private val transaction: TransactionRunner,
+    /** 삭제되지 않은 약 + 규칙의 흐름. 내일 이후 예정 회차를 계산할 재료다. (MedicationRepository.observeMedications) */
+    private val observeMedications: (userId: Long) -> Flow<List<MedicationDetail>>,
     private val clock: Clock = Clock.systemDefaultZone()
 ) {
 
@@ -63,7 +95,7 @@ class DoseRepository(
             .map { rows -> rows.map { it.toItem() } }
 
     /**
-     * 회차 열쇠로 상태를 바꾼다 (2단계 화면부터 이것을 쓴다).
+     * 회차 열쇠로 상태를 바꾼다. (S10의 버튼 3개, 홈·일정의 "✓ 복용 완료")
      *
      * 기록 줄이 없고 날짜가 오늘 이전이면, 자정을 막 넘긴 경우일 수 있으므로 한 번 보충한 뒤 다시 찾는다.
      * 그래도 없으면 NOT_FOUND, 미래 날짜면 FUTURE.
@@ -84,21 +116,79 @@ class DoseRepository(
     }
 
     /**
-     * 기록 번호로 상태를 바꾼다. (지금 화면 — 오늘·기록 탭 — 이 쓰는 함수. 2단계에서 changeStatus로 옮긴다)
-     *
-     *   TAKEN / SKIPPED : 버튼을 누른 지금 시각을 acted_at에 적는다.
-     *                     시각이 지난 기록도 바꿀 수 있다 = "늦게 먹음".
-     *                     TAKEN ↔ SKIPPED 사이도 바꿀 수 있다 = 잘못 누른 것 고치기.
-     *   PENDING         : 미기록으로 되돌리기. acted_at을 비운다.
-     *
-     * @return 내 기록이면 true(이미 그 상태였어도 true). 기록이 없거나 내 기록이 아니면 false
+     * 하루치 회차를 계속 흘려 보낸다. 정렬: 예정 시각 → 약 이름.
+     *   - 오늘·지난 날짜 → 저장된 기록 (삭제한 약의 남은 기록도 포함)
+     *   - 내일 이후 → 지금의 약·규칙으로 계산한 예정 회차 (보기 전용. 약을 고치면 바로 다시 계산된다)
      */
-    suspend fun setStatus(userId: Long, recordId: Long, status: DoseStatus): Boolean =
-        transaction.run {
-            val record = doseRecordDao.findOwned(userId, recordId) ?: return@run false
-            applyStatus(userId, record, status)
-            true
+    fun observeDay(userId: Long, date: LocalDate, today: LocalDate): Flow<List<DoseItem>> =
+        if (date.isAfter(today)) {
+            observeMedications(userId).map { meds -> DosePlanner.plannedDoses(date, meds, today) }
+        } else {
+            observeDoses(userId, date, date)
         }
+
+    /** 회차 하나를 계속 흘려 보낸다. 없으면 null. (S10·S31) */
+    fun observeDose(userId: Long, key: DoseKey, today: LocalDate): Flow<DoseItem?> =
+        if (key.date.isAfter(today)) {
+            observeDay(userId, key.date, today).map { doses -> doses.find { it.scheduleId == key.scheduleId } }
+        } else {
+            doseRecordDao.observeOwnedRowByKey(userId, key.scheduleId, key.date.toString()).map { it?.toItem() }
+        }
+
+    /** 그 날짜의 첫 회차(시각 → 이름 순)의 열쇠. 회차가 없으면 null. (S30 "복용 회차 열기") */
+    suspend fun firstDoseOf(userId: Long, date: LocalDate): DoseKey? =
+        observeDay(userId, date, LocalDate.now(clock)).first().firstOrNull()?.key
+
+    /** 한 사용자의 상태 변경 이력, 최신순. 기록이 지워진 회차의 이력도 포함한다. (S30) */
+    fun observeHistory(userId: Long): Flow<List<DoseHistoryItem>> =
+        statusEventDao.observeForUser(userId).map { events ->
+            events.map {
+                DoseHistoryItem(
+                    eventId = it.id,
+                    medicationName = it.medicationName,
+                    date = LocalDate.parse(it.doseDate),
+                    from = DoseStatus.valueOf(it.fromStatus),
+                    to = DoseStatus.valueOf(it.toStatus),
+                    changedAt = it.changedAt
+                )
+            }
+        }
+
+    /**
+     * 실제로 먹은 시각을 적고 복용 완료로 기록한다. (S31)
+     *
+     * 검증 순서: 회차가 있는가 → 미래 날짜가 아닌가 → 적은 시각이 지금보다 늦지 않은가.
+     * 저장하는 값: acted_at = (회차 날짜 + 적은 시각), 상태 = 복용 완료. 이력도 한 줄 남긴다
+     * (이력에 바뀌기 전 시각이 들어 있어서, 실행취소하면 시각까지 되돌아간다).
+     * 예정 시각보다 이른 시각도 받는다 (미리 먹은 경우).
+     */
+    suspend fun recordActualTime(userId: Long, key: DoseKey, time: LocalTime): ActualTimeResult {
+        val today = LocalDate.now(clock)
+        if (key.date.isAfter(today)) {
+            // 미래 회차는 기록 줄이 없다. 예정 회차로도 없으면 "없는 회차"다.
+            return if (observeDose(userId, key, today).first() == null) ActualTimeResult.NOT_FOUND
+            else ActualTimeResult.FUTURE_DOSE
+        }
+        if (findByKey(userId, key) == null) refresh(userId)
+
+        val actualAt = LocalDateTime.of(key.date, time.truncatedTo(ChronoUnit.MINUTES))
+        if (actualAt.isAfter(LocalDateTime.now(clock))) {
+            return if (findByKey(userId, key) == null) ActualTimeResult.NOT_FOUND else ActualTimeResult.TIME_IN_FUTURE
+        }
+        val actedAt = actualAt.atZone(clock.zone).toInstant().toEpochMilli()
+
+        return transaction.run {
+            val record = findByKey(userId, key) ?: return@run ActualTimeResult.NOT_FOUND
+            if (record.status == DoseStatus.TAKEN.name && record.actedAt == actedAt) {
+                return@run ActualTimeResult.UNCHANGED
+            }
+            doseRecordDao.updateStatus(userId, record.id, DoseStatus.TAKEN.name, actedAt)
+            statusEventDao.insert(
+                eventFor(userId, record, record.status, DoseStatus.TAKEN.name, record.actedAt, actedAt, isUndo = false)
+            )
+            ActualTimeResult.SAVED
+        }
+    }
 
     /**
      * 그 회차의 마지막 변경을 되돌린다 (한 단계만). DB_DESIGN ⑩ "실행취소".
@@ -166,15 +256,15 @@ class DoseRepository(
 
     /** 표에서 읽은 줄(글자) → 화면이 쓰는 모양(날짜·시각·상태 타입) */
     private fun DoseRecordRow.toItem() = DoseItem(
-        id = id,
+        recordId = id,
+        scheduleId = scheduleId,
         medicationId = medicationId,
         medicationName = medicationName,
         dosage = dosage,
+        memo = memo.orEmpty(),
         date = LocalDate.parse(date),
         time = LocalTime.parse(scheduledTime),
         status = DoseStatus.valueOf(status),
-        actedAt = actedAt,
-        scheduleId = scheduleId,
-        memo = memo
+        actedAt = actedAt
     )
 }

@@ -9,6 +9,7 @@ import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * "어느 날짜의 복용 기록을 만들어야 하는가" 계산 테스트. (docs/DB_DESIGN.md ⑨)
@@ -155,5 +156,63 @@ class DosePlannerTest {
         assertEquals(listOf(day(12), day(13)), dates(startDate = day(12), pausedFrom = day(14)))
         // 오늘 중지했으면 오늘 치도 만들지 않는다
         assertEquals(listOf(day(15)), dates(startDate = day(15), pausedFrom = day(16)))
+    }
+
+    // ---------- plannedDoses: 내일 이후의 예정 회차 ----------
+
+    private fun med(
+        id: Long,
+        name: String,
+        vararg times: Pair<Long, Int>,          // (규칙 번호, 시)
+        startDate: LocalDate = day(1),
+        endDate: LocalDate? = null,
+        days: Set<DayOfWeek> = RepeatDays.EVERY_DAY,
+        pausedFrom: LocalDate? = null
+    ) = MedicationDetail(
+        id = id, name = name, dosage = "1정", startDate = startDate, endDate = endDate, memo = "식후",
+        schedules = times.map { (scheduleId, hour) -> ScheduleItem(scheduleId, LocalTime.of(hour, 0), days) },
+        pausedFrom = pausedFrom
+    )
+
+    @Test
+    fun `예정 회차는 시각 순 같은 시각이면 이름 순으로 나온다`() {
+        val meds = listOf(
+            med(1, "오메가3", 1L to 20, 2L to 8),
+            med(2, "비타민", 3L to 8)
+        )
+
+        val doses = DosePlanner.plannedDoses(day(17), meds, today = monday16)
+
+        assertEquals(listOf("비타민" to 8, "오메가3" to 8, "오메가3" to 20), doses.map { it.medicationName to it.time.hour })
+        // 기록 번호가 없고 미기록이며, 이름·복용량·메모는 지금 약의 값이다
+        assertTrue(doses.all { it.recordId == null && it.status == DoseStatus.PENDING && it.memo == "식후" })
+        assertEquals(DoseKey(3, day(17)), doses.first().key)
+    }
+
+    @Test
+    fun `예정 회차는 시작일 종료일 요일 일시중지를 따른다`() {
+        val meds = listOf(
+            med(1, "아직 시작 전", 1L to 8, startDate = day(20)),
+            med(2, "이미 끝남", 2L to 8, endDate = day(16)),
+            med(3, "수요일만", 3L to 8, days = setOf(WEDNESDAY)),
+            med(4, "중지 중", 4L to 8, pausedFrom = day(16)),
+            med(5, "매일", 5L to 8)
+        )
+
+        // 11/17은 화요일
+        assertEquals(listOf("매일"), DosePlanner.plannedDoses(day(17), meds, monday16).map { it.medicationName })
+        // 11/18은 수요일
+        assertEquals(listOf("매일", "수요일만"), DosePlanner.plannedDoses(day(18), meds, monday16).map { it.medicationName })
+    }
+
+    @Test
+    fun `내일부터 적용되는 규칙은 내일 예정 회차에 보인다`() {
+        val detail = MedicationDetail(
+            id = 1, name = "타이레놀", dosage = "1정", startDate = day(1), endDate = null, memo = "",
+            schedules = listOf(ScheduleItem(1, LocalTime.of(9, 0), RepeatDays.EVERY_DAY, effectiveFrom = day(18)))
+        )
+
+        assertTrue(DosePlanner.plannedDoses(day(17), listOf(detail), monday16).isEmpty())
+        assertEquals(1, DosePlanner.plannedDoses(day(18), listOf(detail), monday16).size)
     }
 }

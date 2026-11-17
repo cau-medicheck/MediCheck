@@ -1,5 +1,10 @@
 package com.cau.medicheck.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,14 +46,24 @@ import kotlinx.coroutines.flow.asSharedFlow
  * extraBufferCapacity = 8: 받는 쪽이 잠깐 바빠도 요청 8개까지는 잃지 않고 쌓아 둔다.
  */
 class ToastBus {
-    private val _messages = MutableSharedFlow<Int>(extraBufferCapacity = 8)
-    val messages: SharedFlow<Int> = _messages.asSharedFlow()
+    private val _messages = MutableSharedFlow<ToastMessage>(extraBufferCapacity = 8)
+    val messages: SharedFlow<ToastMessage> = _messages.asSharedFlow()
 
-    /** @param id strings.xml의 문구 번호 (R.string.…) */
-    fun show(@StringRes id: Int) {
-        _messages.tryEmit(id)   // tryEmit: 기다리지 않고 바로 넣는다 (suspend가 아니라 어디서나 부를 수 있다)
+    /**
+     * @param id strings.xml의 문구 번호 (R.string.…)
+     * @param action 토스트 오른쪽에 붙일 버튼 하나. 홈·일정의 "✓ 복용 완료" 뒤 "실행취소"에만 쓴다.
+     */
+    fun show(@StringRes id: Int, action: ToastAction? = null) {
+        // tryEmit: 기다리지 않고 바로 넣는다 (suspend가 아니라 어디서나 부를 수 있다)
+        _messages.tryEmit(ToastMessage(id, action))
     }
 }
+
+/** 토스트에 붙는 버튼 하나: 글자와 눌렀을 때 할 일 */
+class ToastAction(@param:StringRes val label: Int, val run: () -> Unit)
+
+/** 토스트 한 장: 문구와 (있으면) 버튼 */
+class ToastMessage(@param:StringRes val text: Int, val action: ToastAction? = null)
 
 /**
  * 화면 부품(Composable)에서 토스트를 바로 띄울 때 쓰는 통로. MediCheckApp이 맨 위에서 넣어 준다.
@@ -59,32 +74,61 @@ val LocalToastBus = staticCompositionLocalOf<ToastBus> { error("MediCheckApp 안
 /** 토스트를 보여 주는 시간(ms). v3 setTimeout(…, 2900) */
 const val TOAST_DURATION_MS = 2_900L
 
+/** 버튼이 붙은 토스트를 보여 주는 시간(ms). 누를 시간을 주려고 5초 (F088 "5초 내 실행취소") */
+const val TOAST_WITH_ACTION_DURATION_MS = 5_000L
+
 /**
  * 토스트 한 장을 그린다. text가 null이면 아무것도 그리지 않는다.
  *
- * - 클릭 처리를 붙이지 않았으므로 아래 버튼을 누르는 것을 막지 않는다(v3 pointer-events:none).
+ * - 상자에는 클릭 처리를 붙이지 않았으므로 아래 버튼을 누르는 것을 막지 않는다(v3 pointer-events:none).
+ *   예외: actionLabel이 있으면 그 버튼 글자만 누를 수 있다.
  * - liveRegion: 나타나면 TalkBack이 바로 읽어 준다.
  * - 앱 글자 배율·높은 대비는 적용하지 않는다(본문 밖, v3와 같음). 폰 글꼴 크기는 따른다.
  *
  * @param bottomOffset 화면 아래 끝에서 얼마나 띄울지. 계산은 MediCheckApp이 한다(탭·키보드 높이에 따라 다름).
  */
 @Composable
-fun McToastHost(text: String?, bottomOffset: Dp, modifier: Modifier = Modifier) {
+fun McToastHost(
+    text: String?,
+    bottomOffset: Dp,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: () -> Unit = {}
+) {
     if (text == null) return
-    Text(
-        text = text,
-        color = Color.White,
-        fontSize = 12.sp,
-        lineHeight = 18.sp,
-        textAlign = TextAlign.Center,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .padding(start = ToastSideMargin, end = ToastSideMargin, bottom = bottomOffset)
             .fillMaxWidth()
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(12.dp))
             .background(ToastBackground, RoundedCornerShape(12.dp))
-            .padding(13.dp)
-            .semantics { liveRegion = LiveRegionMode.Polite }
-    )
+            .padding(horizontal = 13.dp)
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+            textAlign = if (actionLabel == null) TextAlign.Center else TextAlign.Start,
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 13.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite }
+        )
+        // 버튼이 있을 때만, 그 글자 부분만 누를 수 있다. 토스트의 나머지 부분은 터치가 통과한다.
+        if (actionLabel != null) {
+            Text(
+                text = actionLabel,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier
+                    .clickable(role = Role.Button, onClick = onAction)
+                    .padding(start = 14.dp, top = 15.dp, bottom = 15.dp, end = 2.dp)
+            )
+        }
+    }
 }
 
 /**

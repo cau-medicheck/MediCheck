@@ -70,8 +70,9 @@ class ReminderNotifier(private val context: Context) {
         notificationManager.cancelAll()
     }
 
-    private companion object {
+    companion object {
+        /** 복약 알림 채널의 이름표. 홈의 "알림 꺼짐" 판정도 이 채널을 본다. */
         const val CHANNEL_ID = "medication_reminders"
-        val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     }
 }

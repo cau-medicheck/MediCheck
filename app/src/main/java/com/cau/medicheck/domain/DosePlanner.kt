@@ -81,4 +81,32 @@ object DosePlanner {
         }
         return dates
     }
+
+    /**
+     * 내일 이후 날짜의 "예정 회차"를 지금의 약·규칙에서 계산한다. (DB에는 미래 기록을 만들지 않는다)
+     *
+     * occursOn을 그대로 쓰므로, 여기서 보이는 회차 = 그날이 되면 실제로 만들어질 기록이다.
+     * 정렬: 예정 시각 → 약 이름.
+     *
+     * @param meds 삭제되지 않은 약들 (MedicationRepository.observeMedications가 준 것)
+     */
+    fun plannedDoses(date: LocalDate, meds: List<MedicationDetail>, today: LocalDate): List<DoseItem> =
+        meds.flatMap { med ->
+            med.schedules
+                .filter { occursOn(date, med.startDate, med.endDate, it.days, it.effectiveFrom, med.pausedFrom, today) }
+                .map { schedule ->
+                    DoseItem(
+                        recordId = null,
+                        scheduleId = schedule.id,
+                        medicationId = med.id,
+                        medicationName = med.name,
+                        dosage = med.dosage,
+                        memo = med.memo,
+                        date = date,
+                        time = schedule.time,
+                        status = DoseStatus.PENDING,
+                        actedAt = null
+                    )
+                }
+        }.sortedWith(compareBy<DoseItem> { it.time }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.medicationName })
 }

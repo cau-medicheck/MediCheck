@@ -27,9 +27,12 @@ class AppNavigator(private val nav: NavHostController) {
         }
     }
 
-    /** 바로 앞 화면으로 */
+    /**
+     * 바로 앞 화면으로. 앞 화면이 없으면(맨 처음 화면이면) 아무것도 하지 않는다.
+     * 버튼을 연달아 두 번 눌러도 맨 처음 화면까지 빼 버려 빈 화면이 되는 일을 막는다.
+     */
     fun back() {
-        nav.popBackStack()
+        if (nav.previousBackStackEntry != null) nav.popBackStack()
     }
 
     /**

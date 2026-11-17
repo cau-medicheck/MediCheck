@@ -279,8 +279,14 @@ class MedicationRepository(
         endDate = endDate?.let(LocalDate::parse),
         memo = memo.orEmpty(),
         schedules = schedules
-            .map { ScheduleItem(it.id, LocalTime.parse(it.time), RepeatDays.decode(it.repeatDays)) }
-            .sortedBy { it.time }
+            .map {
+                ScheduleItem(
+                    it.id, LocalTime.parse(it.time), RepeatDays.decode(it.repeatDays),
+                    effectiveFrom = it.effectiveFrom?.let(LocalDate::parse)
+                )
+            }
+            .sortedBy { it.time },
+        pausedFrom = pausedFrom?.let(LocalDate::parse)
     )
 
     private companion object {
