@@ -330,7 +330,10 @@ class MedicationEditViewModel(
         fun factory(userId: Long, medicationId: Long?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                MedicationEditViewModel(userId, medicationId, container.medicationRepository, container.toastBus)
+                MedicationEditViewModel(
+                    userId, medicationId, container.medicationRepository, container.toastBus,
+                    today = LocalDate.now(container.clock)
+                )
             }
         }
     }

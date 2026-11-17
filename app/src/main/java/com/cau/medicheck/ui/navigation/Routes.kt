@@ -24,6 +24,8 @@ object Routes {
     const val S14 = "S14"   // 월간 통계
     const val S15 = "S15"   // 건너뜀 패턴
     const val S16 = "S16"   // 알림 센터
+    const val S17 = "S17"   // 알림 설정
+    const val S18 = "S18"   // 권한·OS 안내
     const val S19 = "S19"   // 설정 허브
     const val S29 = "S29"   // 사진으로 약 등록 (시안)
     const val S30 = "S30"   // 복용 변경 이력
@@ -31,6 +33,7 @@ object Routes {
     const val S40 = "S40"   // 중복 약·회차 확인
     const val S43 = "S43"   // 복약 기록 내보내기
     const val S34 = "S34"   // 알림 거절/오류 안내
+    const val S35 = "S35"   // 시간대 변경 정책
 
     // ----- 인자가 붙는 화면 -----
     // "?이름={이름}"은 선택 인자다(없어도 화면이 열린다). 실제로 이동할 때는 아래 함수로 값을 채운 주소를 만든다.

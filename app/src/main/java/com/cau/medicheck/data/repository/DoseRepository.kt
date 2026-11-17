@@ -87,7 +87,12 @@ class DoseRepository(
     private val transaction: TransactionRunner,
     /** 삭제되지 않은 약 + 규칙의 흐름. 내일 이후 예정 회차를 계산할 재료다. (MedicationRepository.observeMedications) */
     private val observeMedications: (userId: Long) -> Flow<List<MedicationDetail>>,
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock = Clock.systemDefaultZone(),
+    /**
+     * 회차의 상태가 바뀐 뒤 부를 함수. 앱에서는 "알람을 다시 걸어라"가 들어온다.
+     * (미리 복용 완료로 기록했다가 미기록으로 되돌리면 그 회차의 알림이 다시 걸려야 한다)
+     */
+    private val onChanged: suspend () -> Unit = {}
 ) {
 
     /** 한 사용자의 기록을 오늘까지 채운다. 여러 줄을 넣으므로 한 묶음(트랜잭션)으로 실행한다. */
@@ -117,21 +122,31 @@ class DoseRepository(
 
         // 찾기와 바꾸기를 같은 트랜잭션 안에서 한다. 밖에서 읽은 옛 값으로 바꾸면,
         // 같은 회차를 두 번 빠르게 눌렀을 때 둘 다 "PENDING이었다"고 보고 이력을 두 줄 쓸 수 있다.
-        return transaction.run {
+        val result = transaction.run {
             val found = findByKey(userId, key)
                 ?: return@run if (key.date.isAfter(today)) StatusChangeResult.FUTURE else StatusChangeResult.NOT_FOUND
             applyStatus(userId, found, status)
         }
+        // 알람 다시 걸기는 트랜잭션이 끝난 뒤에 한다 (다시 걸 때도 DB를 읽기 때문이다).
+        if (result == StatusChangeResult.CHANGED) onChanged()
+        return result
     }
 
     /**
      * 하루치 회차를 계속 흘려 보낸다. 정렬: 예정 시각 → 약 이름.
      *   - 오늘·지난 날짜 → 저장된 기록 (삭제한 약의 남은 기록도 포함)
      *   - 내일 이후 → 지금의 약·규칙으로 계산한 예정 회차 (보기 전용. 약을 고치면 바로 다시 계산된다)
+     *
+     * 내일 이후인데 기록이 이미 있는 회차는 기록을 보인다. 시간대 정책을 바꾸거나 서쪽으로 이동해 "오늘"이
+     * 하루 앞으로 당겨지면 이미 만든 기록이 "내일" 기록이 되는데, 복용 완료한 회차가 '복용 예정'으로 보이면 안 되기 때문이다.
      */
     fun observeDay(userId: Long, date: LocalDate, today: LocalDate): Flow<List<DoseItem>> =
         if (date.isAfter(today)) {
-            observeMedications(userId).map { meds -> DosePlanner.plannedDoses(date, meds, today) }
+            combine(observeMedications(userId), observeDoses(userId, date, date)) { meds, records ->
+                val recorded = records.map { it.key }.toSet()
+                (records + DosePlanner.plannedDoses(date, meds, today).filter { it.key !in recorded })
+                    .sortedWith(compareBy<DoseItem> { it.time }.thenBy { it.medicationName })
+            }
         } else {
             observeDoses(userId, date, date)
         }
@@ -233,7 +248,13 @@ class DoseRepository(
         }
         val actedAt = actualAt.atZone(clock.zone).toInstant().toEpochMilli()
 
-        return transaction.run {
+        val result = saveActualTime(userId, key, actedAt)
+        if (result == ActualTimeResult.SAVED) onChanged()
+        return result
+    }
+
+    private suspend fun saveActualTime(userId: Long, key: DoseKey, actedAt: Long): ActualTimeResult =
+        transaction.run {
             val record = findByKey(userId, key) ?: return@run ActualTimeResult.NOT_FOUND
             if (record.status == DoseStatus.TAKEN.name && record.actedAt == actedAt) {
                 return@run ActualTimeResult.UNCHANGED
@@ -244,7 +265,6 @@ class DoseRepository(
             )
             ActualTimeResult.SAVED
         }
-    }
 
     /**
      * 그 회차의 마지막 변경을 되돌린다 (한 단계만). DB_DESIGN ⑩ "실행취소".
@@ -255,7 +275,13 @@ class DoseRepository(
      *   - 기록의 지금 상태가 마지막 이력의 "바뀐 뒤 값"과 다름 (이력 없이 정해진 상태 — 샘플 데이터 등 —
      *     를 엉뚱한 값으로 되돌리지 않기 위해서)
      */
-    suspend fun undoLast(userId: Long, key: DoseKey): UndoResult = transaction.run {
+    suspend fun undoLast(userId: Long, key: DoseKey): UndoResult {
+        val result = undoInTransaction(userId, key)
+        if (result != UndoResult.NOTHING) onChanged()
+        return result
+    }
+
+    private suspend fun undoInTransaction(userId: Long, key: DoseKey): UndoResult = transaction.run {
         val record = findByKey(userId, key) ?: return@run UndoResult.NOTHING
         val last = statusEventDao.latestFor(userId, record.id) ?: return@run UndoResult.NOTHING
         if (last.isUndo) return@run UndoResult.NOTHING

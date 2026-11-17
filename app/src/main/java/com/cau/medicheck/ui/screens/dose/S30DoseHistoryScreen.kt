@@ -39,7 +39,8 @@ private val CHANGED_AT_FORMAT: DateTimeFormatter =
 fun S30DoseHistoryScreen(
     state: DoseHistoryUiState,
     onBack: () -> Unit,
-    onOpenDose: () -> Unit
+    onOpenDose: () -> Unit,
+    zone: ZoneId = ZoneId.systemDefault()
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s30)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
@@ -73,7 +74,7 @@ fun S30DoseHistoryScreen(
                                 )
                             )
                             val changedAt = Instant.ofEpochMilli(item.changedAt)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(zone)
                                 .format(CHANGED_AT_FORMAT)
                             RowSub(stringResource(R.string.s30_changed_at, changedAt))
                         }

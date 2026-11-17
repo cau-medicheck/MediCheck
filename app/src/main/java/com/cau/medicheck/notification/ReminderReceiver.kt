@@ -4,12 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.cau.medicheck.MediCheckApplication
+import com.cau.medicheck.domain.ReminderTrigger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
 
 /**
  * 시스템이 보내는 신호를 받아 알림과 관련된 일을 한다. (AndroidManifest.xml에 등록되어 있다)
@@ -18,7 +17,8 @@ import java.time.ZoneId
  *
  * 받는 신호
  *   - ACTION_REMIND: ReminderScheduler가 걸어 둔 알람이 울림 → 알림을 띄우고 다음 알람을 건다
- *   - 폰을 다시 켬 / 시각·시간대가 바뀜 / 앱이 업데이트됨 → 알람이 사라지거나 어긋나므로 다시 건다
+ *   - 폰을 다시 켬 / 시각·시간대가 바뀜 / 앱이 업데이트됨 / 정확한 알람이 허용됨
+ *     → 알람이 사라지거나 어긋나므로 다시 건다
  */
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -30,18 +30,27 @@ class ReminderReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             try {
-                if (intent.action == ACTION_REMIND) {
-                    val triggerAtMillis = intent.getLongExtra(EXTRA_TRIGGER_AT, System.currentTimeMillis())
-                    val triggerAt = Instant.ofEpochMilli(triggerAtMillis)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime()
+                // 1. 앱이 방금 깨어났을 수 있으므로 설정부터 읽는다 (알림 켜짐·소리·진동·시간대 정책).
+                container.settingsRepository.loadForCurrentUser()
 
-                    // 그 시각에 먹어야 하는 약마다 알림을 하나씩 띄운다.
-                    container.reminderRepository.dueReminders(triggerAt)
-                        .forEach { container.reminderNotifier.show(it) }
+                if (intent.action == ACTION_REMIND) {
+                    // 2. 몇 시 회차의 알람이었는지 알아낸다.
+                    val at = ReminderTrigger.resolve(
+                        localText = intent.getStringExtra(EXTRA_TRIGGER_LOCAL),
+                        triggerAtMillis = intent.getLongExtra(EXTRA_TRIGGER_AT, System.currentTimeMillis()),
+                        zone = container.clock.zone
+                    )
+                    // 3. 그 시각의 회차(와 재알림 차례인 회차)마다 알림을 하나씩 띄운다.
+                    //    이미 복용 완료·건너뜀으로 기록했거나 알림을 꺼 두었으면 목록이 비어 아무것도 띄우지 않는다.
+                    val settings = container.settingsRepository.current.value
+                    container.reminderRepository.remindersAt(at)
+                        .forEach { container.reminderNotifier.show(it, settings) }
+                    // 4. 다음 알람을 건다. 방금 울린 시각보다 뒤에서 찾는다.
+                    container.reminderScheduler.reschedule(notBefore = at)
+                } else {
+                    // 그 밖의 신호: 지금 시각 기준으로 다시 건다.
+                    container.reminderScheduler.reschedule()
                 }
-                // 어떤 신호든 마지막에는 다음 알람을 다시 건다.
-                container.reminderScheduler.reschedule()
             } finally {
                 pendingResult.finish()
             }
@@ -50,6 +59,11 @@ class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_REMIND = "com.cau.medicheck.action.REMIND"
+
+        /** 알람이 울리기로 한 순간 (1970년부터 센 밀리초) */
         const val EXTRA_TRIGGER_AT = "trigger_at"
+
+        /** 알람의 예정 일시를 글자로 적은 것 (예: "2026-11-17T08:00") */
+        const val EXTRA_TRIGGER_LOCAL = "trigger_local"
     }
 }

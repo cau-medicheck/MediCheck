@@ -8,6 +8,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.cau.medicheck.MediCheckApplication
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,7 +44,8 @@ import com.cau.medicheck.ui.screens.dose.ScheduleActions
 import kotlinx.coroutines.launch
 
 /** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
-private val REGISTERED = setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS
+private val REGISTERED =
+    setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS + NOTIFICATION_SCREENS
 
 /** 회차를 가리키는 주소 인자 두 개(규칙 번호, 날짜). 둘 다 없어도 화면이 열리도록 기본값을 둔다. */
 private val doseArguments = listOf(
@@ -71,7 +74,8 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  * 남아 있는 동안 같은 ViewModel이 유지된다.
  *
  * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
- * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계).
+ * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계),
+ * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계).
  * 그 밖의 화면은 "준비 중" 임시 화면이다.
  */
 fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit) {
@@ -122,7 +126,12 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
     // ----- S10 회차 상세/상태 -----
     composable(Routes.S10, arguments = doseArguments) { entry ->
         val (hasArgs, key) = remember(entry) { entry.doseArgs() }
-        val vm: S10DoseDetailViewModel = viewModel(factory = S10DoseDetailViewModel.factory(user.id, hasArgs, key))
+        // key: 회차마다 ViewModel을 따로 둔다. 회차 상세를 보던 중에 다른 회차의 알림을 누르면 같은 화면 항목이
+        // 주소만 바뀐 채 다시 쓰이는데, 그때 앞 회차의 ViewModel이 그대로 쓰이지 않게 하기 위해서다.
+        val vm: S10DoseDetailViewModel = viewModel(
+            key = "S10-$hasArgs-$key",
+            factory = S10DoseDetailViewModel.factory(user.id, hasArgs, key)
+        )
         val state by vm.uiState.collectAsStateWithLifecycle()
         RefreshOnResume(vm::refresh)
         // 주소로 받은 회차를 못 찾았으면(토스트는 ViewModel이 띄웠다) 이 화면을 닫는다.
@@ -149,8 +158,11 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
         val state by vm.uiState.collectAsStateWithLifecycle()
         // 이 화면이 보이는 동안만 살아 있는 작업 공간. 화면을 떠나면 하던 일이 취소된다.
         val scope = rememberCoroutineScope()
+        // 변경 시각을 보여 줄 시간대: 앱 시계의 시간대 (시간대 정책 S35를 따른다)
+        val zone = (LocalContext.current.applicationContext as MediCheckApplication).container.clock.zone
         S30DoseHistoryScreen(
             state = state,
+            zone = zone,
             onBack = go::back,
             onOpenDose = {
                 scope.launch {
@@ -181,6 +193,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
 
     medicationGraph(user, go)   // 내 약 쪽 화면들 (MedicationGraph.kt)
     recordGraph(user, go)       // 기록·통계 화면들 (RecordGraph.kt)
+    notificationGraph(go)       // 알림 화면들 (NotificationGraph.kt)
 
     // ----- 아직 만들지 않은 화면: "준비 중" -----
     Routes.ALL_SCREEN_IDS

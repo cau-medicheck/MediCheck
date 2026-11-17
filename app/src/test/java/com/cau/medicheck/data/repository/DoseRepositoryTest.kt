@@ -466,6 +466,48 @@ class DoseRepositoryTest {
     }
 
     @Test
+    fun `상태가 실제로 바뀌었을 때만 알람을 다시 걸라고 알린다`() = runBlocking<Unit> {
+        var changed = 0
+        val medicationRepository = MedicationRepository(
+            medicationDao = medicationDao, scheduleDao = scheduleDao, transaction = FakeTransactionRunner(),
+            doseRecordGenerator = generator, clock = clock
+        )
+        val notifying = DoseRepository(
+            doseRecordDao, eventDao, generator, FakeTransactionRunner(),
+            { userId -> medicationRepository.observeMedications(userId) }, clock, onChanged = { changed++ }
+        )
+        insertMedication(time = "08:00")
+        notifying.refresh(me)
+        val key = notifying.observeDay(me, today, today).first().single().key
+
+        notifying.changeStatus(me, key, DoseStatus.TAKEN)
+        assertEquals(1, changed)
+        notifying.changeStatus(me, key, DoseStatus.TAKEN)      // 같은 상태 → 바뀐 것 없음
+        assertEquals(1, changed)
+        notifying.undoLast(me, key)                            // 되돌리기 → 다시 미기록
+        assertEquals(2, changed)
+        notifying.recordActualTime(me, key, LocalTime.of(8, 30))
+        assertEquals(3, changed)
+    }
+
+    @Test
+    fun `오늘이 하루 앞으로 당겨져도 이미 만든 기록은 예정 회차 대신 기록으로 보인다`() = runBlocking<Unit> {
+        // 시간대 정책을 바꾸거나 서쪽으로 이동하면 "오늘"이 하루 앞당겨져, 이미 만든 기록이 "내일" 기록이 된다.
+        insertMedication(name = "아침 약", time = "08:00")
+        insertMedication(name = "저녁 약", time = "20:00")
+        repository.refresh(me)
+        val morning = repository.observeDay(me, today, today).first().first { it.medicationName == "아침 약" }
+        repository.changeStatus(me, morning.key, DoseStatus.TAKEN)
+
+        // 이제 "오늘"이 15일이 됐다고 보고 16일(= 내일)을 본다
+        val asTomorrow = repository.observeDay(me, today, today.minusDays(1)).first()
+
+        assertEquals(listOf("아침 약", "저녁 약"), asTomorrow.map { it.medicationName })
+        assertEquals(DoseStatus.TAKEN, asTomorrow.first().status)
+        assertTrue(asTomorrow.all { it.recordId != null })
+    }
+
+    @Test
     fun `회차 하나를 열쇠로 본다 - 오늘은 기록 내일은 예정 회차`() = runBlocking<Unit> {
         insertMedication()
         repository.refresh(me)

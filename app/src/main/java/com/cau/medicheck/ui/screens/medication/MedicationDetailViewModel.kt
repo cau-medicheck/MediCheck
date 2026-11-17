@@ -155,7 +155,8 @@ class MedicationDetailViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 MedicationDetailViewModel(
-                    userId, medId, container.medicationRepository, container.selection, container.toastBus
+                    userId, medId, container.medicationRepository, container.selection, container.toastBus,
+                    clock = container.clock
                 )
             }
         }

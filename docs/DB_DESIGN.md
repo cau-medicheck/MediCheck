@@ -478,9 +478,26 @@ D의 요일 ∈ s.repeat_days
 화면이 한 날짜(또는 기간)의 회차 목록을 그릴 때: **`DoseKey`마다 기록 줄이 있으면 그 줄을 쓰고, 없을 때만 9.1 식(`occursOn`)으로 계산한 예정 회차를 쓴다.** 같은 회차가 두 번 보이지 않는다. 계산분은 `date > 오늘`인 날짜에만 만든다.
 - 따르는 곳: S04·S05(하루), S10(9.4), S11 점, S12, S16 예정 목록, S43 CSV(부록 C), 알림 계산(오늘·어제 = 기록 줄, 그 뒤 = 계산분 + 이 규칙).
 - 평소에는 `date > 오늘`인 기록 줄이 없으므로 "오늘까지는 기록, 내일부터는 계산"과 같다. 시간대 변경(S35)으로 생긴 "미래 날짜 줄"이 있을 때만 차이가 난다 — 그 줄은 기록으로 보이고, 상태를 바꾸거나 실행취소할 수 있다(⑦ `FUTURE`는 "기록 줄이 없는 회차"만).
-- 구현: `domain`에 `mergeRecordsAndPlanned(records, planned): List<DoseItem>` 하나(키 = `DoseKey`).
+- 구현(5단계): 화면 쪽은 `DoseRepository.observeDay`가 내일 이후 날짜에서 "기록 줄 + 기록이 없는 예정 회차"를 합친다(→ S04·S05·S10·S12). 알림 쪽은 `ReminderPlanner`의 `nextTrigger`·`dueBetween`·`upcoming`이 같은 규칙으로 "기록 줄(`ReminderDose`) + 기록이 없는 회차의 규칙 계산"을 합친다. 미래 날짜 줄의 상태 변경·실행취소는 아직 잠겨 있다(`FUTURE`) — 보기만 된다.
 
 ---
+
+### 9.6 NEW 알림 계산 요약 (5단계 구현, 05 명세 E1~E9)
+
+표를 바꾸지는 않았다. `user_settings`(⑥-3)를 `SettingsRepository`가 읽고 쓰기 시작했고, 알림 계산의 재료가 "규칙만"에서 "기록 줄 + 규칙"으로 바뀌었다.
+
+| 무엇 | 어떻게 |
+|---|---|
+| 알람 | 항상 하나만 건다: min(다음 회차 시각, 다음 재알림 시각). 약·설정·회차 상태·로그인이 바뀌거나 폰을 다시 켜면 다시 건다(같은 예약표를 덮어쓰므로 중복 없음) |
+| `reminder_enabled = 0` | 다음 알람 없음(취소), 울린 알람도 아무것도 띄우지 않는다 |
+| 회차 알림 | 알람의 예정 일시(Intent에 글자로 실음, `trigger_local`)부터 지금까지(최대 30분)의 PENDING 회차. 제때 울리면 그 분의 회차뿐이다 |
+| 재알림 | `realert_enabled = 1`이고 (예정 일시 + `realert_minutes`)가 된 PENDING 기록 줄. 회차마다 한 번. 상태를 바꾸지 않는다 |
+| 채널 | `sound_enabled`·`vibrate_enabled` 조합으로 4개 중 하나 (`reminder_sound_vibrate`·`reminder_sound`·`reminder_vibrate`·`reminder_silent`). 옛 채널 `medication_reminders`는 앱이 켜질 때 지운다 |
+| 알림 글 | `hide_med_name = 1`이면 약 이름·복용량을 뺀 일반 문구, 아니면 기록의 스냅샷 이름·복용량 |
+| 알림 누름 | Intent extra `open_screen = "S10"`·`schedule_id`·`date` → `DeepLinkInbox` → 그 회차의 S10. 알림 번호와 요청 번호 = 규칙 id |
+| 알림 센터 S16 | 오늘 남은 것 + 내일, 날짜 → 시각 → 이름 순 8개. 알람과 같은 계산 |
+
+알려진 한계: ① 재알림을 "이미 보냈는지"는 저장하지 않는다 — 재알림이 울린 뒤 간격을 더 큰 값으로 바꾸면 그 회차에 한 번 더 울릴 수 있다. ② 예정 시각이 지났지만 시스템이 아직 전달하지 않은 알람이 있는 몇 분 사이에 알람을 다시 걸면(앱 열기·약 수정) 그 회차의 알림이 빠질 수 있다(정확한 알람이 허용된 폰에서는 거의 일어나지 않는다).
 
 ## ⑩ 복용 상태 및 완료율 계산 기준
 
@@ -521,7 +538,7 @@ D의 요일 ∈ s.repeat_days
 
 - 기록 갱신과 이력 한 줄은 **한 트랜잭션**으로 쓴다(`DoseRepository.changeStatus`·`recordActualTime`).
 - 이력 줄의 복사 칸(`schedule_id`·`dose_date`·`scheduled_time`·`medication_name`)은 그 **기록 줄의 값**을 복사한다.
-- 상태를 바꿔도 알림을 다시 예약할 필요는 없다. 알림이 울릴 때 이미 응답한 회차를 빼기 때문이다(지금 앱과 같음).
+- 상태가 실제로 바뀌면(`CHANGED`·실행취소·실제 복용 시각 저장) **알람을 다시 건다**(5단계, `DoseRepository.onChanged` → `ReminderScheduler.reschedule()`). 알림이 울릴 때 이미 응답한 회차는 어차피 빼지만, 미리 "복용 완료"로 기록했다가 "미기록"으로 되돌린 회차는 다음 알람 계산에서 빠져 있었으므로 다시 걸어야 그 회차의 알림과 재알림이 살아난다.
 - **삭제된 약의 지난 기록도 상태를 바꿀 수 있다**(결정 5). S10은 '삭제된 약' 표시를 붙인다. `DoseRecordDao.findOwnedByKey`는 삭제된 약의 기록도 찾는다.
 
 **실행취소** (S10 '마지막 변경 실행취소', A1 토스트의 '실행취소') — 결정 7 "그 화면의 회차를 되돌림"
@@ -574,7 +591,8 @@ D의 요일 ∈ s.repeat_days
 - `acted_at`·`created_at`·`changed_at`·`deleted_at`은 epoch millis(시간대와 무관한 순간).
 - **규칙 하나: 날짜·시각 글자 ↔ epoch millis를 바꿀 때는 언제나 `AppClock.zone`을 쓴다.** 해당하는 곳: S31 저장(10.3)과 미래 검사, S10 2-5·S31 3-4 표시(⑥ `actualTimeOrNull`), S30 변경 시각, CSV 실제복용시각(부록 C), "오늘 만든 샘플인지"(부록 D), "오늘 치 다시 맞추기"(`findUpcomingPending`)의 "지금". `ZoneId.systemDefault()`나 `Clock.systemDefaultZone()`을 직접 쓰지 않는다 — `DoseRecordGenerator`·`DoseRepository`·`MedicationRepository`의 `Clock` 기본값을 없애고 AppContainer의 `AppClock`을 주입한다(2단계).
 - `HOME`을 고르는 순간의 폰 시간대를 `home_zone_id`에 저장한다(결정 8). 따로 고르는 화면은 없다.
-- `AppClock`은 2단계에서 만든다. **1단계 구현은 아직 각 Repository가 `Clock`(기본값 `Clock.systemDefaultZone()`)을 받는다** — 2단계에서 `AppClock` 주입으로 바꾼다.
+- **(5단계 구현)** `AppClock`(`domain/UserSettings.kt`)은 `AppContainer.clock` 하나다. 부를 때마다 `SettingsRepository.current`의 정책을 보고 시간대를 정한다(LOCAL = 그 순간의 `ZoneId.systemDefault()`, HOME = `home_zone_id`). 모든 Repository·ViewModel·`SelectionStore`·`ReminderScheduler`가 이 시계를 받는다. 테스트는 지금처럼 멈춘 `Clock`을 넣는다.
+- 설정은 화면을 그리기 전에 읽는다: 앱 시작(`MediCheckApplication.onCreate`), 세션 확인(`AuthViewModel` 시작), 로그인·로그아웃(`onSessionChanged`), 알림 수신기의 맨 처음.
 
 ---
 ## ⑪ NEW 화면별 DAO 질의
@@ -589,7 +607,7 @@ D의 요일 ∈ s.repeat_days
 | S10·S31 | `DoseRecordDao.observeOwnedRowByKey(userId, scheduleId, date): Flow<DoseRecordRow?>` | ROW 칸 `… WHERE m.user_id = :userId AND r.schedule_id = :scheduleId AND r.date = :date` (`DoseItem`에 `medicationId`가 필요해 `r.*`가 아니라 ROW 칸) | 예 | 2 |
 | 상태 변경·실행취소 | `DoseRecordDao.findOwnedByKey(userId, scheduleId, date): DoseRecord?` (suspend) | `SELECT r.* … JOIN … WHERE m.user_id = :userId AND r.schedule_id = :scheduleId AND r.date = :date` | 예 | 2 |
 | S11 점 | `DoseRecordDao.observeDoseDates(userId, from, to): Flow<List<String>>` | `SELECT DISTINCT r.date FROM dose_records r JOIN schedules s … JOIN medications m … WHERE m.user_id = :userId AND r.date BETWEEN :from AND :to ORDER BY r.date` (미래 날짜 점은 9.5로 계산분과 합침) | 예 | 4 |
-| S16·S17·알림 (오늘·어제 기록) | `DoseRecordDao.findReminderDoses(userId, fromDate, toDate): List<DoseRecordRow>` (suspend, 05 239행의 이름) | ROW 칸 `… WHERE m.user_id = :userId AND r.date BETWEEN :fromDate AND :toDate AND m.deleted_at IS NULL AND s.deleted_at IS NULL AND m.paused_from IS NULL ORDER BY r.date, r.scheduled_time` — 상태(PENDING만 울림 등)는 `ReminderRepository`가 거른다(05 명세의 화면 규칙을 따름) | 아니오 | 5 |
+| S16·S17·알림 (어제~내일 기록) | **(5단계 구현)** 새 질의를 만들지 않고 `DoseRecordDao.observeRange(userId, 어제, 내일).first()`를 쓴다 | `ReminderRepository`가 거른다: ① **사용 중인 약**(= `findReminderRows`에 나오는 약: 삭제·일시중지 아님)의 기록만. 규칙이 아니라 약으로 거르는 이유 — "내일부터 적용"으로 지운 옛 시간 줄의 오늘 기록은 오늘 울려야 한다 ② 상태 PENDING만 울림. 어제 = 자정을 넘기는 재알림용, 내일 = 시간대 변경으로 생긴 "미래 날짜 줄"용(9.5) | 아니오 | 5 |
 | 알림 (내일 이후 계산) | `ScheduleDao.findReminderRows(userId): List<ReminderRow>` | 지금 질의 + `s.effective_from AS effectiveFrom` 읽기 + `AND m.paused_from IS NULL`. `ReminderRow`에 `pausedFrom` 칸은 **두지 않는다**(WHERE로 이미 걸러짐) | 아니오 | 3·5 |
 | S16 빈 상태 판정 (R1-9) | 새 질의 없음 — `MedicationDao.observeActive(userId)` 결과에 `MedicationStatus`를 적용해 "종료·일시중지가 아닌 약 수"를 **domain에서** 센다 (`observeActiveCount`는 일시중지·종료 약도 세므로 이 용도에 쓰지 않음) | — | 5 |
 | S30 | `DoseStatusEventDao.observeForUser(userId): Flow<List<DoseStatusEvent>>` (`DoseHistoryRow` = 표 칸 그대로, JOIN 없음) | `SELECT * FROM dose_status_events WHERE user_id = :userId ORDER BY changed_at DESC, id DESC` | 예 | 2 |

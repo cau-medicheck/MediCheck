@@ -134,10 +134,111 @@
     <string name="error_med_not_found">약을 찾지 못했어요</string>
 
     <!-- 알림 -->
-    <string name="reminder_channel_name">복약 알림</string>
+    <string name="reminder_channel_sound_vibrate">복약 알림 (소리·진동)</string>
+    <string name="reminder_channel_sound">복약 알림 (소리)</string>
+    <string name="reminder_channel_vibrate">복약 알림 (진동)</string>
+    <string name="reminder_channel_silent">복약 알림 (무음)</string>
     <string name="reminder_channel_description">약 먹을 시간이 되면 알려 줍니다</string>
-    <string name="reminder_title">%1$s 먹을 시간이에요</string>
+    <string name="reminder_title">%1$s 복약 시간</string>
     <string name="reminder_text">%1$s · %2$s</string>
+    <string name="reminder_text_realert">다시 알림 · %1$s · %2$s</string>
+    <string name="reminder_title_hidden">복약 시간이에요</string>
+    <string name="reminder_text_hidden">%1$s 복약 알림이 있어요. 눌러서 확인하세요.</string>
+    <string name="reminder_text_hidden_realert">다시 알림 · %1$s 복약 알림이 있어요. 눌러서 확인하세요.</string>
+    <string name="reminder_test_title">MediCheck 테스트 알림</string>
+    <string name="reminder_test_text">복약 알림은 이렇게 표시됩니다.</string>
+
+    <!-- S16 알림 센터 -->
+    <string name="s16_title">알림 센터</string>
+    <string name="s16_subtitle">복약 리마인더를 미리 확인할 수 있어요.</string>
+    <string name="s16_notice_reminder_off">복약 시간 알림이 꺼져 있어 아래 알림이 울리지 않습니다. 알림 설정에서 켤 수 있어요.</string>
+    <string name="s16_notice_permission_off">Android 알림 권한이 꺼져 있어 아래 알림이 울리지 않습니다. OS 권한 안내에서 확인하세요.</string>
+    <string name="s16_notice_ok">아래 시각에 휴대폰 알림이 울립니다. 이미 복용 완료·건너뜀으로 기록한 회차는 알리지 않습니다.</string>
+    <string name="s16_notice_name_hidden">약 이름 숨김이 켜져 있어 알림에는 약 이름 대신 ‘복약 시간이에요’가 표시됩니다.</string>
+    <string name="s16_section">예약된 알림 미리보기</string>
+    <string name="s16_row_title">%1$s 복약 시간</string>
+    <string name="s16_row_sub">%1$s · %2$s · %3$s</string>
+    <string name="s16_open">열기 ›</string>
+    <string name="s16_cd_open">%1$s %2$s %3$s 회차 열기</string>
+    <string name="s16_empty_title">예정 알림 없음</string>
+    <string name="s16_empty_body">약을 등록하면 알림 미리보기가 표시돼요.</string>
+    <string name="s16_empty_body_has_meds">오늘과 내일 남은 알림이 없어요.</string>
+    <string name="s16_btn_settings">알림 설정</string>
+    <string name="s16_btn_permissions">OS 권한 안내</string>
+
+    <!-- S17 알림 설정 -->
+    <string name="s17_back">설정</string>
+    <string name="s17_title">복약 알림 설정</string>
+    <string name="s17_subtitle">알림 방식과 재알림 옵션을 선택하세요.</string>
+    <string name="s17_reminder_title">복약 시간 알림</string>
+    <string name="s17_reminder_desc">정해진 시간에 알림을 받습니다.</string>
+    <string name="s17_sound_title">알림 소리</string>
+    <string name="s17_sound_desc">알림을 소리로 안내합니다.</string>
+    <string name="s17_vibrate_title">진동</string>
+    <string name="s17_vibrate_desc">알림이 울릴 때 기기가 진동합니다.</string>
+    <string name="s17_realert_title">재알림</string>
+    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다. (추가 기능)</string>
+    <string name="s17_realert_interval">재알림 간격</string>
+    <string name="s17_minutes">%1$d분</string>
+    <string name="s17_realert_changed">재알림 간격을 변경했어요.</string>
+    <string name="s17_test_button">테스트 알림 보내기</string>
+    <string name="s17_test_sent">테스트 알림을 보냈어요.</string>
+    <string name="s17_test_blocked">알림이 꺼져 있어 테스트 알림을 보낼 수 없어요.</string>
+    <string name="s17_timezone_title">시간대 변경 정책</string>
+    <string name="s17_timezone_desc">해외 이동 시 알림 해석 방식</string>
+    <string name="s17_notice">설정은 이 계정에 저장되고 바로 적용됩니다. 약을 바꾸거나 폰을 다시 켜도 알림 예약은 자동으로 다시 맞춰집니다. 폰의 무음·방해 금지 모드와 Android 알림 설정이 이 설정보다 우선합니다. 알림에 약 이름을 보일지는 개인정보 센터에서 정합니다.</string>
+    <string name="s17_btn_preview">알림 미리보기</string>
+
+    <!-- S18 권한·OS 안내 -->
+    <string name="s18_back">알림 설정</string>
+    <string name="s18_title">알림 권한 및 제한</string>
+    <string name="s18_subtitle">Android에서 확인해야 할 실행 조건입니다.</string>
+    <string name="s18_row1_title">알림 표시 권한</string>
+    <string name="s18_row1_desc">Android 13+에서는 사용자 허용 필요</string>
+    <string name="s18_row2_title">정확한 시간 알림</string>
+    <string name="s18_row2_desc">OS 버전·사용 권한 및 정책 확인</string>
+    <string name="s18_row3_title">백그라운드 동작</string>
+    <string name="s18_row3_desc">절전 모드 제한 검토</string>
+    <string name="s18_row4_title">재부팅 후 알림 복구</string>
+    <string name="s18_row4_desc">부팅 이벤트 후 예약 재구성</string>
+    <string name="s18_row5_title">약 수정·삭제 시 재예약</string>
+    <string name="s18_row5_desc">기존 알림 취소 및 변경</string>
+    <string name="s18_chip_allowed">허용됨</string>
+    <string name="s18_chip_off">꺼짐</string>
+    <string name="s18_chip_restricted">제한됨</string>
+    <string name="s18_chip_unrestricted">제한 없음</string>
+    <string name="s18_chip_applied">적용됨</string>
+    <string name="s18_button_allow">알림 권한 허용</string>
+    <string name="s18_button_open_settings">Android 알림 설정 열기</string>
+    <string name="s18_notice">알림 권한과 배터리 사용 제한은 Android 설정에서 언제든 바꿀 수 있습니다. 꺼져 있거나 제한되면 복약 알림이 오지 않거나 늦게 올 수 있습니다.</string>
+
+    <!-- S34 알림 거절/오류 안내 -->
+    <string name="s34_title">알림 권한 거절 시 안내</string>
+    <string name="s34_subtitle">권한이 없거나 제한된 경우 사용자가 해결 방법을 이해하도록 돕습니다.</string>
+    <string name="s34_on_title">알림이 켜져 있어요</string>
+    <string name="s34_on_body">복약 시각에 기기 알림이 전달돼요. 알림이 오지 않으면 아래 설정을 확인하세요.</string>
+    <string name="s34_allow">권한 허용</string>
+    <string name="s34_btn_schedule">앱에서 일정 확인</string>
+    <string name="s34_section">Android 설정에서 확인</string>
+    <string name="s34_step1">앱 알림 허용</string>
+    <string name="s34_step2">필요한 경우 정확 알림 설정 확인</string>
+    <string name="s34_step3">배터리 제한·절전 설정 확인</string>
+    <string name="s34_notice">ⓘ 버튼과 번호를 누르면 Android의 해당 설정 화면이 열립니다. 설정을 바꾸고 돌아오면 상태를 다시 확인합니다.</string>
+
+    <!-- S35 시간대 변경 정책 -->
+    <string name="s35_title">시간대 변경 정책</string>
+    <string name="s35_subtitle">해외 이동할 때 알림의 기준 시간을 어떻게 보일지 설정합니다.</string>
+    <string name="s35_card_title">알림 기준 시간</string>
+    <string name="s35_card_desc">자동 변경이 아니라 사용자가 정책을 이해하고 선택하는 UI입니다.</string>
+    <string name="s35_local_title">기기 현지 시간 기준</string>
+    <string name="s35_local_desc">도착지 시간대에 따라 표시 변경</string>
+    <string name="s35_home_title">등록한 시간대 기준</string>
+    <string name="s35_home_desc">원래 시간대의 시각 유지</string>
+    <string name="s35_home_zone">등록한 시간대: %1$s (UTC%2$s)</string>
+    <string name="s35_save">정책 저장</string>
+    <string name="s35_saved">시간대 표시 정책을 저장했습니다.</string>
+    <string name="s35_notice_warn">시간대 이동에 따른 실제 복용 시각 변경은 처방 지침 및 의료진 안내에 따릅니다. 앱이 복용 시각을 임의로 바꾸지 않습니다.</string>
+    <string name="s35_notice">ⓘ 기기 현지 시간 기준: 폰의 시간대가 바뀌면 알림도 그곳의 같은 시각(예: 08:00)에 울립니다. 등록한 시간대 기준: 폰의 시간대와 상관없이 등록한 시간대의 08:00에 울리고, 앱의 ‘오늘’과 기한 경과 판단도 그 시간대로 계산합니다.</string>
 
     <!-- 통계 -->
     <string name="tab_stats">통계</string>

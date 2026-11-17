@@ -161,7 +161,8 @@ class S10DoseDetailViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 S10DoseDetailViewModel(
-                    userId, hasArgs, argKey, container.doseRepository, container.selection, container.toastBus
+                    userId, hasArgs, argKey, container.doseRepository, container.selection, container.toastBus,
+                    clock = container.clock
                 )
             }
         }

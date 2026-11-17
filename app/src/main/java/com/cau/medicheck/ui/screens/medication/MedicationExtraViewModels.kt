@@ -162,7 +162,7 @@ class ArchiveViewModel(
         fun factory(userId: Long, isSample: Boolean): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                ArchiveViewModel(userId, isSample, container.doseRepository, container.selection)
+                ArchiveViewModel(userId, isSample, container.doseRepository, container.selection, container.clock)
             }
         }
     }

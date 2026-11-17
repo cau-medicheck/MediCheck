@@ -16,14 +16,19 @@ import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.ReminderRepository
 import com.cau.medicheck.data.repository.SampleAccountSeeder
+import com.cau.medicheck.data.repository.SettingsRepository
+import com.cau.medicheck.domain.AppClock
 import com.cau.medicheck.notification.ReminderNotifier
 import com.cau.medicheck.notification.ReminderScheduler
 import com.cau.medicheck.ui.components.ToastBus
+import com.cau.medicheck.ui.navigation.DeepLinkInbox
 import com.cau.medicheck.ui.navigation.SelectionStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.time.Clock
+import java.time.ZoneId
 
 /**
  * 앱 전체에서 하나씩만 있어야 하는 것들을 만들어 보관하는 상자.
@@ -56,8 +61,28 @@ class AppContainer(context: Context) {
     /** 토스트(잠깐 떴다 사라지는 안내 글)를 띄워 달라는 요청이 지나가는 통로. 앱 전체에 하나. */
     val toastBus: ToastBus by lazy { ToastBus() }
 
+    // ---------- 설정 · 앱 시계 ----------
+
+    /** 지금 로그인한 사용자의 설정(알림·시간대 정책). 고치면 알람을 다시 건다. */
+    val settingsRepository: SettingsRepository by lazy {
+        SettingsRepository(
+            sessionStore = sessionStore,
+            userSettingsDao = database.userSettingsDao(),
+            onChanged = { reminderScheduler.reschedule() }
+        )
+    }
+
+    /**
+     * 앱 시계. 앱 안의 "지금·오늘"은 모두 이 시계로 계산한다.
+     * 시간대 정책(S35)이 '기기 현지 시간'이면 폰의 지금 시간대, '등록한 시간대'면 가입할 때의 시간대를 쓴다.
+     */
+    val clock: Clock by lazy { AppClock({ settingsRepository.current.value.zone(ZoneId.systemDefault()) }) }
+
+    /** 알림을 눌러 들어온 "이 회차를 열어 달라"는 요청을 맡아 두는 상자 */
+    val deepLinks: DeepLinkInbox by lazy { DeepLinkInbox() }
+
     /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
-    val selection: SelectionStore by lazy { SelectionStore() }
+    val selection: SelectionStore by lazy { SelectionStore(clock) }
 
     /** 사용자가 고른 파일에 CSV를 쓰는 도구 (S43) */
     val csvFileWriter: CsvFileWriter by lazy { CsvFileWriter(appContext) }
@@ -68,14 +93,18 @@ class AppContainer(context: Context) {
         ReminderRepository(
             sessionStore = sessionStore,
             scheduleDao = database.scheduleDao(),
-            doseRecordDao = database.doseRecordDao()
+            doseRecordDao = database.doseRecordDao(),
+            clock = clock,
+            // 알림을 계산하기 전에 오늘까지의 복용 기록을 채운다 (오늘 알림은 기록 줄이 기준이다).
+            refreshRecords = { userId -> doseRepository.refresh(userId) },
+            currentSettings = { settingsRepository.current.value }
         )
     }
 
     val reminderNotifier: ReminderNotifier by lazy { ReminderNotifier(appContext) }
 
     val reminderScheduler: ReminderScheduler by lazy {
-        ReminderScheduler(appContext, reminderRepository)
+        ReminderScheduler(appContext, reminderRepository, clock)
     }
 
     // ---------- 회원가입·로그인 ----------
@@ -89,7 +118,8 @@ class AppContainer(context: Context) {
             doseRecordDao = database.doseRecordDao(),
             statusEventDao = database.doseStatusEventDao(),
             userSettingsDao = database.userSettingsDao(),
-            transaction = transactionRunner
+            transaction = transactionRunner,
+            clock = clock
         )
     }
 
@@ -102,8 +132,13 @@ class AppContainer(context: Context) {
             prepareSampleUser = { sampleAccountSeeder.prepare() },
             // 로그인·로그아웃으로 "지금 로그인한 사람"이 바뀌면 알림도 그 사람 것으로 다시 건다.
             onSessionChanged = {
-                // 로그아웃했다면 앞 사람의 약 알림이 화면에 남아 있지 않게 지운다.
-                if (sessionStore.getLoggedInUserId() == null) reminderNotifier.cancelAll()
+                // 새로 로그인한 사람의 설정을 먼저 읽는다 (알림 켜짐·시간대 정책이 계정마다 다르다).
+                settingsRepository.loadForCurrentUser()
+                // 로그아웃했다면 앞 사람의 약 알림이 화면에 남아 있지 않게 지우고, 알림으로 받아 둔 회차도 버린다.
+                if (sessionStore.getLoggedInUserId() == null) {
+                    reminderNotifier.cancelAll()
+                    deepLinks.clear()
+                }
                 // 앞 사람이 보던 날짜·회차가 다음 사람에게 남지 않게 처음 값으로.
                 selection.reset()
                 reminderScheduler.reschedule()
@@ -119,7 +154,8 @@ class AppContainer(context: Context) {
             medicationDao = database.medicationDao(),
             scheduleDao = database.scheduleDao(),
             doseRecordDao = database.doseRecordDao(),
-            statusEventDao = database.doseStatusEventDao()
+            statusEventDao = database.doseStatusEventDao(),
+            clock = clock
         )
     }
 
@@ -129,6 +165,7 @@ class AppContainer(context: Context) {
             scheduleDao = database.scheduleDao(),
             transaction = transactionRunner,
             doseRecordGenerator = doseRecordGenerator,
+            clock = clock,
             // 약이 등록·수정·삭제되면 다음 알림 시각이 달라질 수 있으므로 다시 건다.
             onChanged = { reminderScheduler.reschedule() }
         )
@@ -141,7 +178,10 @@ class AppContainer(context: Context) {
             generator = doseRecordGenerator,
             transaction = transactionRunner,
             // 내일 이후의 예정 회차는 지금의 약·규칙에서 계산한다.
-            observeMedications = { userId -> medicationRepository.observeMedications(userId) }
+            observeMedications = { userId -> medicationRepository.observeMedications(userId) },
+            clock = clock,
+            // 복용 완료·건너뜀·되돌리기로 상태가 바뀌면 다음 알림(재알림 포함)이 달라질 수 있으므로 다시 건다.
+            onChanged = { reminderScheduler.reschedule() }
         )
     }
 }
@@ -159,10 +199,13 @@ class MediCheckApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
 
-        // 알림 채널을 만들어 둔다 (설정 화면의 알림 항목에 보이게 된다).
-        container.reminderNotifier.ensureChannel()
+        // 알림 채널을 만들어 둔다 (설정 앱의 알림 항목에 보이게 된다).
+        container.reminderNotifier.ensureChannels()
 
-        // 앱이 켜질 때마다 다음 알림을 다시 건다. 알람이 어떤 이유로 사라졌더라도 여기서 복구된다.
-        container.appScope.launch { container.reminderScheduler.reschedule() }
+        // 앱이 켜질 때마다 설정을 읽고 다음 알림을 다시 건다. 알람이 어떤 이유로 사라졌더라도 여기서 복구된다.
+        container.appScope.launch {
+            container.settingsRepository.loadForCurrentUser()
+            container.reminderScheduler.reschedule()
+        }
     }
 }

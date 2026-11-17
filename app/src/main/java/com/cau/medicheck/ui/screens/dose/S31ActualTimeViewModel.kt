@@ -117,7 +117,8 @@ class S31ActualTimeViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 S31ActualTimeViewModel(
-                    userId, hasArgs, argKey, container.doseRepository, container.selection, container.toastBus
+                    userId, hasArgs, argKey, container.doseRepository, container.selection, container.toastBus,
+                    clock = container.clock
                 )
             }
         }
