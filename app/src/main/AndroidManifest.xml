@@ -23,9 +23,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MediCheck">
+        <!--
+            launchMode="singleTop": 앱 화면이 이미 맨 위에 떠 있으면 새로 하나 더 만들지 않고 그 화면을 다시 쓴다.
+            (접힌 알림 묶음을 누르면 시스템이 "앱 열기"를 실행하는데, 그때 화면이 두 겹으로 쌓이지 않게 한다)
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:label="@string/app_name"
             android:theme="@style/Theme.MediCheck"
             android:windowSoftInputMode="adjustResize">
