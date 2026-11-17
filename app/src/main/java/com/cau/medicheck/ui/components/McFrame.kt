@@ -165,12 +165,12 @@ fun McTopBar(
 }
 
 /**
- * 머리말의 네모 버튼 (v3 .iconbtn: 35×35, 둥글기 12).
+ * 네모 버튼 (v3 .iconbtn: 35×35, 둥글기 12). 머리말의 ♧·⚙와 달 넘기기 ‹·›가 쓴다.
  * @param outlined true면 흰 바탕 + 테두리(♧ 알림), false면 옅은 청록 바탕(⚙ 설정)
  * @param description TalkBack이 읽는 이름 ("알림", "설정")
  */
 @Composable
-private fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onClick: () -> Unit) {
+fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         contentAlignment = Alignment.Center,
@@ -253,12 +253,14 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
 /**
  * 아직 만들지 않은 화면 자리에 두는 임시 화면: "준비 중". 해당 단계에서 진짜 화면으로 바꾼다.
  * @param actionLabel (선택) 임시로 달아 두는 버튼 글자 — 설정 허브가 생기기 전의 로그아웃 등
+ * @param extra (선택) 카드 아래에 더 그릴 것 — 아직 입구가 없는 화면으로 가는 임시 버튼 등
  */
 @Composable
 fun PlaceholderScreen(
     title: String,
     actionLabel: String? = null,
-    onAction: () -> Unit = {}
+    onAction: () -> Unit = {},
+    extra: @Composable ColumnScope.() -> Unit = {}
 ) {
     McScreenColumn(paneTitle = title) {
         SurfaceCard {
@@ -270,6 +272,7 @@ fun PlaceholderScreen(
                 onAction = onAction
             )
         }
+        extra()
     }
 }
 

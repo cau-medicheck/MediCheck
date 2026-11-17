@@ -28,12 +28,6 @@ import com.cau.medicheck.ui.navigation.graph.mainGraph
 import com.cau.medicheck.ui.theme.ScreenBackground
 
 /**
- * 4단계에서 새로 만들기 전까지 예전 화면을 임시로 연결해 둔 곳(통계).
- * 이 화면은 자기 머리말(TopAppBar)을 직접 그리므로 틀의 머리말을 겹쳐 그리지 않는다.
- */
-private val LEGACY_SCREENS = setOf("S13")
-
-/**
  * 로그인한 뒤의 화면 틀. (구현 명세 00 §1, 02 "공통 틀")
  *
  *   ┌ 머리말 McTopBar ─ "MEDICATION CARE" + 화면 이름 + ♧ 알림 · ⚙ 설정 ┐
@@ -53,7 +47,6 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
     // 지금 보이는 화면의 주소. 화면이 바뀌면 이 값도 바뀌어 머리말·탭이 다시 그려진다.
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route ?: Routes.S04
-    val screenId = NavRules.screenIdOf(route)
     val activeTab = McTab.entries.find { it.route == NavRules.tabRootOf(route) }
 
     Column(
@@ -61,15 +54,13 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
             .fillMaxSize()
             .background(ScreenBackground)
     ) {
-        if (screenId !in LEGACY_SCREENS) {
-            McTopBar(
-                title = stringResource(Routes.titleRes(route)),
-                showActions = true,
-                // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
-                onNotifications = { go.openOrReturn(Routes.S16) },
-                onSettings = { go.openOrReturn(Routes.S19) }
-            )
-        }
+        McTopBar(
+            title = stringResource(Routes.titleRes(route)),
+            showActions = true,
+            // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
+            onNotifications = { go.openOrReturn(Routes.S16) },
+            onSettings = { go.openOrReturn(Routes.S19) }
+        )
         // weight(1f): 머리말과 하단 탭을 뺀 나머지 높이를 화면이 모두 차지한다.
         // consumeWindowInsets: 폰의 내비게이션 바와 하단 탭 높이는 이미 띄웠다고 안쪽 화면에 알려 준다.
         // (안 알려 주면 아래 여백이 두 번 들어가고, 키보드가 올라올 때 탭 높이만큼 빈 자리가 생긴다)

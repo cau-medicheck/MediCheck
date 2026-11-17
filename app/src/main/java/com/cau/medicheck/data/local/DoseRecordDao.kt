@@ -86,6 +86,44 @@ interface DoseRecordDao {
     )
     fun observeRecentPastDates(userId: Long, today: String, limit: Int): Flow<List<DateCount>>
 
+    /**
+     * 날짜 범위 안에서 기록이 하나라도 있는 날짜들. (S11 달력의 점 — 오늘까지)
+     * 삭제한 약의 기록도 포함한다(지난 날짜의 점은 약을 지워도 남는다).
+     */
+    @Query(
+        "SELECT DISTINCT r.date FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND r.date BETWEEN :fromDate AND :toDate"
+    )
+    fun observeDoseDates(userId: Long, fromDate: String, toDate: String): Flow<List<String>>
+
+    /** 오늘보다 앞선 날짜 중 기록이 있는 날짜의 수. (S43 "과거 스냅샷 날짜") */
+    @Query(
+        "SELECT COUNT(DISTINCT r.date) FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND r.date < :today"
+    )
+    fun observePastDateCount(userId: Long, today: String): Flow<Int>
+
+    /**
+     * 한 사용자의 기록 전부를 한 번에 읽는다. (S43 CSV 내보내기)
+     * 고르는 칸과 정렬은 observeRange와 같다. 삭제한 약의 기록도 포함한다.
+     */
+    @Query(
+        "SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date, " +
+            "r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt, " +
+            "m.id AS medicationId, r.medication_name AS medicationName, " +
+            "r.dosage AS dosage, r.memo AS memo " +
+            "FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId " +
+            "ORDER BY r.date, r.scheduled_time, r.medication_name COLLATE NOCASE"
+    )
+    suspend fun findAllRowsForUser(userId: Long): List<DoseRecordRow>
+
     /** 기록 하나를 번호로 찾되, 그 기록이 이 사용자의 것일 때만 돌려준다. */
     @Query(
         "SELECT r.* FROM dose_records r " +

@@ -5,7 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -18,7 +20,8 @@ import androidx.navigation.navArgument
 import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.components.A11yBody
+import com.cau.medicheck.ui.components.ButtonKind
+import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.PlaceholderScreen
 import com.cau.medicheck.ui.components.rememberNotificationsOff
 import com.cau.medicheck.ui.navigation.AppNavigator
@@ -36,12 +39,10 @@ import com.cau.medicheck.ui.screens.dose.S30DoseHistoryViewModel
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeScreen
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeViewModel
 import com.cau.medicheck.ui.screens.dose.ScheduleActions
-import com.cau.medicheck.ui.screens.stats.StatsScreen
-import com.cau.medicheck.ui.screens.stats.StatsViewModel
 import kotlinx.coroutines.launch
 
 /** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
-private val REGISTERED = setOf("S04", "S05", "S10", "S13", "S30", "S31") + MEDICATION_SCREENS
+private val REGISTERED = setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS
 
 /** 회차를 가리키는 주소 인자 두 개(규칙 번호, 날짜). 둘 다 없어도 화면이 열리도록 기본값을 둔다. */
 private val doseArguments = listOf(
@@ -70,8 +71,7 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  * 남아 있는 동안 같은 ViewModel이 유지된다.
  *
  * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
- * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계).
- * 임시 연결: S13 통계(4단계에서 새로 만듦).
+ * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계).
  * 그 밖의 화면은 "준비 중" 임시 화면이다.
  */
 fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit) {
@@ -180,7 +180,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
     }
 
     medicationGraph(user, go)   // 내 약 쪽 화면들 (MedicationGraph.kt)
-    legacyScreens(user, onLogout)
+    recordGraph(user, go)       // 기록·통계 화면들 (RecordGraph.kt)
 
     // ----- 아직 만들지 않은 화면: "준비 중" -----
     Routes.ALL_SCREEN_IDS
@@ -188,9 +188,18 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
         .forEach { screenId ->
             composable(screenId) {
                 val title = stringResource(Routes.titleRes(screenId))
-                // 설정 허브(S19)는 6단계에서 만든다. 그때까지 로그아웃할 곳이 필요해 임시 버튼을 둔다.
+                // 설정 허브(S19)는 6단계에서 만든다. 그때까지 로그아웃할 곳과, 개인정보 센터(S36, 6단계)에서
+                // 들어가게 될 "복약 기록 내보내기"(S43)로 가는 길이 필요해 임시 버튼 두 개를 둔다.
                 if (screenId == Routes.S19) {
-                    PlaceholderScreen(title, actionLabel = stringResource(R.string.action_logout), onAction = onLogout)
+                    PlaceholderScreen(title, actionLabel = stringResource(R.string.action_logout), onAction = onLogout) {
+                        McButton(
+                            text = stringResource(R.string.screen_title_s43),
+                            onClick = { go.open(Routes.S43) },
+                            kind = ButtonKind.WHITE,
+                            full = true,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
                 } else {
                     PlaceholderScreen(title)
                 }
@@ -204,25 +213,5 @@ private fun RefreshOnResume(refresh: () -> Unit) {
     LifecycleResumeEffect(refresh) {
         refresh()
         onPauseOrDispose { }
-    }
-}
-
-/**
- * 예전 화면을 임시로 연결한 부분. 통계(S13)는 4단계에서 새 화면으로 바뀐다.
- * 이 화면은 예전 모양 그대로다. A11yBody: 새 화면의 본문처럼 글자 배율·높은 대비가 적용되게 감싼다.
- */
-private fun NavGraphBuilder.legacyScreens(user: User, onLogout: () -> Unit) {
-    composable(Routes.S13) {
-        val vm: StatsViewModel = viewModel(factory = StatsViewModel.factory(user.id))
-        val state by vm.uiState.collectAsStateWithLifecycle()
-        RefreshOnResume(vm::refresh)
-        A11yBody(Modifier) {
-            StatsScreen(
-                state = state,
-                onPreviousWeek = vm::goToPreviousWeek,
-                onNextWeek = vm::goToNextWeek,
-                onLogout = onLogout
-            )
-        }
     }
 }

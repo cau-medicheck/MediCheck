@@ -60,10 +60,16 @@ class SelectionStore(private val clock: Clock = Clock.systemDefaultZone()) {
     /**
      * 자정이 지나 "오늘"이 바뀌었을 때 부른다.
      * 선택 날짜가 옛 오늘이었으면 새 오늘로 따라간다. 다른 날짜를 보고 있었으면 그대로 둔다.
+     * 보는 달은 옛 오늘의 달이었을 때만 따라간다 (다른 달을 넘겨 보고 있었으면 그대로).
      */
     fun followToday(today: LocalDate) {
         if (today == knownToday) return
-        if (_selectedDay.value == knownToday) selectDay(today)
+        // 달은 "옛 오늘의 달을 보고 있었을 때만" 함께 옮긴다. 지난 달을 넘겨 보고 있었다면 그대로 둔다.
+        val wasOnOldMonth = _selectedMonth.value == YearMonth.from(knownToday)
+        if (_selectedDay.value == knownToday) {
+            _selectedDay.value = today
+            if (wasOnOldMonth) _selectedMonth.value = YearMonth.from(today)
+        }
         knownToday = today
     }
 

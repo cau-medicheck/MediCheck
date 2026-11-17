@@ -21,12 +21,15 @@ object Routes {
     const val S11 = "S11"   // 기록 캘린더
     const val S12 = "S12"   // 날짜별 기록 (4단계)
     const val S13 = "S13"   // 주간 통계
+    const val S14 = "S14"   // 월간 통계
+    const val S15 = "S15"   // 건너뜀 패턴
     const val S16 = "S16"   // 알림 센터
     const val S19 = "S19"   // 설정 허브
     const val S29 = "S29"   // 사진으로 약 등록 (시안)
     const val S30 = "S30"   // 복용 변경 이력
     const val S32 = "S32"   // 과거 기록 보존
     const val S40 = "S40"   // 중복 약·회차 확인
+    const val S43 = "S43"   // 복약 기록 내보내기
     const val S34 = "S34"   // 알림 거절/오류 안내
 
     // ----- 인자가 붙는 화면 -----

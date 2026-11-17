@@ -19,6 +19,7 @@ import com.cau.medicheck.data.local.UserSettingsDao
 import com.cau.medicheck.data.local.UserSettingsEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -293,6 +294,19 @@ internal class FakeDoseRecordDao(
 
     override fun observeOwnedRowByKey(userId: Long, scheduleId: Long, date: String): Flow<DoseRecordRow?> =
         observeRange(userId, date, date).map { rows -> rows.find { it.scheduleId == scheduleId } }
+
+    override fun observeDoseDates(userId: Long, fromDate: String, toDate: String): Flow<List<String>> =
+        records.map { list ->
+            list.filter { medicationOf(it)?.userId == userId && it.date in fromDate..toDate }
+                .map { it.date }
+                .distinct()
+        }
+
+    override fun observePastDateCount(userId: Long, today: String): Flow<Int> =
+        records.map { list -> pastRecords(list, userId, today).map { it.date }.distinct().size }
+
+    override suspend fun findAllRowsForUser(userId: Long): List<DoseRecordRow> =
+        observeRange(userId, "0000-00-00", "9999-99-99").first()
 
     /** 한 사용자의, 오늘보다 앞선 날짜의 기록들 (삭제한 약의 기록 포함) */
     private fun pastRecords(list: List<DoseRecord>, userId: Long, today: String): List<DoseRecord> =

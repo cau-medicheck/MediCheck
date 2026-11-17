@@ -102,3 +102,6 @@ val HeroRingRest = Color(0x47FFFFFF)       // 완료율 원의 빈 부분
 // 사진 올리기 상자(S29)의 점선 테두리와 바탕 (v3 .upload)
 val DashedBorder = Color(0xFFBFD7DA)
 val DashedBg = Color(0xFFF5FBFB)
+
+// 월간 통계(S14) 막대: 완료율이 100%가 아닌 날 (v3 #8dbec6)
+val ChartBarMuted = Color(0xFF8DBEC6)

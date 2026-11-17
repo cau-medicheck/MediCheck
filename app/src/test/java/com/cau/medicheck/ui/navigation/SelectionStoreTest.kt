@@ -70,6 +70,26 @@ class SelectionStoreTest {
     }
 
     @Test
+    fun `지난 달을 넘겨 보고 있었으면 자정이 지나도 보는 달은 그대로다`() {
+        store.shiftMonth(-1)                       // 10월을 보고 있다 (선택 날짜는 오늘)
+
+        store.followToday(today.plusDays(1))
+
+        assertEquals(today.plusDays(1), store.selectedDay.value)
+        assertEquals(YearMonth.of(2026, 10), store.selectedMonth.value)
+    }
+
+    @Test
+    fun `달이 바뀌는 자정에는 이번 달을 보고 있던 달력도 새 달로 따라간다`() {
+        val lastDay = Clock.fixed(Instant.parse("2026-11-30T10:00:00Z"), ZoneOffset.UTC)
+        val store = SelectionStore(lastDay)
+
+        store.followToday(LocalDate.of(2026, 12, 1))
+
+        assertEquals(YearMonth.of(2026, 12), store.selectedMonth.value)
+    }
+
+    @Test
     fun `reset은 선택 날짜와 마지막 회차를 처음 값으로 돌린다`() {
         store.selectDay(LocalDate.of(2026, 12, 3))
         store.setLastDose(DoseKey(1, today))

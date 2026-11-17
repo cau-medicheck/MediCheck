@@ -8,6 +8,7 @@ import com.cau.medicheck.domain.ScheduleItem
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 /*
@@ -32,6 +33,11 @@ fun weekdayText(date: LocalDate): String {
 @Composable
 fun fullDateText(date: LocalDate): String =
     stringResource(R.string.common_date_full, date.monthValue, date.dayOfMonth, weekdayText(date))
+
+/** "2026년 11월" (v3 monthTitle) */
+@Composable
+fun monthTitleText(month: YearMonth): String =
+    stringResource(R.string.common_month_title, month.year, month.monthValue)
 
 /** "2026. 11. 17." (날짜 고르는 칸의 한국어 표기) */
 fun dottedDateText(date: LocalDate): String = "${date.year}. ${date.monthValue}. ${date.dayOfMonth}."
