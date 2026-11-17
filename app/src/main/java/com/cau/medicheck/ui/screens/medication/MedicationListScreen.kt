@@ -195,7 +195,7 @@ private fun MedicationListScreenPreview() {
             )
         )
     )
-    MediCheckTheme(dynamicColor = false) {
+    MediCheckTheme {
         MedicationListScreen(
             state = MedicationListUiState(isLoading = false, medications = sample),
             onAddClick = {}, onMedicationClick = {}, onLogout = {}
@@ -206,7 +206,7 @@ private fun MedicationListScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun MedicationListEmptyPreview() {
-    MediCheckTheme(dynamicColor = false) {
+    MediCheckTheme {
         MedicationListScreen(
             state = MedicationListUiState(isLoading = false),
             onAddClick = {}, onMedicationClick = {}, onLogout = {}

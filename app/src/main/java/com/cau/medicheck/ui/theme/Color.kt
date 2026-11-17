@@ -3,63 +3,93 @@ package com.cau.medicheck.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /*
- * 앱의 색. 청록색(teal)을 중심으로 Material 3 규칙에 맞춰 뽑은 색 묶음이다.
- * 밝은 화면용(Light)과 어두운 화면용(Dark)이 짝을 이룬다.
- *
- * 이름 읽는 법
- *   Primary        : 앱의 주색 (버튼, 강조 글자)
- *   OnPrimary      : 주색 위에 올리는 글자색
- *   ...Container   : 옅은 바탕색 (선택된 탭, 강조 카드)
- *   Surface        : 화면과 카드의 바탕
- *   SurfaceContainer : 카드처럼 한 단계 떠 있는 바탕
+ * 앱에서 쓰는 색을 한곳에 모아 둔다. UI 프로토타입의 색 값을 그대로 옮겼다.
+ * 화면 코드에서는 색 값을 직접 쓰지 않고 여기 이름을 쓴다.
  */
 
-// ----- 밝은 화면 -----
-val PrimaryLight = Color(0xFF006A6A)
-val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFF9CF1F0)
-val OnPrimaryContainerLight = Color(0xFF002020)
-val SecondaryLight = Color(0xFF4A6363)
-val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFCCE8E7)
-val OnSecondaryContainerLight = Color(0xFF051F1F)
-val TertiaryLight = Color(0xFF4B607C)
-val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = Color(0xFFD3E4FF)
-val OnTertiaryContainerLight = Color(0xFF041C35)
-val BackgroundLight = Color(0xFFF4FBFA)
-val OnBackgroundLight = Color(0xFF161D1D)
-val SurfaceVariantLight = Color(0xFFDAE5E4)
-val OnSurfaceVariantLight = Color(0xFF3F4948)
-val OutlineLight = Color(0xFF6F7979)
-val OutlineVariantLight = Color(0xFFBEC9C8)
-val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
-val SurfaceContainerLowLight = Color(0xFFEFF5F4)
-val SurfaceContainerLight = Color(0xFFE9EFEE)
-val SurfaceContainerHighLight = Color(0xFFE3E9E9)
-val SurfaceContainerHighestLight = Color(0xFFDDE4E3)
+// ----- 바탕과 글자 -----
+val ScreenBackground = Color(0xFFF8FBFC)   // 화면 바탕
+val CardBackground = Color(0xFFFFFFFF)     // 카드 바탕
+val CardBorder = Color(0xFFE7EFF0)         // 카드 테두리
+val Line = Color(0xFFE4EDF0)               // 구분선
+val FieldBorder = Color(0xFFDCE7EA)        // 입력칸 테두리
+val Navy = Color(0xFF203846)               // 기본 글자
+val Muted = Color(0xFF718692)              // 흐린 글자 (설명, 보조 정보)
+val Faint = Color(0xFF93A4AC)              // 더 흐린 글자 (머리말, 꺼진 탭)
 
-// ----- 어두운 화면 -----
-val PrimaryDark = Color(0xFF80D5D4)
-val OnPrimaryDark = Color(0xFF003737)
-val PrimaryContainerDark = Color(0xFF004F4F)
-val OnPrimaryContainerDark = Color(0xFF9CF1F0)
-val SecondaryDark = Color(0xFFB0CCCB)
-val OnSecondaryDark = Color(0xFF1B3534)
-val SecondaryContainerDark = Color(0xFF324B4B)
-val OnSecondaryContainerDark = Color(0xFFCCE8E7)
-val TertiaryDark = Color(0xFFB3C8E8)
-val OnTertiaryDark = Color(0xFF1C314B)
-val TertiaryContainerDark = Color(0xFF334863)
-val OnTertiaryContainerDark = Color(0xFFD3E4FF)
-val BackgroundDark = Color(0xFF0E1514)
-val OnBackgroundDark = Color(0xFFDDE4E3)
-val SurfaceVariantDark = Color(0xFF3F4948)
-val OnSurfaceVariantDark = Color(0xFFBEC9C8)
-val OutlineDark = Color(0xFF889392)
-val OutlineVariantDark = Color(0xFF3F4948)
-val SurfaceContainerLowestDark = Color(0xFF090F0F)
-val SurfaceContainerLowDark = Color(0xFF161D1D)
-val SurfaceContainerDark = Color(0xFF1A2121)
-val SurfaceContainerHighDark = Color(0xFF252B2B)
-val SurfaceContainerHighestDark = Color(0xFF2F3636)
+// ----- 주색 (청록) -----
+val Teal = Color(0xFF128B94)
+val TealDark = Color(0xFF096E7A)
+val Mint = Color(0xFFE9F8F5)               // 옅은 청록 바탕 (아이콘 상자, 보조 버튼)
+val MintText = Color(0xFF117E86)
+val HeroStart = Color(0xFF147C93)          // 홈 큰 카드의 그라데이션 시작
+val HeroEnd = Color(0xFF31B4A2)            // 홈 큰 카드의 그라데이션 끝
+val ProgressTrack = Color(0xFFE7F0F2)      // 진행 막대의 빈 부분
+val ProgressFill = Color(0xFF32B9A6)       // 진행 막대의 채운 부분
+
+// ----- 상태 색 -----
+val Amber = Color(0xFFE49A45)
+val Danger = Color(0xFFD55F5F)
+
+// ----- 배지(작은 알약 모양 표시)의 바탕/글자 -----
+val PillMintBg = Color(0xFFE9F7F4); val PillMintText = Color(0xFF168577)
+val PillOrangeBg = Color(0xFFFFF2E6); val PillOrangeText = Color(0xFFBD7F3C)
+val PillGrayBg = Color(0xFFF0F3F5); val PillGrayText = Color(0xFF81919A)
+val PillBlueBg = Color(0xFFEBF3FF); val PillBlueText = Color(0xFF3E73C5)
+val PillRedBg = Color(0xFFFDEEEE); val PillRedText = Color(0xFFD25E5E)
+
+// ----- 안내 상자 -----
+val NoticeBg = Color(0xFFEDF8F5); val NoticeBorder = Color(0xFFDBF1EA); val NoticeText = Color(0xFF377C77)
+val WarnBg = Color(0xFFFFF5EB); val WarnBorder = Color(0xFFFCE6CC); val WarnText = Color(0xFF9B754E)
+
+// ----- 그 밖 -----
+val RedButtonBg = Color(0xFFFFF0F0); val RedButtonText = Color(0xFFC25050); val RedButtonBorder = Color(0xFFFADDDD)
+val WhiteButtonText = Color(0xFF2C6770); val WhiteButtonBorder = Color(0xFFD9E7E8)
+val TabsTrack = Color(0xFFE9F0F2)          // 탭 묶음의 바탕
+val SwitchOff = Color(0xFFD8E5E7)
+val ToastBackground = Color(0xFF264E55)
+
+/*
+ * ===== 여기부터: 구현 명세 00 §4.4의 NEW 토큰 =====
+ * v3 프로토타입 CSS에만 있고 위 목록에 이름이 없던 색이다.
+ * 부품 안에 Color(0xFF…)를 직접 쓰면 나중에 색을 바꿀 때 여러 곳을 찾아다녀야 하므로 이름을 붙여 모았다.
+ */
+
+// ----- NEW: 앱 틀 -----
+val HeaderDivider = Color(0xFFEDF1F2)      // 머리말 아래 선
+val IconBtnBg = Color(0xFFEDF6F5)          // 머리말 ⚙ 버튼 바탕 (♧는 흰 바탕 + Line 테두리)
+val IconBtnText = Color(0xFF137D84)        // 머리말 버튼 글자
+val TabInactive = Color(0xFF899CA6)        // 하단 탭 (꺼짐)
+val TabActive = Color(0xFF0B8990)          // 하단 탭 (켜짐)
+
+// ----- NEW: 글자 -----
+val ParagraphText = Color(0xFF748A95)      // .paragraph
+val LabelText = Color(0xFF597480)          // .label
+val KickerText = Color(0xFF7FA5AC)         // .kicker
+val MetricText = Color(0xFF0E8D92)         // .metric
+val EmptyBodyText = Color(0xFF8497A0)      // .empty p
+val AuthTitleText = Color(0xFF147F88)      // .auth-title
+val AuthSubText = Color(0xFF8299A3)        // .auth-sub
+
+// ----- NEW: 줄 -----
+val RowDivider = Color(0xFFEDF2F3)         // .medrow 선
+val RowSubText = Color(0xFF8B9CA5)         // .medrow p
+val SettingDivider = Color(0xFFF0F3F3)     // .settingrow 선
+val SettingDescText = Color(0xFF7F9099)    // .settingrow p
+val OptionDivider = Color(0xFFEDF3F4)      // optionRows 선
+
+// ----- NEW: 부품 -----
+val LightButtonBg = Color(0xFFE9F7F4)      // .btn.light 바탕·테두리 (Mint보다 한 단계 옅음)
+val FieldText = Color(0xFF264553); val FieldFocus = Color(0xFF23A2A6)
+val AvatarBg = Color(0xFFE3F5F2); val AvatarText = Color(0xFF14998B)
+val SwitchOn = Color(0xFF1797A0)
+val TabsText = Color(0xFF78929B); val TabsSelectedText = Color(0xFF117D8A)
+val CircleInner = Color(0xFF168E96)
+val DateChipBorder = Color(0xFFEAF0F2); val DateChipText = Color(0xFF8799A3)
+val DayBtnBorder = Color(0xFFDCE9E9); val DayBtnText = Color(0xFF728994)
+val CalDayText = Color(0xFF5E7782); val CalDayActive = Color(0xFF138B92)
+val CalDot = Color(0xFF47B7A4); val CalWeekdayText = Color(0xFF92A2AA)
+val ChartTop = Color(0xFF32BDAC); val ChartBottom = Color(0xFF148B96); val ChartLabel = Color(0xFF8197A0)
+val AuthLogoStart = Color(0xFF1788A0); val AuthLogoEnd = Color(0xFF36BCA4)
+val IllustrationStart = Color(0xFFE3F6F5); val IllustrationEnd = Color(0xFFF1F8FD)
+val PagerDotActive = Color(0xFF1D99A2); val PagerDotInactive = Color(0xFFDCE6E9)

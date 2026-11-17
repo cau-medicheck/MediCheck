@@ -1,127 +1,223 @@
 <resources>
-    <!--
-        화면에 보이는 모든 문구를 여기에 모아 둔다 (기본: 영어).
-        한국어 문구는 values-ko/strings.xml에 같은 이름으로 들어 있고,
-        폰 언어가 한국어면 안드로이드가 자동으로 그쪽을 쓴다.
-    -->
+    <!-- 화면 문구 (한국어 하나만 둔다 — 결정 2). 화면 코드에는 문구를 직접 쓰지 않고 R.string.이름으로 꺼낸다. -->
     <string name="app_name">MediCheck</string>
 
-    <!-- 로그인·회원가입 -->
-    <string name="login_subtitle">Never miss a dose</string>
-    <string name="label_username">Username</string>
-    <string name="label_password">Password</string>
-    <string name="label_password_confirm">Confirm password</string>
-    <string name="label_display_name">Name</string>
-    <string name="hint_username">4–20 characters: a–z, 0–9, _</string>
-    <string name="hint_password">At least 8 characters</string>
-    <string name="action_login">Log in</string>
-    <string name="action_sign_up">Sign up</string>
-    <string name="action_go_to_sign_up">Create an account</string>
-    <string name="action_back_to_login">I already have an account</string>
-    <string name="action_logout">Log out</string>
-    <string name="signup_title">Create your account</string>
+    <!-- ===== 앱 틀 (구현 명세 00 §7.2) ===== -->
+    <!-- 머리말 위 작은 글자. v3의 영문 장식 글자를 그대로 둔다. -->
+    <string name="header_eyebrow">MEDICATION CARE</string>
 
-    <!-- 로그인·회원가입 오류 -->
-    <string name="error_username_invalid">Username must be 4–20 characters: a–z, 0–9, _</string>
-    <string name="error_password_too_short">Password must be at least 8 characters</string>
-    <string name="error_password_mismatch">Passwords do not match</string>
-    <string name="error_display_name_invalid">Enter a name (up to 20 characters)</string>
-    <string name="error_username_taken">This username is already taken</string>
-    <string name="error_wrong_credentials">Incorrect username or password</string>
-    <string name="error_empty_fields">Enter your username and password</string>
+    <!-- 머리말 제목 = v3 화면 이름 (V 목록의 첫 칸, 47개) -->
+    <string name="screen_title_s00">시작/온보딩</string>
+    <string name="screen_title_s01">로그인</string>
+    <string name="screen_title_s02">회원가입</string>
+    <string name="screen_title_s03">비밀번호 재설정</string>
+    <string name="screen_title_s04">홈 대시보드</string>
+    <string name="screen_title_s05">일정/캘린더</string>
+    <string name="screen_title_s06">내 약 목록</string>
+    <string name="screen_title_s07">약 상세</string>
+    <string name="screen_title_s08">약 등록/수정</string>
+    <string name="screen_title_s09">삭제 확인</string>
+    <string name="screen_title_s10">회차 상세/상태</string>
+    <string name="screen_title_s11">기록 캘린더</string>
+    <string name="screen_title_s12">날짜별 기록</string>
+    <string name="screen_title_s13">주간 통계</string>
+    <string name="screen_title_s14">월간 통계</string>
+    <string name="screen_title_s15">건너뜀 패턴</string>
+    <string name="screen_title_s16">알림 센터</string>
+    <string name="screen_title_s17">알림 설정</string>
+    <string name="screen_title_s18">권한·OS 안내</string>
+    <string name="screen_title_s19">설정 허브</string>
+    <string name="screen_title_s20">통계 계산 정책</string>
+    <string name="screen_title_s21">프로필 관리</string>
+    <string name="screen_title_s22">도움말·범위</string>
+    <string name="screen_title_s23">가족 프로필</string>
+    <string name="screen_title_s24">보호자 연결 동의</string>
+    <string name="screen_title_s25">보호자 대시보드</string>
+    <string name="screen_title_s26">자녀 복용 기록자</string>
+    <string name="screen_title_s27">가족 중복 투약 경고</string>
+    <string name="screen_title_s28">데이터 백업·복원</string>
+    <string name="screen_title_s29">사진으로 약 등록</string>
+    <string name="screen_title_s30">복용 변경 이력</string>
+    <string name="screen_title_s31">실제 복용 시각 기록</string>
+    <string name="screen_title_s32">과거 기록 보존</string>
+    <string name="screen_title_s33">일정 변경 적용 범위</string>
+    <string name="screen_title_s34">알림 거절/오류 안내</string>
+    <string name="screen_title_s35">시간대 변경 정책</string>
+    <string name="screen_title_s36">개인정보 센터</string>
+    <string name="screen_title_s37">접근성 설정</string>
+    <string name="screen_title_s38">오프라인 상태</string>
+    <string name="screen_title_s39">빈 화면·오류 상태</string>
+    <string name="screen_title_s40">중복 약·회차 확인</string>
+    <string name="screen_title_s41">앱 잠금 설정</string>
+    <string name="screen_title_s42">처방 출처·진료과</string>
+    <string name="screen_title_s43">복약 기록 내보내기</string>
+    <string name="screen_title_s44">계정·데이터 삭제</string>
+    <string name="screen_title_s45">기능별 요구사항 맵</string>
+    <string name="screen_title_s46">안전·개발 범위</string>
+
+    <!-- ===== S00 시작/온보딩 (v3 welcome()) ===== -->
+    <string name="s00_subtitle">건강한 일상을 위한 복약 일정 관리</string>
+    <string name="s00_slide1_title">약을 잊지 않고</string>
+    <string name="s00_slide1_body">매일 복용할 약과 시간을 한눈에 관리해요.</string>
+    <string name="s00_slide2_title">정해진 시간에</string>
+    <string name="s00_slide2_body">복약 알림을 통해 일상을 더 규칙적으로 만들어요.</string>
+    <string name="s00_slide3_title">기록으로 돌아보기</string>
+    <string name="s00_slide3_body">복용 완료율과 건너뜀 패턴을 살펴봐요.</string>
+    <string name="s00_next">다음</string>
+    <string name="s00_start">시작하기</string>
+    <string name="s00_have_account">이미 계정이 있어요</string>
+    <!-- NEW: TalkBack이 진행 점을 읽는 글 (화면에는 보이지 않음) -->
+    <string name="s00_page_desc">3장 중 %1$d장</string>
+
+    <!-- ===== S01 로그인 · S02 회원가입 (v3 login(), signup()) ===== -->
+    <string name="s01_subtitle">내 복약 일정과 기록을 안전하게 관리하세요.</string>
+    <string name="auth_tab_login">로그인</string>
+    <string name="auth_tab_signup">회원가입</string>
+    <string name="auth_label_email">이메일</string>
+    <string name="auth_hint_email">example@email.com</string>
+    <string name="auth_label_password">비밀번호</string>
+    <string name="auth_hint_password">6자 이상</string>
+    <string name="s01_forgot">비밀번호를 잊으셨나요?</string>
+    <string name="s01_submit">로그인</string>
+    <string name="s01_sample">샘플 계정으로 체험하기</string>
+    <!-- 앱(교체): v3 "데모 로그인입니다. 실제 비밀번호 인증·서버 연결은 구현되지 않았습니다." → 실제 앱에 맞는 사실 -->
+    <string name="s01_notice">계정과 복약 기록은 서버 없이 이 기기 안에만 저장됩니다. 샘플 계정은 날마다 처음 들어갈 때 예시 약 3개와 지난 기록으로 새로 채워집니다.</string>
+    <string name="s02_subtitle">새로운 복약 관리 계정을 만들어보세요.</string>
+    <string name="auth_label_name">이름</string>
+    <string name="auth_hint_name">표시할 이름</string>
+    <string name="auth_label_password_confirm">비밀번호 확인</string>
+    <string name="auth_hint_password_confirm">동일한 비밀번호 입력</string>
+    <string name="s02_submit">계정 만들기</string>
+    <!-- 앱(교체): v3 "사용자 정보 입력 UI만 구현한 시연입니다. 실제 회원 정보 보관 기능은 미연결입니다." -->
+    <string name="s02_notice">계정 정보는 서버 없이 이 기기 안에만 저장됩니다. 비밀번호는 그대로 저장하지 않고 알아볼 수 없는 형태로 바꿔 저장합니다.</string>
+
+    <!-- ===== S03 비밀번호 재설정 (v3 forgot()) ===== -->
+    <!-- BackLink 부품이 앞에 "‹ "를 붙인다 -->
+    <string name="s03_back">로그인 화면</string>
+    <!-- 앱(교체): v3 "계정의 이메일로 복구 안내를 보내는 화면입니다." -->
+    <string name="s03_subtitle">비밀번호를 잊었을 때 할 수 있는 방법을 안내합니다.</string>
+    <string name="s03_label_email">가입 이메일</string>
+    <string name="s03_submit">복구 안내 요청</string>
+    <!-- 앱(교체): v3 "인증 서비스가 정해지기 전까지 실제 재설정 메일은 발송하지 않습니다." -->
+    <string name="s03_notice">MediCheck 계정은 서버 없이 이 기기 안에만 저장되어 재설정 메일을 보낼 수 없습니다. 비밀번호가 기억나지 않으면 로그인 화면의 \'회원가입\'에서 다른 이메일로 새 계정을 만들어 주세요. 기존 계정의 기록은 원래 비밀번호로만 볼 수 있습니다.</string>
+
+    <!-- ===== 로그인 전후 토스트 ===== -->
+    <!-- 앱(교체): v3 "데모 모드로 로그인했어요." -->
+    <string name="toast_login_done">로그인했어요.</string>
+    <!-- 앱(교체): v3 "데모 계정이 만들어졌어요." -->
+    <string name="toast_signup_done">계정이 만들어졌어요.</string>
+    <!-- 앱(교체): v3 "데모에서는 실제 복구 메일이 발송되지 않습니다." -->
+    <string name="toast_password_help">이 기기에만 저장된 계정이라 복구 메일을 보낼 수 없어요. 다른 이메일로 새 계정을 만들어 주세요.</string>
+    <!-- v3 act('logout') 그대로 -->
+    <string name="toast_logout_done">로그아웃했습니다.</string>
+
+    <!-- 로그인 뒤 기존 화면(오늘·내 약·기록·통계)의 로그아웃 버튼. 2단계에서 S19로 옮길 때까지 남긴다. -->
+    <string name="action_logout">로그아웃</string>
+
+    <!-- 로그인·회원가입 오류 (토스트) -->
+    <string name="error_email_empty">이메일을 입력해주세요.</string>
+    <string name="error_email_invalid">올바른 이메일을 입력해주세요.</string>
+    <string name="error_password_empty">비밀번호를 입력해주세요.</string>
+    <string name="error_password_too_short">비밀번호는 6자 이상 입력해주세요.</string>
+    <string name="error_password_mismatch">비밀번호가 일치하지 않습니다.</string>
+    <string name="error_display_name_invalid">이름을 1~30자로 입력해주세요.</string>
+    <string name="error_email_taken">이미 가입된 이메일입니다.</string>
+    <string name="error_generic">문제가 생겼습니다. 잠시 후 다시 시도해주세요.</string>
+    <string name="error_wrong_credentials">이메일 또는 비밀번호가 올바르지 않습니다.</string>
+    <string name="error_sample_failed">샘플 계정을 준비하지 못했어요. 다시 시도해주세요.</string>
 
     <!-- 홈 -->
-    <string name="home_greeting">Hello, %1$s</string>
+    <string name="home_greeting">%1$s님, 안녕하세요</string>
 
     <!-- 약 목록 -->
-    <string name="medications_title">My medications</string>
-    <string name="medications_empty_title">No medications yet</string>
-    <string name="medications_empty_body">Tap “Add medication” to register your first one.</string>
-    <string name="action_add_medication">Add medication</string>
+    <string name="medications_title">내 약</string>
+    <string name="medications_empty_title">등록된 약이 없습니다</string>
+    <string name="medications_empty_body">‘약 추가’를 눌러 첫 약을 등록하세요.</string>
+    <string name="action_add_medication">약 추가</string>
     <string name="schedule_line">%1$s · %2$s</string>
-    <string name="period_from">From %1$s</string>
-    <string name="period_range">%1$s – %2$s</string>
-    <string name="days_every_day">Every day</string>
-    <string name="days_weekdays">Weekdays</string>
-    <string name="days_weekends">Weekends</string>
+    <string name="period_from">%1$s부터</string>
+    <string name="period_range">%1$s ~ %2$s</string>
+    <string name="days_every_day">매일</string>
+    <string name="days_weekdays">평일</string>
+    <string name="days_weekends">주말</string>
 
     <!-- 약 등록·수정 -->
-    <string name="medication_new_title">Add medication</string>
-    <string name="medication_edit_title">Edit medication</string>
-    <string name="label_medication_name">Medication name</string>
-    <string name="label_dosage">Dosage</string>
-    <string name="hint_dosage">e.g. 1 tablet, 5 ml</string>
-    <string name="label_memo">Memo (optional)</string>
-    <string name="hint_memo">e.g. 30 minutes after meals</string>
-    <string name="section_period">Period</string>
-    <string name="label_start_date">Start date</string>
-    <string name="label_end_date">End date</string>
-    <string name="no_end_date">No end date</string>
-    <string name="action_clear_end_date">Clear end date</string>
-    <string name="section_times">Times</string>
-    <string name="action_add_time">Add time</string>
-    <string name="action_remove_time">Remove this time</string>
-    <string name="action_save">Save</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="action_ok">OK</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_back">Back</string>
-    <string name="delete_medication_title">Delete this medication?</string>
-    <string name="delete_medication_body">“%1$s” will be removed from your list. Your past records are kept.</string>
+    <string name="medication_new_title">약 추가</string>
+    <string name="medication_edit_title">약 수정</string>
+    <string name="label_medication_name">약 이름</string>
+    <string name="label_dosage">복용량</string>
+    <string name="hint_dosage">예: 1정, 5ml</string>
+    <string name="label_memo">메모 (선택)</string>
+    <string name="hint_memo">예: 식후 30분</string>
+    <string name="section_period">복용 기간</string>
+    <string name="label_start_date">시작일</string>
+    <string name="label_end_date">종료일</string>
+    <string name="no_end_date">종료일 없음</string>
+    <string name="action_clear_end_date">종료일 지우기</string>
+    <string name="section_times">복용 시간</string>
+    <string name="action_add_time">시간 추가</string>
+    <string name="action_remove_time">이 시간 삭제</string>
+    <string name="action_save">저장</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_ok">확인</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_back">뒤로</string>
+    <string name="delete_medication_title">이 약을 삭제할까요?</string>
+    <string name="delete_medication_body">‘%1$s’ 약이 목록에서 사라집니다. 지난 복용 기록은 남습니다.</string>
 
     <!-- 약 등록·수정 오류 -->
-    <string name="error_med_name_invalid">Enter a medication name (up to 50 characters)</string>
-    <string name="error_med_dosage_invalid">Enter a dosage (up to 30 characters)</string>
-    <string name="error_med_memo_too_long">Memo can be up to 200 characters</string>
-    <string name="error_med_end_before_start">End date cannot be before the start date</string>
-    <string name="error_med_no_schedule">Add at least one time</string>
-    <string name="error_med_schedule_no_days">Choose at least one day for each time</string>
-    <string name="error_med_schedule_duplicate">Two times overlap on the same day</string>
-    <string name="error_med_not_found">This medication no longer exists</string>
+    <string name="error_med_name_invalid">약 이름을 50자 이내로 입력하세요</string>
+    <string name="error_med_dosage_invalid">복용량을 30자 이내로 입력하세요</string>
+    <string name="error_med_memo_too_long">메모는 200자 이내로 입력하세요</string>
+    <string name="error_med_end_before_start">종료일은 시작일보다 빠를 수 없습니다</string>
+    <string name="error_med_no_schedule">복용 시간을 하나 이상 추가하세요</string>
+    <string name="error_med_schedule_no_days">복용 시간마다 요일을 하나 이상 고르세요</string>
+    <string name="error_med_schedule_duplicate">같은 요일에 같은 시간이 겹칩니다</string>
+    <string name="error_med_not_found">약을 찾을 수 없습니다</string>
 
     <!-- 아래쪽 탭 -->
-    <string name="tab_today">Today</string>
-    <string name="tab_medications">Medications</string>
-    <string name="tab_history">History</string>
+    <string name="tab_today">오늘</string>
+    <string name="tab_medications">내 약</string>
+    <string name="tab_history">기록</string>
 
     <!-- 오늘 · 기록 -->
-    <string name="today_title">Today</string>
-    <string name="today_summary">%1$d of %2$d taken</string>
-    <string name="today_empty_title">Nothing scheduled today</string>
-    <string name="today_empty_body">Add a medication in the Medications tab.</string>
-    <string name="history_title">History</string>
-    <string name="history_empty">No records for this day</string>
-    <string name="action_previous_day">Previous day</string>
-    <string name="action_next_day">Next day</string>
-    <string name="action_take">Taken</string>
-    <string name="action_skip">Skip</string>
-    <string name="action_undo">Undo</string>
-    <string name="status_upcoming">Upcoming</string>
-    <string name="status_missed">Missed</string>
-    <string name="status_taken">Taken</string>
-    <string name="status_taken_at">Taken at %1$s</string>
-    <string name="status_skipped">Skipped</string>
+    <string name="today_title">오늘</string>
+    <string name="today_summary">%2$d회 중 %1$d회 복용</string>
+    <string name="today_empty_title">오늘 예정된 복약이 없습니다</string>
+    <string name="today_empty_body">‘내 약’ 탭에서 약을 등록하세요.</string>
+    <string name="history_title">복약 기록</string>
+    <string name="history_empty">이 날의 기록이 없습니다</string>
+    <string name="action_previous_day">이전 날</string>
+    <string name="action_next_day">다음 날</string>
+    <string name="action_take">복용 완료</string>
+    <string name="action_skip">건너뛰기</string>
+    <string name="action_undo">되돌리기</string>
+    <string name="status_upcoming">예정</string>
+    <string name="status_missed">깜빡함</string>
+    <string name="status_taken">복용 완료</string>
+    <string name="status_taken_at">%1$s 복용</string>
+    <string name="status_skipped">건너뜀</string>
 
     <!-- 알림 -->
-    <string name="reminder_channel_name">Medication reminders</string>
-    <string name="reminder_channel_description">Reminds you when it is time to take a medication</string>
-    <string name="reminder_title">Time to take %1$s</string>
+    <string name="reminder_channel_name">복약 알림</string>
+    <string name="reminder_channel_description">약 먹을 시간이 되면 알려 줍니다</string>
+    <string name="reminder_title">%1$s 먹을 시간이에요</string>
     <string name="reminder_text">%1$s · %2$s</string>
-    <string name="notifications_off_title">Notifications are off</string>
-    <string name="notifications_off_body">You will not be reminded when it is time to take a medication.</string>
-    <string name="action_turn_on_notifications">Turn on</string>
+    <string name="notifications_off_title">알림이 꺼져 있습니다</string>
+    <string name="notifications_off_body">약 먹을 시간이 되어도 알림을 받을 수 없습니다.</string>
+    <string name="action_turn_on_notifications">알림 켜기</string>
 
     <!-- 통계 -->
-    <string name="tab_stats">Stats</string>
-    <string name="stats_title">Weekly stats</string>
-    <string name="stats_this_week">This week</string>
-    <string name="stats_rate_label">Completion rate</string>
+    <string name="tab_stats">통계</string>
+    <string name="stats_title">주간 통계</string>
+    <string name="stats_this_week">이번 주</string>
+    <string name="stats_rate_label">복약 완료율</string>
     <string name="stats_rate_value">%1$d%%</string>
-    <string name="stats_rate_detail">%1$d of %2$d doses taken</string>
-    <string name="stats_no_records">No records</string>
-    <string name="stats_daily_title">Day by day</string>
+    <string name="stats_rate_detail">%2$d회 중 %1$d회 복용</string>
+    <string name="stats_no_records">기록 없음</string>
+    <string name="stats_daily_title">요일별 복약</string>
     <string name="stats_day_count">%1$d/%2$d</string>
-    <string name="stats_rate_help">Completion rate = taken ÷ (taken + skipped + missed). Doses that are not due yet are not counted.</string>
-    <string name="action_previous_week">Previous week</string>
-    <string name="action_next_week">Next week</string>
+    <string name="stats_rate_help">완료율 = 복용 완료 ÷ (복용 완료 + 건너뜀 + 깜빡함). 아직 시간이 안 된 복약은 계산에 넣지 않습니다.</string>
+    <string name="action_previous_week">이전 주</string>
+    <string name="action_next_week">다음 주</string>
 </resources>

@@ -1,0 +1,126 @@
+package com.cau.medicheck.data.repository
+
+import com.cau.medicheck.data.local.DoseRecord
+import com.cau.medicheck.data.local.DoseRecordDao
+import com.cau.medicheck.data.local.DoseStatusEventDao
+import com.cau.medicheck.data.local.Medication
+import com.cau.medicheck.data.local.MedicationDao
+import com.cau.medicheck.data.local.Schedule
+import com.cau.medicheck.data.local.ScheduleDao
+import com.cau.medicheck.data.local.TransactionRunner
+import com.cau.medicheck.data.local.User
+import com.cau.medicheck.data.local.UserDao
+import com.cau.medicheck.data.local.UserSettingsDao
+import com.cau.medicheck.data.local.UserSettingsEntity
+import com.cau.medicheck.domain.PasswordHasher
+import com.cau.medicheck.domain.SampleData
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+
+/**
+ * 샘플 계정을 준비한다. (DB_DESIGN 부록 D, 01 명세 부록 C)
+ *
+ * - 오늘 만든 샘플 계정이 있으면 그대로 쓴다. 같은 날 안에서는 샘플 계정에서 바꾼 내용이 남는다
+ *   (로그아웃했다 다시 들어가도 "등록·수정이 실제로 저장되는지" 확인할 수 있게).
+ * - 없으면(처음이거나 날짜가 바뀜) 옛 샘플 계정을 지우고 오늘 기준으로 새로 만든다.
+ *   날이 지나면 그 사이 기록이 비어 '기한 경과'만 쌓이기 때문이다.
+ *
+ * 지우기·만들기는 한 트랜잭션이다. 중간에 실패하면 전부 없던 일이 된다.
+ *
+ * @param clock "오늘"을 정하는 시계. 테스트에서는 멈춘 시계를 넣는다.
+ */
+class SampleAccountSeeder(
+    private val userDao: UserDao,
+    private val medicationDao: MedicationDao,
+    private val scheduleDao: ScheduleDao,
+    private val doseRecordDao: DoseRecordDao,
+    private val statusEventDao: DoseStatusEventDao,
+    private val userSettingsDao: UserSettingsDao,
+    private val transaction: TransactionRunner,
+    private val clock: Clock = Clock.systemDefaultZone(),
+    private val hashDispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
+
+    /** 오늘 만든 샘플 계정이 있으면 그대로, 없으면 지우고 새로 만들어 돌려준다. */
+    suspend fun prepare(): User {
+        val today = LocalDate.now(clock)
+        userDao.findSampleUser()?.let { existing ->
+            val madeOn = Instant.ofEpochMilli(existing.createdAt).atZone(clock.zone).toLocalDate()
+            if (madeOn == today) return existing
+        }
+
+        // 아무도 모르는 무작위 비밀번호의 해시 → 로그인 폼으로는 들어갈 수 없고 샘플 버튼으로만 들어간다.
+        // 해시는 느린 계산이라 트랜잭션 밖에서 미리 해 둔다(트랜잭션을 짧게).
+        val hash = withContext(hashDispatcher) { PasswordHasher.hash(UUID.randomUUID().toString()) }
+
+        return transaction.run {
+            userDao.findSampleUsers().forEach { deleteUserData(it.id) }
+            createSample(today, hash)
+        }
+    }
+
+    /**
+     * 사용자 한 명의 데이터를 지운다. 순서가 중요하다 (DB_DESIGN ⑧ "명시적 삭제 순서"):
+     * 이력 → 기록 → 규칙 → 약 → 설정 → 사용자.
+     * 가리키는 쪽(자식)을 먼저 지우므로, FK의 CASCADE가 꺼져 있어도 결과가 같다.
+     */
+    private suspend fun deleteUserData(userId: Long) {
+        statusEventDao.deleteAllForUser(userId)
+        doseRecordDao.deleteAllForUser(userId)
+        scheduleDao.deleteAllForUser(userId)
+        medicationDao.deleteAllForUser(userId)
+        userSettingsDao.deleteForUser(userId)
+        userDao.deleteById(userId)
+    }
+
+    /** 새 샘플 계정과 약 3개·규칙 3개·기록 99줄·설정 기본 줄을 만든다. 이력은 만들지 않는다(v3 auditEvents가 빈 목록). */
+    private suspend fun createSample(today: LocalDate, passwordHash: String): User {
+        val now = clock.millis()
+        val user = User(
+            email = SampleData.EMAIL,
+            passwordHash = passwordHash,
+            displayName = SampleData.DISPLAY_NAME,
+            createdAt = now,
+            isSample = true
+        )
+        val userId = userDao.insert(user)
+        userSettingsDao.insert(UserSettingsEntity.defaultsFor(userId, clock.zone.id))
+
+        val startDate = today.plusDays(SampleData.START_OFFSET.toLong()).toString()
+        SampleData.MEDS.forEach { med ->
+            val medicationId = medicationDao.insert(
+                Medication(
+                    userId = userId, name = med.name, dosage = med.dosage,
+                    startDate = startDate, endDate = null, memo = med.memo, createdAt = now
+                )
+            )
+            val scheduleId = scheduleDao.insert(
+                Schedule(
+                    medicationId = medicationId, time = med.time,
+                    repeatDays = SampleData.REPEAT_DAYS, createdAt = now
+                )
+            )
+            doseRecordDao.insertAllIgnore(
+                SampleData.DAY_OFFSETS.map { offset ->
+                    DoseRecord(
+                        scheduleId = scheduleId,
+                        date = today.plusDays(offset.toLong()).toString(),
+                        scheduledTime = med.time,
+                        medicationName = med.name,   // 스냅샷: 그때의 약 값
+                        dosage = med.dosage,
+                        memo = med.memo,
+                        status = SampleData.statusFor(offset, med.no).name,
+                        actedAt = null,              // v3 샘플에는 실제 복용 시각이 없다
+                        createdAt = now
+                    )
+                }
+            )
+        }
+        return user.copy(id = userId)
+    }
+}

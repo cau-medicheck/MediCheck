@@ -38,6 +38,7 @@ class MedicationRepositoryTest {
     private lateinit var medicationDao: FakeMedicationDao
     private lateinit var scheduleDao: FakeScheduleDao
     private lateinit var doseRecordDao: FakeDoseRecordDao
+    private lateinit var eventDao: FakeDoseStatusEventDao
     private lateinit var repository: MedicationRepository
 
     private val morning = ScheduleDraft(time = LocalTime.of(8, 0), days = RepeatDays.EVERY_DAY)
@@ -63,12 +64,14 @@ class MedicationRepositoryTest {
         medicationDao = FakeMedicationDao()
         scheduleDao = FakeScheduleDao(medicationDao)
         doseRecordDao = FakeDoseRecordDao(medicationDao, scheduleDao)
+        eventDao = FakeDoseStatusEventDao()
         repository = MedicationRepository(
             medicationDao = medicationDao,
             scheduleDao = scheduleDao,
             transaction = FakeTransactionRunner(),
-            doseRecordGenerator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, clock),
-            now = { 5_000L }
+            doseRecordGenerator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock),
+            now = { 5_000L },
+            clock = clock
         )
     }
 
@@ -307,7 +310,7 @@ class MedicationRepositoryTest {
         val id = addTylenol()
         val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
         val eveningRecord = doseRecordDao.records.value.single { it.scheduledTime == "20:00" }
-        doseRecordDao.updateStatus(eveningRecord.id, "TAKEN", 9_000L)   // 저녁 약을 미리 먹었다고 기록
+        doseRecordDao.updateStatus(me, eveningRecord.id, "TAKEN", 9_000L)   // 저녁 약을 미리 먹었다고 기록
 
         repository.updateMedication(
             me, id,
@@ -330,5 +333,197 @@ class MedicationRepositoryTest {
 
         // 08:00은 이미 지난 시각이라 남고(깜빡함으로 집계), 20:00은 아직이라 지워진다.
         assertEquals(listOf("08:00" to "PENDING"), todayRecords())
+    }
+
+    // ---------- 스냅샷 · 적용 시작일 · 오늘 치 다시 맞추기 ----------
+
+    /** 저장된 규칙 그대로 폼에 넘긴 것처럼 ScheduleDraft 목록을 만든다. */
+    private suspend fun savedDrafts(id: Long) =
+        repository.getMedication(me, id)!!.schedules.map { ScheduleDraft(it.id, it.time, it.days) }
+
+    @Test
+    fun `약 이름을 바꿔도 지난 기록은 옛 이름이고 오늘 남은 기록은 같은 줄이 새 이름으로 바뀐다`() = runBlocking<Unit> {
+        repository.addMedication(me, draft(startDate = today.minusDays(1)))
+        val id = medicationDao.medications.value.single().id
+        val eveningBefore = doseRecordDao.records.value.single { it.date == "2026-11-16" && it.scheduledTime == "20:00" }
+
+        repository.updateMedication(me, id, draft(name = "타이레놀 500", startDate = today.minusDays(1), schedules = savedDrafts(id)))
+
+        val records = doseRecordDao.records.value
+        // 어제 기록과 오늘 이미 지난 08:00 기록은 옛 이름 그대로
+        assertTrue(records.filter { it.date == "2026-11-15" }.all { it.medicationName == "타이레놀" })
+        assertEquals("타이레놀", records.single { it.date == "2026-11-16" && it.scheduledTime == "08:00" }.medicationName)
+        // 오늘 아직 시각 전인 20:00 기록은 같은 id 그대로 새 이름
+        val eveningAfter = records.single { it.date == "2026-11-16" && it.scheduledTime == "20:00" }
+        assertEquals(eveningBefore.id, eveningAfter.id)
+        assertEquals("타이레놀 500", eveningAfter.medicationName)
+    }
+
+    @Test
+    fun `시간 줄을 새로 더해도 지난 날짜의 기록은 생기지 않는다`() = runBlocking<Unit> {
+        repository.addMedication(me, draft(startDate = today.minusDays(3), schedules = listOf(morning)))
+        val id = medicationDao.medications.value.single().id
+
+        repository.updateMedication(
+            me, id,
+            draft(startDate = today.minusDays(3), schedules = savedDrafts(id) + ScheduleDraft(null, LocalTime.of(21, 0), RepeatDays.EVERY_DAY))
+        )
+
+        val newSchedule = scheduleDao.schedules.value.single { it.time == "21:00" }
+        assertEquals("2026-11-16", newSchedule.effectiveFrom)
+        assertEquals(listOf("2026-11-16"), doseRecordDao.records.value.filter { it.scheduleId == newSchedule.id }.map { it.date })
+    }
+
+    @Test
+    fun `이미 지난 시각으로 바꾼 줄은 내일부터 적용되어 오늘 기한 경과 회차가 생기지 않는다`() = runBlocking<Unit> {
+        // 지금은 10:00. 저녁 20:00 줄을 09:00으로 바꾼다.
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+
+        repository.updateMedication(
+            me, id,
+            draft(schedules = listOf(
+                ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                ScheduleDraft(savedEvening.id, LocalTime.of(9, 0), savedEvening.days)
+            ))
+        )
+
+        assertEquals("2026-11-17", scheduleDao.schedules.value.single { it.id == savedEvening.id }.effectiveFrom)
+        // 오늘 이 줄의 기록은 없다 (20:00 미기록은 지워지고, 09:00은 내일부터)
+        assertEquals(listOf("08:00" to "PENDING"), todayRecords())
+    }
+
+    @Test
+    fun `손대지 않은 줄에는 적용 시작일을 적지 않는다`() = runBlocking<Unit> {
+        val id = addTylenol()
+
+        repository.updateMedication(me, id, draft(memo = "식전", schedules = savedDrafts(id)))
+
+        assertTrue(scheduleDao.schedules.value.all { it.effectiveFrom == null })
+        assertEquals("식전", doseRecordDao.records.value.single { it.scheduledTime == "20:00" }.memo)
+    }
+
+    @Test
+    fun `오늘 남은 기록을 지울 때 이력은 남고 기록과의 연결만 끊긴다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val evening = doseRecordDao.records.value.single { it.scheduledTime == "20:00" }
+        // 미리 복용 완료 → 실행취소로 다시 미기록이 된 기록 (이력 2줄)
+        listOf("PENDING" to "TAKEN", "TAKEN" to "PENDING").forEach { (from, to) ->
+            eventDao.insert(
+                com.cau.medicheck.data.local.DoseStatusEvent(
+                    userId = me, doseRecordId = evening.id, scheduleId = evening.scheduleId,
+                    doseDate = evening.date, scheduledTime = evening.scheduledTime,
+                    medicationName = evening.medicationName, fromStatus = from, toStatus = to,
+                    fromActedAt = null, toActedAt = null, changedAt = 1L
+                )
+            )
+        }
+
+        repository.deleteMedication(me, id)
+
+        assertTrue(doseRecordDao.records.value.none { it.id == evening.id })
+        assertEquals(2, eventDao.events.value.size)
+        assertTrue(eventDao.events.value.all { it.doseRecordId == null && it.scheduleId == evening.scheduleId })
+    }
+    @Test
+    fun `시각이 지나 내일부터가 된 줄은 같은 날 이름만 고쳐 다시 저장해도 내일부터 그대로다`() = runBlocking<Unit> {
+        // 10:00에 저녁 20:00 줄을 09:00으로 바꾼다 → 이미 지난 시각이라 내일부터.
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+        repository.updateMedication(
+            me, id,
+            draft(schedules = listOf(
+                ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                ScheduleDraft(savedEvening.id, LocalTime.of(9, 0), savedEvening.days)
+            ))
+        )
+
+        // 같은 날 이름만 바꿔 다시 저장한다. 그 줄은 이제 "그대로인 줄"이다.
+        repository.updateMedication(me, id, draft(name = "타이레놀 500", schedules = savedDrafts(id)))
+
+        assertEquals("2026-11-17", scheduleDao.schedules.value.single { it.id == savedEvening.id }.effectiveFrom)
+        // 오늘 그 줄의 기록이 새로 생기지 않는다 (생기면 만들자마자 '기한 경과')
+        assertTrue(doseRecordDao.records.value.none { it.scheduleId == savedEvening.id && it.date == today.toString() })
+    }
+
+    @Test
+    fun `내일부터로 적어 둔 줄이라도 시각이 아직이면 다시 저장할 때 오늘부터로 내린다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (_, savedEvening) = repository.getMedication(me, id)!!.schedules
+        // "내일부터 적용"(3단계 S33)으로 저장해 둔 상황을 직접 만든다. 오늘 20:00 기록은 없앤다.
+        scheduleDao.update(scheduleDao.schedules.value.single { it.id == savedEvening.id }.copy(effectiveFrom = "2026-11-17"))
+        doseRecordDao.records.value = doseRecordDao.records.value.filterNot { it.scheduleId == savedEvening.id }
+
+        repository.updateMedication(me, id, draft(schedules = savedDrafts(id)))
+
+        assertEquals("2026-11-16", scheduleDao.schedules.value.single { it.id == savedEvening.id }.effectiveFrom)
+        assertEquals(listOf("08:00" to "PENDING", "20:00" to "PENDING"), todayRecords())
+    }
+
+    @Test
+    fun `끝난 약의 종료일을 늘려도 끝나 있던 날의 기록은 생기지 않는다`() = runBlocking<Unit> {
+        // 11/01에 시작해 11/10에 끝난 약. 오늘은 11/16(월) 10:00.
+        repository.addMedication(
+            me, draft(startDate = LocalDate.of(2026, 11, 1), endDate = LocalDate.of(2026, 11, 10))
+        )
+        val id = medicationDao.medications.value.single().id
+        assertEquals("2026-11-10", doseRecordDao.records.value.maxOf { it.date })
+
+        // 종료일을 없앤다(다시 먹기 시작)
+        repository.updateMedication(me, id, draft(startDate = LocalDate.of(2026, 11, 1), endDate = null, schedules = savedDrafts(id)))
+
+        // 11/11~11/15는 비어 있어야 한다
+        assertTrue(doseRecordDao.records.value.none { it.date in "2026-11-11".."2026-11-15" })
+        // 줄마다 오늘 시각 규칙: 08:00은 이미 지나서 내일부터, 20:00은 아직이라 오늘부터
+        val schedules = scheduleDao.schedules.value.associateBy { it.time }
+        assertEquals("2026-11-17", schedules.getValue("08:00").effectiveFrom)
+        assertEquals("2026-11-16", schedules.getValue("20:00").effectiveFrom)
+        assertEquals(listOf("20:00" to "PENDING"), todayRecords())
+    }
+
+    @Test
+    fun `종료일을 앞으로 당기면 새 종료일 뒤의 미기록만 지워지고 응답한 기록은 남는다`() = runBlocking<Unit> {
+        // 11/13부터 매일 08:00. 기록: 11/13 ~ 11/16
+        repository.addMedication(me, draft(startDate = today.minusDays(3), schedules = listOf(morning)))
+        val id = medicationDao.medications.value.single().id
+        val taken = doseRecordDao.records.value.single { it.date == "2026-11-15" }
+        doseRecordDao.updateStatus(me, taken.id, "TAKEN", 1L)
+
+        // 종료일을 11/14로 당긴다
+        repository.updateMedication(
+            me, id, draft(startDate = today.minusDays(3), endDate = LocalDate.of(2026, 11, 14), schedules = savedDrafts(id))
+        )
+
+        assertEquals(
+            listOf("2026-11-13" to "PENDING", "2026-11-14" to "PENDING", "2026-11-15" to "TAKEN"),
+            doseRecordDao.records.value.sortedBy { it.date }.map { it.date to it.status }
+        )
+    }
+
+    @Test
+    fun `다시 맞추기로 지운 회차는 실행취소할 것이 없다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (savedMorning, savedEvening) = repository.getMedication(me, id)!!.schedules
+        val doseRepository = DoseRepository(
+            doseRecordDao, eventDao,
+            DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock),
+            FakeTransactionRunner(), clock
+        )
+        val eveningKey = com.cau.medicheck.domain.DoseKey(savedEvening.id, today)
+        // 저녁 회차를 복용 완료로 했다가 다시 미기록으로 (실행취소할 거리가 있는 상태)
+        doseRepository.changeStatus(me, eveningKey, com.cau.medicheck.domain.DoseStatus.TAKEN)
+        doseRepository.changeStatus(me, eveningKey, com.cau.medicheck.domain.DoseStatus.PENDING)
+
+        // 저녁 20:00 → 09:00 (이미 지난 시각 → 내일부터, 오늘 20:00 미기록은 지워짐)
+        repository.updateMedication(
+            me, id,
+            draft(schedules = listOf(
+                ScheduleDraft(savedMorning.id, savedMorning.time, savedMorning.days),
+                ScheduleDraft(savedEvening.id, LocalTime.of(9, 0), savedEvening.days)
+            ))
+        )
+
+        assertEquals(UndoResult.NOTHING, doseRepository.undoLast(me, eveningKey))
+        assertTrue(eventDao.events.value.all { it.doseRecordId == null })
     }
 }

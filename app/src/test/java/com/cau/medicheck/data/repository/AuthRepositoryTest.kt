@@ -1,8 +1,9 @@
 package com.cau.medicheck.data.repository
 
 import com.cau.medicheck.data.local.User
-import com.cau.medicheck.data.local.UserDao
+import com.cau.medicheck.data.local.UserSettingsEntity
 import com.cau.medicheck.domain.AuthError
+import com.cau.medicheck.domain.SampleData
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -10,6 +11,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.time.ZoneId
 
 /**
  * AuthRepository 단위 테스트.
@@ -21,19 +23,40 @@ import org.junit.Test
 class AuthRepositoryTest {
 
     private lateinit var userDao: FakeUserDao
+    private lateinit var settingsDao: FakeUserSettingsDao
     private lateinit var sessionStore: FakeSessionStore
     private lateinit var repository: AuthRepository
+
+    /** 샘플 계정 준비 함수 대신 끼우는 가짜: 샘플 사용자 한 명을 넣고 돌려준다. */
+    private var sampleCalls = 0
 
     /** 각 테스트가 시작되기 전에 매번 실행된다. 테스트끼리 데이터가 섞이지 않게 새로 만든다. */
     @Before
     fun setUp() {
         userDao = FakeUserDao()
+        settingsDao = FakeUserSettingsDao()
         sessionStore = FakeSessionStore()
-        repository = AuthRepository(userDao, sessionStore, now = { 1_000L })
+        sampleCalls = 0
+        repository = AuthRepository(
+            userDao = userDao,
+            userSettingsDao = settingsDao,
+            sessionStore = sessionStore,
+            transaction = FakeTransactionRunner(),
+            now = { 1_000L },
+            zoneId = { ZoneId.of("Asia/Seoul") },
+            prepareSampleUser = {
+                sampleCalls++
+                val sample = User(
+                    email = SampleData.EMAIL, passwordHash = "x", displayName = SampleData.DISPLAY_NAME,
+                    createdAt = 1_000L, isSample = true
+                )
+                sample.copy(id = userDao.insert(sample))
+            }
+        )
     }
 
     private suspend fun signUpSuhwan() =
-        repository.signUp("suhwan", "password1", "password1", "전수환")
+        repository.signUp("전수환", "suhwan@cau.ac.kr", "password1", "password1")
 
     // ---------- 회원가입 ----------
 
@@ -43,7 +66,7 @@ class AuthRepositoryTest {
 
         assertTrue(result is AuthResult.Success)
         val user = (result as AuthResult.Success).user
-        assertEquals("suhwan", user.username)
+        assertEquals("suhwan@cau.ac.kr", user.email)
         assertEquals("전수환", user.displayName)
         assertEquals(1_000L, user.createdAt)
         assertEquals(user.id, sessionStore.getLoggedInUserId())
@@ -60,20 +83,20 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `이미 있는 아이디로는 가입할 수 없다`() = runBlocking<Unit> {
+    fun `이미 가입된 이메일로는 가입할 수 없다`() = runBlocking<Unit> {
         signUpSuhwan()
         sessionStore.clear()
 
-        val result = repository.signUp("SuHwan", "another-pw", "another-pw", "다른 사람")
+        val result = repository.signUp("다른 사람", "SuHwan@CAU.ac.kr", "another-pw", "another-pw")
 
-        assertEquals(AuthResult.Failure(AuthError.USERNAME_TAKEN), result)
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_TAKEN), result)
         assertEquals(1, userDao.users.size)
         assertNull(sessionStore.getLoggedInUserId())
     }
 
     @Test
     fun `입력값이 규칙에 맞지 않으면 저장하지 않는다`() = runBlocking<Unit> {
-        val result = repository.signUp("suhwan", "short", "short", "전수환")
+        val result = repository.signUp("전수환", "suhwan@cau.ac.kr", "short", "short")
 
         assertEquals(AuthResult.Failure(AuthError.PASSWORD_TOO_SHORT), result)
         assertTrue(userDao.users.isEmpty())
@@ -83,22 +106,22 @@ class AuthRepositoryTest {
     // ---------- 로그인 ----------
 
     @Test
-    fun `올바른 아이디와 비밀번호로 로그인된다`() = runBlocking<Unit> {
+    fun `올바른 이메일과 비밀번호로 로그인된다`() = runBlocking<Unit> {
         signUpSuhwan()
         repository.logout()
 
-        val result = repository.login("suhwan", "password1")
+        val result = repository.login("suhwan@cau.ac.kr", "password1")
 
         assertTrue(result is AuthResult.Success)
         assertEquals(userDao.users.single().id, sessionStore.getLoggedInUserId())
     }
 
     @Test
-    fun `아이디는 대소문자와 앞뒤 공백을 구분하지 않는다`() = runBlocking<Unit> {
+    fun `이메일은 대소문자와 앞뒤 공백을 구분하지 않는다`() = runBlocking<Unit> {
         signUpSuhwan()
         repository.logout()
 
-        val result = repository.login("  SUHWAN ", "password1")
+        val result = repository.login("  SUHWAN@cau.ac.kr ", "password1")
 
         assertTrue(result is AuthResult.Success)
     }
@@ -108,24 +131,99 @@ class AuthRepositoryTest {
         signUpSuhwan()
         repository.logout()
 
-        val result = repository.login("suhwan", "password2")
+        val result = repository.login("suhwan@cau.ac.kr", "password2")
 
         assertEquals(AuthResult.Failure(AuthError.WRONG_CREDENTIALS), result)
         assertNull(sessionStore.getLoggedInUserId())
     }
 
     @Test
-    fun `없는 아이디도 비밀번호가 틀린 것과 같은 오류를 돌려준다`() = runBlocking<Unit> {
-        val result = repository.login("nobody", "password1")
+    fun `없는 이메일도 비밀번호가 틀린 것과 같은 오류를 돌려준다`() = runBlocking<Unit> {
+        val result = repository.login("nobody@cau.ac.kr", "password1")
 
         assertEquals(AuthResult.Failure(AuthError.WRONG_CREDENTIALS), result)
     }
 
     @Test
     fun `칸이 비어 있으면 DB를 찾아보지 않고 바로 실패한다`() = runBlocking<Unit> {
-        val result = repository.login("", "")
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_EMPTY), repository.login("", ""))
+        assertEquals(AuthResult.Failure(AuthError.PASSWORD_EMPTY), repository.login("a@b.co", ""))
+    }
 
-        assertEquals(AuthResult.Failure(AuthError.EMPTY_FIELDS), result)
+    @Test
+    fun `로그인도 이메일 형식과 비밀번호 길이를 먼저 검사한다`() = runBlocking<Unit> {
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_INVALID), repository.login("suhwan", "password1"))
+        assertEquals(AuthResult.Failure(AuthError.PASSWORD_TOO_SHORT), repository.login("a@b.co", "12345"))
+    }
+
+    // ---------- 가입 때 설정 기본 줄 · 샘플 이메일 예약 ----------
+
+    @Test
+    fun `가입하면 그 계정의 설정 기본 줄이 함께 만들어진다`() = runBlocking<Unit> {
+        val user = (signUpSuhwan() as AuthResult.Success).user
+
+        val settings = settingsDao.rows.value.single()
+        assertEquals(UserSettingsEntity.defaultsFor(user.id, "Asia/Seoul"), settings)
+        assertTrue(settings.reminderEnabled)
+        assertTrue(settings.hideMedName)
+        assertEquals(15, settings.realertMinutes)
+        assertEquals("LOCAL", settings.timeZoneMode)
+    }
+
+    @Test
+    fun `가입이 실패하면 설정 줄도 만들지 않는다`() = runBlocking<Unit> {
+        repository.signUp("전수환", "suhwan@cau.ac.kr", "short", "short")
+
+        assertTrue(settingsDao.rows.value.isEmpty())
+    }
+
+    @Test
+    fun `샘플 계정 이메일로는 가입할 수 없다`() = runBlocking<Unit> {
+        val result = repository.signUp("나", " Demo@MediCheck.app ", "password1", "password1")
+
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_TAKEN), result)
+        assertTrue(userDao.users.isEmpty())
+    }
+
+    @Test
+    fun `샘플이 아닌 계정은 프로필 이메일을 샘플 이메일로 바꿀 수 없다`() = runBlocking<Unit> {
+        val me = (signUpSuhwan() as AuthResult.Success).user
+
+        val result = repository.updateProfile(me.id, "전수환", SampleData.EMAIL)
+
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_TAKEN), result)
+    }
+
+    // ---------- 샘플 계정 ----------
+
+    @Test
+    fun `샘플 계정으로 체험하기는 샘플 계정을 준비해 로그인 상태로 만든다`() = runBlocking<Unit> {
+        var sessionChanges = 0
+        repository = AuthRepository(
+            userDao, settingsDao, sessionStore, FakeTransactionRunner(),
+            onSessionChanged = { sessionChanges++ },
+            prepareSampleUser = { User(id = 7, email = SampleData.EMAIL, passwordHash = "x",
+                displayName = "사용자", createdAt = 0, isSample = true) }
+        )
+
+        val result = repository.loginAsSample()
+
+        assertTrue(result is AuthResult.Success)
+        assertEquals(7L, sessionStore.getLoggedInUserId())
+        assertEquals(1, sessionChanges)
+    }
+
+    @Test
+    fun `샘플 계정은 로그인 폼으로는 들어갈 수 없다`() = runBlocking<Unit> {
+        repository.loginAsSample()
+        repository.logout()
+
+        // 비밀번호는 아무도 모르는 값의 해시라서, 어떤 비밀번호로도 맞지 않는다
+        assertEquals(
+            AuthResult.Failure(AuthError.WRONG_CREDENTIALS),
+            repository.login(SampleData.EMAIL, "password1")
+        )
+        assertEquals(1, sampleCalls)
     }
 
     // ---------- 로그인 상태 유지 · 로그아웃 ----------
@@ -134,7 +232,7 @@ class AuthRepositoryTest {
     fun `로그인해 둔 사용자가 있으면 currentUser가 돌려준다`() = runBlocking<Unit> {
         signUpSuhwan()
 
-        assertEquals("suhwan", repository.currentUser()?.username)
+        assertEquals("suhwan@cau.ac.kr", repository.currentUser()?.email)
     }
 
     @Test
@@ -154,21 +252,48 @@ class AuthRepositoryTest {
         assertNull(repository.currentUser())
         assertNull(sessionStore.getLoggedInUserId())
     }
-}
 
-/** 메모리의 목록에만 저장하는 가짜 UserDao. id는 1부터 차례로 매긴다. */
-private class FakeUserDao : UserDao {
-    val users = mutableListOf<User>()
+    // ---------- 프로필 수정 ----------
 
-    override suspend fun insert(user: User): Long {
-        val newId = users.size + 1L
-        users.add(user.copy(id = newId))
-        return newId
+    @Test
+    fun `프로필의 이름과 이메일을 바꿀 수 있다`() = runBlocking<Unit> {
+        val user = (signUpSuhwan() as AuthResult.Success).user
+
+        val result = repository.updateProfile(user.id, "  수환  ", "New@Mail.com")
+
+        assertTrue(result is AuthResult.Success)
+        val saved = userDao.users.single()
+        assertEquals("수환", saved.displayName)
+        assertEquals("new@mail.com", saved.email)
+        assertEquals(user.passwordHash, saved.passwordHash)
     }
 
-    override suspend fun findByUsername(username: String): User? =
-        users.find { it.username == username }
+    @Test
+    fun `다른 사람이 쓰는 이메일로는 바꿀 수 없다`() = runBlocking<Unit> {
+        val me = (signUpSuhwan() as AuthResult.Success).user
+        repository.signUp("다른 사람", "other@mail.com", "password1", "password1")
 
-    override suspend fun findById(id: Long): User? =
-        users.find { it.id == id }
+        val result = repository.updateProfile(me.id, "전수환", "other@mail.com")
+
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_TAKEN), result)
+    }
+
+    @Test
+    fun `자기 이메일 그대로 이름만 바꾸는 것은 된다`() = runBlocking<Unit> {
+        val me = (signUpSuhwan() as AuthResult.Success).user
+
+        val result = repository.updateProfile(me.id, "새 이름", "suhwan@cau.ac.kr")
+
+        assertTrue(result is AuthResult.Success)
+        assertEquals("새 이름", userDao.users.single().displayName)
+    }
+
+    @Test
+    fun `프로필 입력값이 규칙에 맞지 않으면 바꾸지 않는다`() = runBlocking<Unit> {
+        val me = (signUpSuhwan() as AuthResult.Success).user
+
+        assertEquals(AuthResult.Failure(AuthError.DISPLAY_NAME_INVALID), repository.updateProfile(me.id, " ", "a@b.co"))
+        assertEquals(AuthResult.Failure(AuthError.EMAIL_INVALID), repository.updateProfile(me.id, "이름", "not-an-email"))
+        assertEquals("전수환", userDao.users.single().displayName)
+    }
 }

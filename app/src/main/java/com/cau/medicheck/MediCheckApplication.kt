@@ -3,8 +3,10 @@ package com.cau.medicheck
 import android.app.Application
 import android.content.Context
 import com.cau.medicheck.data.local.AppDatabase
+import com.cau.medicheck.data.local.AppPrefs
 import com.cau.medicheck.data.local.RoomTransactionRunner
 import com.cau.medicheck.data.local.SessionStore
+import com.cau.medicheck.data.local.SharedPrefsAppPrefs
 import com.cau.medicheck.data.local.SharedPrefsSessionStore
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.data.repository.AuthRepository
@@ -12,8 +14,10 @@ import com.cau.medicheck.data.repository.DoseRecordGenerator
 import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.ReminderRepository
+import com.cau.medicheck.data.repository.SampleAccountSeeder
 import com.cau.medicheck.notification.ReminderNotifier
 import com.cau.medicheck.notification.ReminderScheduler
+import com.cau.medicheck.ui.components.ToastBus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +42,12 @@ class AppContainer(context: Context) {
 
     private val transactionRunner: TransactionRunner by lazy { RoomTransactionRunner(database) }
 
+    /** 폰 단위 설정(온보딩을 봤는지, 접근성, 알림 권한 창을 띄웠는지). 로그인 전에도 읽는다. */
+    val appPrefs: AppPrefs by lazy { SharedPrefsAppPrefs(appContext) }
+
+    /** 토스트(잠깐 떴다 사라지는 안내 글)를 띄워 달라는 요청이 지나가는 통로. 앱 전체에 하나. */
+    val toastBus: ToastBus by lazy { ToastBus() }
+
     // ---------- 알림 ----------
 
     val reminderRepository: ReminderRepository by lazy {
@@ -56,10 +66,26 @@ class AppContainer(context: Context) {
 
     // ---------- 회원가입·로그인 ----------
 
+    /** "샘플 계정으로 체험하기"의 데이터를 만드는 도구 */
+    private val sampleAccountSeeder: SampleAccountSeeder by lazy {
+        SampleAccountSeeder(
+            userDao = database.userDao(),
+            medicationDao = database.medicationDao(),
+            scheduleDao = database.scheduleDao(),
+            doseRecordDao = database.doseRecordDao(),
+            statusEventDao = database.doseStatusEventDao(),
+            userSettingsDao = database.userSettingsDao(),
+            transaction = transactionRunner
+        )
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepository(
             userDao = database.userDao(),
+            userSettingsDao = database.userSettingsDao(),
             sessionStore = sessionStore,
+            transaction = transactionRunner,
+            prepareSampleUser = { sampleAccountSeeder.prepare() },
             // 로그인·로그아웃으로 "지금 로그인한 사람"이 바뀌면 알림도 그 사람 것으로 다시 건다.
             onSessionChanged = {
                 // 로그아웃했다면 앞 사람의 약 알림이 화면에 남아 있지 않게 지운다.
@@ -76,7 +102,8 @@ class AppContainer(context: Context) {
         DoseRecordGenerator(
             medicationDao = database.medicationDao(),
             scheduleDao = database.scheduleDao(),
-            doseRecordDao = database.doseRecordDao()
+            doseRecordDao = database.doseRecordDao(),
+            statusEventDao = database.doseStatusEventDao()
         )
     }
 
@@ -94,6 +121,7 @@ class AppContainer(context: Context) {
     val doseRepository: DoseRepository by lazy {
         DoseRepository(
             doseRecordDao = database.doseRecordDao(),
+            statusEventDao = database.doseStatusEventDao(),
             generator = doseRecordGenerator,
             transaction = transactionRunner
         )

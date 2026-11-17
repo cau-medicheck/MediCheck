@@ -332,7 +332,7 @@ private fun StatsScreenPreview() {
             DoseCounts(), DoseCounts(), DoseCounts(), DoseCounts()
         ).mapIndexed { index, counts -> DayStats(monday.plusDays(index.toLong()), counts) }
     )
-    MediCheckTheme(dynamicColor = false) {
+    MediCheckTheme {
         StatsScreen(
             state = StatsUiState(isLoading = false, week = sample, today = monday.plusDays(2)),
             onPreviousWeek = {}, onNextWeek = {}, onLogout = {}

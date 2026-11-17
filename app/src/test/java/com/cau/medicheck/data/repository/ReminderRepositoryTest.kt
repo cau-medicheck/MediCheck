@@ -57,12 +57,16 @@ class ReminderRepositoryTest {
         )
     }
 
+    /** 기록의 약 이름 스냅샷은 그 약의 실제 이름으로 넣는다(알림 문구가 스냅샷을 쓰므로). */
     private suspend fun insertRecord(scheduleId: Long, status: String) {
+        val medicationId = scheduleDao.schedules.value.single { it.id == scheduleId }.medicationId
+        val name = medicationDao.medications.value.single { it.id == medicationId }.name
         doseRecordDao.insertAllIgnore(
             listOf(
                 DoseRecord(
                     scheduleId = scheduleId, date = "2026-11-16",
-                    scheduledTime = "20:00", status = status, createdAt = 0
+                    scheduledTime = "20:00", medicationName = name, dosage = "1정",
+                    status = status, createdAt = 0
                 )
             )
         )
@@ -136,5 +140,37 @@ class ReminderRepositoryTest {
         insertRecord(pending, "PENDING")
 
         assertEquals(listOf("아직 안 먹은 약"), repository.dueReminders(today20).map { it.medicationName })
+    }
+
+    @Test
+    fun `적용 시작일 전에는 알리지 않는다`() = runBlocking<Unit> {
+        sessionStore.saveLoggedInUserId(me)
+        val scheduleId = insertDaily(me, "저녁 약", "20:00")
+        // 오늘 "내일부터 적용"으로 바꾼 규칙
+        scheduleDao.update(scheduleDao.schedules.value.single { it.id == scheduleId }.copy(effectiveFrom = "2026-11-17"))
+
+        assertTrue(repository.dueReminders(today20).isEmpty())
+        assertEquals(LocalDateTime.of(2026, 11, 17, 20, 0), repository.nextTrigger())
+    }
+
+    @Test
+    fun `일시중지한 약은 알리지 않는다`() = runBlocking<Unit> {
+        sessionStore.saveLoggedInUserId(me)
+        val scheduleId = insertDaily(me, "저녁 약", "20:00")
+        val medicationId = scheduleDao.schedules.value.single { it.id == scheduleId }.medicationId
+        assertEquals(1, medicationDao.setPausedFrom(me, medicationId, "2026-11-16"))
+
+        assertNull(repository.nextTrigger())
+        assertTrue(repository.dueReminders(today20).isEmpty())
+    }
+
+    @Test
+    fun `다른 사람의 약은 일시중지할 수 없다`() = runBlocking<Unit> {
+        val scheduleId = insertDaily(someoneElse, "남의 약", "20:00")
+        val medicationId = scheduleDao.schedules.value.single { it.id == scheduleId }.medicationId
+
+        assertEquals(0, medicationDao.setPausedFrom(me, medicationId, "2026-11-16"))
+        assertEquals(0, scheduleDao.raiseEffectiveFrom(me, medicationId, "2026-11-16"))
+        assertNull(medicationDao.medications.value.single().pausedFrom)
     }
 }
