@@ -1,5 +1,6 @@
 package com.cau.medicheck.ui.navigation
 
+import com.cau.medicheck.domain.DoseKey
 import androidx.annotation.StringRes
 import com.cau.medicheck.R
 
@@ -7,15 +8,43 @@ import com.cau.medicheck.R
  * 화면마다 붙이는 주소(route). (구현 명세 00 §2.1)
  *
  * 주소 = 화면 ID 그대로("S01"). 프로토타입의 화면 번호로 바로 찾을 수 있게 하기 위해서다.
- * 1단계에서는 로그인 전 화면 4개(S00~S03)만 이 주소를 쓴다.
- * 로그인 뒤 화면은 2단계에서 S04~S46 주소로 바뀐다(지금은 MainNavHost의 MainRoutes).
+ * 인자가 없는 화면은 ID가 곧 주소라서, 여기에 상수가 없는 화면은 "S17"처럼 ID를 그대로 쓴다.
  */
 object Routes {
     const val S00 = "S00"
     const val S01 = "S01"
     const val S02 = "S02"
     const val S03 = "S03"
-    const val S04 = "S04"
+    const val S04 = "S04"   // 홈 대시보드 (로그인 뒤 첫 화면)
+    const val S05 = "S05"   // 일정/캘린더
+    const val S06 = "S06"   // 내 약 목록
+    const val S11 = "S11"   // 기록 캘린더
+    const val S13 = "S13"   // 주간 통계
+    const val S16 = "S16"   // 알림 센터
+    const val S19 = "S19"   // 설정 허브
+    const val S30 = "S30"   // 복용 변경 이력
+    const val S34 = "S34"   // 알림 거절/오류 안내
+
+    // ----- 인자가 붙는 화면 -----
+    // "?이름={이름}"은 선택 인자다(없어도 화면이 열린다). 실제로 이동할 때는 아래 함수로 값을 채운 주소를 만든다.
+    const val ARG_MED_ID = "medId"
+    const val ARG_SCHEDULE_ID = "scheduleId"
+    const val ARG_DATE = "date"
+    /** 인자가 없다는 뜻으로 쓰는 값 (주소에는 null을 넣을 수 없어서 -1을 약속으로 쓴다) */
+    const val NO_ID = -1L
+
+    const val S08 = "S08?$ARG_MED_ID={$ARG_MED_ID}"                                   // 약 등록/수정
+    const val S10 = "S10?$ARG_SCHEDULE_ID={$ARG_SCHEDULE_ID}&$ARG_DATE={$ARG_DATE}"   // 회차 상세/상태
+    const val S31 = "S31?$ARG_SCHEDULE_ID={$ARG_SCHEDULE_ID}&$ARG_DATE={$ARG_DATE}"   // 실제 복용 시각 기록
+
+    /** 새 약 등록 화면의 주소 */
+    fun s08New(): String = "S08"
+    /** 약 수정 화면의 주소 */
+    fun s08Edit(medId: Long): String = "S08?$ARG_MED_ID=$medId"
+    /** 회차 상세의 주소. 예: "S10?scheduleId=3&date=2026-11-17" */
+    fun s10(key: DoseKey): String = "S10?$ARG_SCHEDULE_ID=${key.scheduleId}&$ARG_DATE=${key.date}"
+    /** 실제 복용 시각 기록의 주소 */
+    fun s31(key: DoseKey): String = "S31?$ARG_SCHEDULE_ID=${key.scheduleId}&$ARG_DATE=${key.date}"
 
     /** 로그인 전 틀(AuthNavHost)에 들어가는 화면들 */
     val PRE_LOGIN = setOf(S00, S01, S02, S03)

@@ -16,7 +16,9 @@ import java.time.LocalTime
 data class ScheduleItem(
     val id: Long,
     val time: LocalTime,
-    val days: Set<DayOfWeek>
+    val days: Set<DayOfWeek>,
+    /** 이 규칙이 회차를 만들기 시작하는 날. 없으면 약의 시작일부터 */
+    val effectiveFrom: LocalDate? = null
 )
 
 /** 약 하나와 그 약의 복용 시간 규칙들. 목록 화면과 수정 화면이 읽는 모양. */
@@ -27,7 +29,9 @@ data class MedicationDetail(
     val startDate: LocalDate,
     val endDate: LocalDate?,
     val memo: String,
-    val schedules: List<ScheduleItem>
+    val schedules: List<ScheduleItem>,
+    /** 일시중지를 시작한 날. 중지 중이 아니면 null */
+    val pausedFrom: LocalDate? = null
 )
 
 /**

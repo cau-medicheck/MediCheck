@@ -18,7 +18,7 @@ class StatsCalculatorTest {
     private var nextId = 1L
 
     private fun dose(dayOfMonth: Int, hour: Int, status: DoseStatus) = DoseItem(
-        id = nextId++, medicationId = 1, medicationName = "타이레놀", dosage = "1정",
+        recordId = nextId++, scheduleId = 1, medicationId = 1, medicationName = "타이레놀", dosage = "1정", memo = "",
         date = LocalDate.of(2026, 11, dayOfMonth), time = LocalTime.of(hour, 0),
         status = status, actedAt = null
     )
@@ -92,6 +92,27 @@ class StatsCalculatorTest {
         )
 
         assertEquals(DoseCounts(taken = 2, skipped = 1), StatsCalculator.count(doses, now))
+    }
+
+    @Test
+    fun `아직 시각 전인 회차는 미리 복용 완료해도 예정으로만 센다`() {
+        val doses = listOf(
+            dose(18, 8, DoseStatus.TAKEN),      // 오늘 08:00 → 도래함, 복용 완료
+            dose(18, 20, DoseStatus.TAKEN),     // 오늘 20:00을 미리 복용 완료 → 20:00까지는 완료율에 안 들어감
+            dose(19, 8, DoseStatus.SKIPPED)     // 내일 → 예정
+        )
+
+        val counts = StatsCalculator.count(doses, now)
+
+        assertEquals(DoseCounts(taken = 1, upcoming = 2), counts)
+        assertEquals(100, counts.completionRate)
+    }
+
+    @Test
+    fun `예정 시각 정각의 회차는 도래한 것으로 센다`() {
+        val doses = listOf(dose(18, 12, DoseStatus.PENDING))   // 지금이 12:00
+
+        assertEquals(DoseCounts(missed = 1), StatsCalculator.count(doses, now))
     }
 
     // ---------- 일주일 통계 ----------

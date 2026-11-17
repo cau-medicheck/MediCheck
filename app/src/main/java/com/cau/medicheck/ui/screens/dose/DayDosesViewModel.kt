@@ -7,19 +7,29 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cau.medicheck.MediCheckApplication
+import com.cau.medicheck.R
 import com.cau.medicheck.data.repository.DoseRepository
-import com.cau.medicheck.domain.DoseDisplayStatus
-import com.cau.medicheck.domain.DoseItem
+import com.cau.medicheck.data.repository.StatusChangeResult
+import com.cau.medicheck.data.repository.UndoResult
+import com.cau.medicheck.domain.DayPeriod
+import com.cau.medicheck.domain.DoseCounts
+import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseStatus
+import com.cau.medicheck.domain.StatsCalculator
+import com.cau.medicheck.domain.periodOf
+import com.cau.medicheck.ui.components.DoseRowUi
+import com.cau.medicheck.ui.components.ToastAction
+import com.cau.medicheck.ui.components.ToastBus
+import com.cau.medicheck.ui.navigation.SelectionStore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,130 +37,140 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-/** 화면에 그릴 복용 기록 하나 = 기록 + 지금 시각 기준으로 계산한 표시 상태 */
-data class DoseUi(
-    val item: DoseItem,
-    val displayStatus: DoseDisplayStatus
-)
-
-/** "하루치 복용 기록" 화면이 그릴 상태. 오늘 화면과 기록 화면이 함께 쓴다. */
+/**
+ * "선택한 날짜의 회차 목록" 화면이 그릴 상태. 홈(S04)과 일정(S05)이 함께 쓴다.
+ *
+ * @param rows 그날의 회차 줄 (예정 시각 → 약 이름 순)
+ * @param counts 도래한 회차만 센 횟수. 완료율은 counts.completionRate (null이면 "N/A")
+ */
 data class DayDosesUiState(
+    val today: LocalDate,
     val date: LocalDate,
-    /** 보고 있는 날짜가 오늘인지 (기록 화면에서 "다음 날" 버튼을 막는 데 쓴다) */
-    val isToday: Boolean = true,
     val isLoading: Boolean = true,
-    val doses: List<DoseUi> = emptyList()
+    val rows: List<DoseRowUi> = emptyList(),
+    val counts: DoseCounts = DoseCounts()
 ) {
-    val takenCount: Int get() = doses.count { it.displayStatus == DoseDisplayStatus.TAKEN }
-    val totalCount: Int get() = doses.size
+    /** 일정 화면용: 아침 → 점심 → 저녁 → 밤 순서로 묶은 것. 회차가 없는 묶음은 빠진다. */
+    val rowsByPeriod: List<Pair<DayPeriod, List<DoseRowUi>>>
+        get() = DayPeriod.entries
+            .map { period -> period to rows.filter { periodOf(it.time) == period } }
+            .filter { it.second.isNotEmpty() }
 }
 
 /**
- * 하루치 복용 기록을 보여 주는 화면의 ViewModel.
+ * 홈(S04)과 일정(S05)의 ViewModel.
  *
- * 오늘 화면과 기록 화면이 같은 ViewModel 클래스를 쓴다.
- *   - 오늘 화면(followToday = true): 날짜가 항상 오늘이다. 자정이 지나면 저절로 다음 날로 넘어간다.
- *   - 기록 화면(followToday = false): 사용자가 날짜를 앞뒤로 옮긴다.
+ * 선택 날짜는 이 ViewModel이 아니라 SelectionStore에 있다. 그래서 홈에서 고른 날짜가 일정 화면에도 그대로 보인다.
  *
- * "깜빡함"은 저장된 값이 아니라 지금 시각과 비교해 계산하는 값이라서,
- * 시간이 흐르면 화면도 바뀌어야 한다. 그래서 30초마다 지금 시각을 다시 읽어 상태를 새로 계산한다.
+ * 화면 상태는 세 가지가 바뀔 때마다 새로 만들어진다.
+ *   ① 선택 날짜  ② 그날의 회차(DB가 바뀌면 저절로 새 목록이 온다)  ③ 지금 시각(30초마다)
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DayDosesViewModel(
     private val userId: Long,
     private val doseRepository: DoseRepository,
-    private val followToday: Boolean,
+    private val selection: SelectionStore,
+    private val toastBus: ToastBus,
+    private val appScope: CoroutineScope,
     private val clock: Clock = Clock.systemDefaultZone()
 ) : ViewModel() {
 
-    /** 지금 보고 있는 날짜 */
-    private val selectedDate = MutableStateFlow(LocalDate.now(clock))
+    /**
+     * "지금". 30초마다 시계가 새 값을 넣고, 화면이 다시 보일 때(refresh)도 바로 새 값을 넣는다.
+     * 앱을 밤새 뒤에 두었다가 아침에 열면 30초 시계는 아직 어젯밤에 멈춰 있을 수 있기 때문이다.
+     */
+    private val now = MutableStateFlow(LocalDateTime.now(clock))
 
-    /** 30초마다 "지금 시각"을 내보내는 흐름 */
-    private val ticker: Flow<LocalDateTime> = flow {
-        while (true) {
-            emit(LocalDateTime.now(clock))
-            delay(TICK_MILLIS)
-        }
-    }
+    /** "오늘". 자정이 지날 때만 값이 바뀐다. */
+    private val today = now.map { it.toLocalDate() }.distinctUntilChanged()
 
     /**
-     * 보고 있는 날짜의 기록 흐름.
-     * flatMapLatest: 날짜가 바뀌면 이전 날짜의 구독을 끊고 새 날짜의 기록을 구독한다.
+     * flatMapLatest: 날짜(또는 오늘)가 바뀌면 앞 날짜의 구독을 끊고 새 날짜의 회차를 구독한다.
+     * combine: 회차 목록과 지금 시각 중 하나라도 바뀌면 화면 상태를 새로 만든다.
      */
-    private val dosesOfSelectedDate: Flow<Pair<LocalDate, List<DoseItem>>> =
-        selectedDate.flatMapLatest { date ->
-            doseRepository.observeDoses(userId, date, date).map { date to it }
-        }
-
-    /** 기록 흐름과 시각 흐름 중 하나라도 바뀌면 화면 상태를 새로 만든다. */
     val uiState: StateFlow<DayDosesUiState> =
-        combine(dosesOfSelectedDate, ticker) { (date, doses), now ->
-            // 오늘 화면인데 날짜가 넘어갔으면(자정이 지남) 새 날짜로 옮기고 그날 기록을 만든다.
-            if (followToday && date != now.toLocalDate()) {
-                selectedDate.value = now.toLocalDate()
-                refresh()
+        combine(selection.selectedDay, today) { date, today -> date to today }
+            .flatMapLatest { (date, today) ->
+                doseRepository.observeDay(userId, date, today).map { doses -> Triple(date, today, doses) }
             }
-            DayDosesUiState(
-                date = date,
-                isToday = date == now.toLocalDate(),
-                isLoading = false,
-                doses = doses.map { DoseUi(it, it.displayStatus(now)) }
+            .combine(now) { (date, today, doses), now ->
+                DayDosesUiState(
+                    today = today,
+                    date = date,
+                    isLoading = false,
+                    rows = doses.map { it.toRowUi(now, today) },
+                    counts = StatsCalculator.count(doses, now)
+                )
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = DayDosesUiState(today = LocalDate.now(clock), date = selection.selectedDay.value)
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = DayDosesUiState(date = LocalDate.now(clock))
-        )
 
     init {
+        viewModelScope.launch { tickerFlow(clock).collect { now.value = it } }
         refresh()
+        // 자정이 지나면: 오늘을 보고 있었으면 새 오늘로 따라가고, 새 날의 기록을 만든다.
+        viewModelScope.launch {
+            today.drop(1).collect { newToday ->
+                selection.followToday(newToday)
+                doseRepository.refresh(userId)
+            }
+        }
     }
 
     /** 비어 있는 날짜의 기록을 오늘까지 채운다. 화면이 다시 보일 때마다 부른다. */
     fun refresh() {
+        now.value = LocalDateTime.now(clock)
         viewModelScope.launch { doseRepository.refresh(userId) }
     }
 
-    // ---------- 날짜 옮기기 (기록 화면) ----------
+    // ---------- 날짜 옮기기 (미래도 볼 수 있다 — 예정 회차를 보기만) ----------
 
-    fun goToPreviousDay() {
-        selectedDate.value = selectedDate.value.minusDays(1)
+    fun selectDay(date: LocalDate) = selection.selectDay(date)
+
+    fun shiftDay(days: Long) = selection.selectDay(selection.selectedDay.value.plusDays(days))
+
+    fun goToToday() = selection.selectDay(LocalDate.now(clock))
+
+    // ---------- 줄에서 바로 복용 완료 ----------
+
+    /**
+     * 회차 줄의 "✓ 복용 완료". 회차 상세의 같은 버튼과 같은 길(changeStatus)로 기록한다.
+     * 성공하면 토스트에 "실행취소" 버튼을 5초 동안 붙인다.
+     */
+    fun quickTake(key: DoseKey) {
+        viewModelScope.launch {
+            when (doseRepository.changeStatus(userId, key, DoseStatus.TAKEN)) {
+                StatusChangeResult.CHANGED ->
+                    toastBus.show(R.string.common_toast_marked_taken, ToastAction(R.string.s04_toast_undo) { undo(key) })
+                StatusChangeResult.UNCHANGED -> toastBus.show(R.string.common_toast_marked_taken)
+                StatusChangeResult.FUTURE,
+                StatusChangeResult.NOT_FOUND -> toastBus.show(R.string.common_toast_dose_not_found)
+            }
+        }
     }
 
-    /** 오늘보다 뒤로는 가지 않는다. (미래의 기록은 아직 만들어지지 않았다) */
-    fun goToNextDay() {
-        val next = selectedDate.value.plusDays(1)
-        if (!next.isAfter(LocalDate.now(clock))) selectedDate.value = next
-    }
-
-    fun goToDate(date: LocalDate) {
-        if (!date.isAfter(LocalDate.now(clock))) selectedDate.value = date
-    }
-
-    // ---------- 상태 바꾸기 ----------
-
-    fun markTaken(recordId: Long) = setStatus(recordId, DoseStatus.TAKEN)
-
-    fun markSkipped(recordId: Long) = setStatus(recordId, DoseStatus.SKIPPED)
-
-    /** 잘못 눌렀을 때 응답 전 상태로 되돌린다. */
-    fun undo(recordId: Long) = setStatus(recordId, DoseStatus.PENDING)
-
-    private fun setStatus(recordId: Long, status: DoseStatus) {
-        // DB가 바뀌면 기록 흐름이 새 목록을 내보내므로, 화면 상태를 직접 고칠 필요가 없다.
-        viewModelScope.launch { doseRepository.setStatus(userId, recordId, status) }
+    /**
+     * 토스트의 "실행취소". viewModelScope가 아니라 앱 전체의 작업 공간(appScope)에서 돈다.
+     * 버튼을 누르기 전에 다른 탭으로 가서 이 ViewModel이 없어졌더라도 끝까지 실행되게 하려는 것이다.
+     */
+    private fun undo(key: DoseKey) {
+        appScope.launch {
+            val done = doseRepository.undoLast(userId, key) == UndoResult.UNDONE
+            toastBus.show(if (done) R.string.s10_toast_undo_done else R.string.s10_toast_undo_none)
+        }
     }
 
     companion object {
-        private const val TICK_MILLIS = 30_000L
-
-        fun factory(userId: Long, followToday: Boolean): ViewModelProvider.Factory =
-            viewModelFactory {
-                initializer {
-                    val app = this[APPLICATION_KEY] as MediCheckApplication
-                    DayDosesViewModel(userId, app.container.doseRepository, followToday)
-                }
+        fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val container = (this[APPLICATION_KEY] as MediCheckApplication).container
+                DayDosesViewModel(
+                    userId, container.doseRepository, container.selection, container.toastBus, container.appScope
+                )
             }
+        }
     }
 }

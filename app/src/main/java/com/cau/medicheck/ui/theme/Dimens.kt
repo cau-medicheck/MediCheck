@@ -20,10 +20,8 @@ val BodyTop = 18.dp
 val BodyBottom = 24.dp
 
 // 토스트(.toast{bottom:77px;left:18px;right:18px})
-// 로그인 전 화면은 시스템 내비게이션 바 위 77dp에 띄운다. "탭 위 18dp" 규칙에 맞추면 77 - 18 = 59dp가 틀 아래 높이다.
+// 토스트는 "틀 아래쪽 높이 + 18dp" 위에 띄운다. 로그인 뒤의 하단 탭 높이가 59dp이고(77 - 18),
+// 로그인 전에는 탭이 없지만 같은 높이에 띄우려고 같은 값을 쓴다.
 val ToastSideMargin = 18.dp
 val ToastGap = 18.dp
 val PreLoginFrameBottom = 59.dp
-
-// 1단계 동안 로그인 뒤 화면은 기존 M3 NavigationBar(80dp)를 쓴다. 2단계에서 v3 하단 5탭으로 바뀐다.
-val LegacyNavigationBarHeight = 80.dp

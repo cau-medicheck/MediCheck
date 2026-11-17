@@ -21,7 +21,7 @@ data class DoseCounts(
 
     /**
      * 완료율(%) = 복용 완료 ÷ (복용 완료 + 건너뜀 + 깜빡함) × 100. (docs/DB_DESIGN.md ⑩)
-     * 먹었어야 할 횟수가 0이면 계산할 수 없으므로 null ("기록 없음"으로 표시한다).
+     * 도래한 회차가 0이면 계산할 수 없으므로 null (화면에는 "N/A"로 표시한다).
      * 소수점은 반올림한다.
      */
     val completionRate: Int? get() = if (due == 0) null else Math.round(taken * 100f / due)
@@ -58,8 +58,11 @@ object StatsCalculator {
         date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
     /**
-     * 기록들을 상태별로 센다.
-     * "깜빡함"과 "예정"은 저장된 값이 아니라 지금 시각(now)과 비교해서 정해진다.
+     * 회차들을 상태별로 센다. (DB_DESIGN ⑩)
+     *
+     * 아직 도래하지 않은 회차(미래 날짜, 오늘인데 예정 시각 전)는 상태와 상관없이 "예정"으로만 센다.
+     * 미리 복용 완료를 눌러 둔 회차도 그 시각이 될 때까지는 완료율에 들어가지 않는다.
+     * 도래한 회차만 복용 완료 / 건너뜀 / 기한 경과 미기록으로 나눠 센다.
      */
     fun count(doses: List<DoseItem>, now: LocalDateTime): DoseCounts {
         var taken = 0
@@ -67,11 +70,11 @@ object StatsCalculator {
         var missed = 0
         var upcoming = 0
         doses.forEach { dose ->
-            when (dose.displayStatus(now)) {
-                DoseDisplayStatus.TAKEN -> taken++
-                DoseDisplayStatus.SKIPPED -> skipped++
-                DoseDisplayStatus.MISSED -> missed++
-                DoseDisplayStatus.UPCOMING -> upcoming++
+            when {
+                !dose.isDue(now) -> upcoming++
+                dose.status == DoseStatus.TAKEN -> taken++
+                dose.status == DoseStatus.SKIPPED -> skipped++
+                else -> missed++
             }
         }
         return DoseCounts(taken, skipped, missed, upcoming)

@@ -13,4 +13,25 @@ object Glyph {
     const val PILL = "💊"         // S00 1장 그림
     const val BELL = "🔔"         // S00 2장 그림
     const val CHART = "📊"        // S00 3장 그림
+
+    // 머리말 버튼 · 하단 탭 (\uFE0E = 컬러 이모지가 아닌 글자 모양으로 그려 달라는 표시)
+    const val HEADER_BELL = "♧\uFE0E"
+    const val HEADER_SETTINGS = "⚙\uFE0E"
+    const val TAB_HOME = "⌂"
+    const val TAB_SCHEDULE = "▦"
+    const val TAB_MEDS = "▤"
+    const val TAB_RECORDS = "▣"
+    const val TAB_STATS = "▥"
+
+    // 목록 줄의 왼쪽 아이콘
+    const val DOSE = "✚\uFE0E"           // 회차 (복용 완료 전)
+    const val DOSE_DONE = "✓"             // 회차 (복용 완료)
+    const val HISTORY = "↻"               // 변경 이력
+
+    // 빈 상태·안내의 그림 글자
+    const val EMPTY_HOME = "🗓️"          // S04 회차 없음
+    const val EMPTY_SCHEDULE = "📅"       // S05 회차 없음
+    const val EMPTY_CIRCLE = "○"          // S31 회차 없음
+    const val BELL_OFF = "🔕"             // 알림 꺼짐 카드
+    const val PLACEHOLDER = "🛠️"         // 임시 화면 "준비 중"
 }

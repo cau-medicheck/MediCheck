@@ -55,4 +55,27 @@ class NavRulesTest {
         assertEquals(47, titles.toSet().size)
         assertEquals(R.string.screen_title_s07, Routes.titleRes("S07?medId=3"))
     }
+
+    @Test
+    fun `화면마다 강조할 하단 탭이 정해져 있다`() {
+        assertEquals("S04", NavRules.tabRootOf("S04"))
+        assertEquals("S05", NavRules.tabRootOf("S05"))
+        // 회차 상세는 어디서 열었든 일정 탭
+        assertEquals("S05", NavRules.tabRootOf("S10?scheduleId=3&date=2026-11-17"))
+        assertEquals("S06", NavRules.tabRootOf("S08?medId={medId}"))
+        assertEquals("S11", NavRules.tabRootOf("S12"))
+        assertEquals("S13", NavRules.tabRootOf("S15"))
+        // 설정·알림·이력 등은 어느 탭에도 속하지 않는다
+        assertEquals(null, NavRules.tabRootOf("S19"))
+        assertEquals(null, NavRules.tabRootOf("S30"))
+        assertEquals(null, NavRules.tabRootOf(null))
+    }
+
+    @Test
+    fun `주소의 날짜 글자가 틀려도 멈추지 않고 null을 돌려준다`() {
+        assertEquals(java.time.LocalDate.of(2026, 11, 17), NavRules.parseDateOrNull("2026-11-17"))
+        assertEquals(null, NavRules.parseDateOrNull("abc"))
+        assertEquals(null, NavRules.parseDateOrNull(""))
+        assertEquals(null, NavRules.parseDateOrNull(null))
+    }
 }

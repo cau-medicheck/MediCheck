@@ -93,3 +93,8 @@ val ChartTop = Color(0xFF32BDAC); val ChartBottom = Color(0xFF148B96); val Chart
 val AuthLogoStart = Color(0xFF1788A0); val AuthLogoEnd = Color(0xFF36BCA4)
 val IllustrationStart = Color(0xFFE3F6F5); val IllustrationEnd = Color(0xFFF1F8FD)
 val PagerDotActive = Color(0xFF1D99A2); val PagerDotInactive = Color(0xFFDCE6E9)
+
+// 홈(S04) 큰 카드 안쪽 — 흰색을 옅게 겹친 색 (v3 rgba(255,255,255,.09 / .21 / .28))
+val HeroInnerBg = Color(0x17FFFFFF)        // 완료율 상자 바탕
+val HeroInnerBorder = Color(0x36FFFFFF)    // 완료율 상자 테두리
+val HeroRingRest = Color(0x47FFFFFF)       // 완료율 원의 빈 부분

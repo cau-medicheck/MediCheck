@@ -1,264 +1,106 @@
 package com.cau.medicheck.ui.navigation
 
-import androidx.annotation.StringRes
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
-import com.cau.medicheck.ui.components.BarChartIcon
-import com.cau.medicheck.ui.components.NotificationPermissionBanner
-import com.cau.medicheck.ui.screens.dose.DayDosesViewModel
-import com.cau.medicheck.ui.screens.dose.DoseActions
-import com.cau.medicheck.ui.screens.dose.HistoryScreen
-import com.cau.medicheck.ui.screens.dose.TodayScreen
-import com.cau.medicheck.ui.screens.medication.MedicationEditActions
-import com.cau.medicheck.ui.screens.medication.MedicationEditScreen
-import com.cau.medicheck.ui.screens.medication.MedicationEditViewModel
-import com.cau.medicheck.ui.screens.medication.MedicationListScreen
-import com.cau.medicheck.ui.screens.medication.MedicationListViewModel
-import com.cau.medicheck.ui.screens.stats.StatsScreen
-import com.cau.medicheck.ui.screens.stats.StatsViewModel
-
-/** 로그인한 뒤의 화면들에 붙이는 주소. */
-object MainRoutes {
-    const val TODAY = "today"
-    const val MEDICATIONS = "medications"
-    const val HISTORY = "history"
-    const val STATS = "stats"
-
-    /** 등록·수정 화면의 주소. 뒤에 붙는 id가 "어느 약을 수정할지"를 알려 준다. */
-    private const val MEDICATION_EDIT = "medication_edit"
-    const val ARG_MEDICATION_ID = "medicationId"
-    const val MEDICATION_EDIT_PATTERN = "$MEDICATION_EDIT?$ARG_MEDICATION_ID={$ARG_MEDICATION_ID}"
-
-    /** id가 없다는 뜻으로 쓰는 값. (주소에는 null을 넣을 수 없어서 -1을 약속으로 쓴다) */
-    const val NO_ID = -1L
-
-    /** @param medicationId 수정할 약의 id. 새 약을 등록할 때는 null */
-    fun medicationEdit(medicationId: Long?): String =
-        if (medicationId == null) MEDICATION_EDIT else "$MEDICATION_EDIT?$ARG_MEDICATION_ID=$medicationId"
-}
-
-/** 화면 아래쪽 탭 네 개. 순서대로 그려진다. */
-private enum class MainTab(val route: String, @param:StringRes val labelRes: Int, val icon: ImageVector) {
-    TODAY(MainRoutes.TODAY, R.string.tab_today, Icons.Filled.Home),
-    MEDICATIONS(MainRoutes.MEDICATIONS, R.string.tab_medications, Icons.AutoMirrored.Filled.List),
-    HISTORY(MainRoutes.HISTORY, R.string.tab_history, Icons.Filled.DateRange),
-    STATS(MainRoutes.STATS, R.string.tab_stats, BarChartIcon)
-}
+import com.cau.medicheck.ui.components.McBottomBar
+import com.cau.medicheck.ui.components.McBottomBarHeight
+import com.cau.medicheck.ui.components.McTab
+import com.cau.medicheck.ui.components.McTopBar
+import com.cau.medicheck.ui.navigation.graph.mainGraph
+import com.cau.medicheck.ui.theme.ScreenBackground
 
 /**
- * 로그인한 뒤의 화면들과 그 사이의 이동.
+ * 3단계·4단계에서 새로 만들기 전까지 예전 화면을 임시로 연결해 둔 곳.
+ * 이 화면들은 자기 머리말(TopAppBar)을 직접 그리므로 틀의 머리말을 겹쳐 그리지 않는다.
+ */
+private val LEGACY_SCREENS = setOf("S06", "S08", "S13")
+
+/**
+ * 로그인한 뒤의 화면 틀. (구현 명세 00 §1, 02 "공통 틀")
  *
- *   아래쪽 탭:  오늘  |  내 약  |  기록  |  통계
- *   내 약 → 약 등록·수정 (이 화면에서는 탭을 숨긴다)
+ *   ┌ 머리말 McTopBar ─ "MEDICATION CARE" + 화면 이름 + ♧ 알림 · ⚙ 설정 ┐
+ *   │ NavHost ─ 주소(route)에 맞는 화면 하나                           │
+ *   └ 하단 5탭 McBottomBar ─ 홈 · 일정 · 내 약 · 기록 · 통계            ┘
  *
- * 화면마다 자기 ViewModel을 하나씩 가진다. viewModel(factory = ...)로 꺼내면
- * 그 화면이 살아 있는 동안 같은 ViewModel이 유지된다.
+ * 머리말과 하단 탭은 여기서 한 번만 그리고, 각 화면은 본문만 그린다.
+ * 머리말 제목과 강조할 탭은 "지금 보이는 화면의 주소"에서 정한다.
  *
  * @param user 로그인한 사용자. 이 사용자의 데이터만 보여 주기 위해 id를 ViewModel에 넘긴다.
  */
 @Composable
 fun MainNavHost(user: User, onLogout: () -> Unit) {
-    val navController = rememberNavController()
+    val nav = rememberNavController()
+    val go = remember(nav) { AppNavigator(nav) }
 
-    // 지금 보이는 화면의 주소. 화면이 바뀌면 이 값도 바뀐다.
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
-    val isTabScreen = MainTab.entries.any { it.route == currentRoute }
+    // 지금 보이는 화면의 주소. 화면이 바뀌면 이 값도 바뀌어 머리말·탭이 다시 그려진다.
+    val entry by nav.currentBackStackEntryAsState()
+    val route = entry?.destination?.route ?: Routes.S04
+    val screenId = NavRules.screenIdOf(route)
+    val activeTab = McTab.entries.find { it.route == NavRules.tabRootOf(route) }
+    // 예전 약 등록·수정 화면(임시 S08)은 탭을 숨긴다. 3단계에서 새 S08로 바뀌면 이 조건을 없앤다.
+    val showBottomBar = screenId != "S08"
 
-    Scaffold(
-        bottomBar = {
-            if (isTabScreen) {
-                NavigationBar {
-                    MainTab.entries.forEach { tab ->
-                        NavigationBarItem(
-                            selected = currentRoute == tab.route,
-                            onClick = { navController.switchTab(tab.route) },
-                            icon = { Icon(tab.icon, contentDescription = null) },
-                            label = { Text(stringResource(tab.labelRes)) }
-                        )
-                    }
-                }
-            }
-        },
-        // 위쪽(상태 표시줄) 여백은 안쪽 화면들이 각자 처리하므로 여기서는 0으로 둔다.
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = MainRoutes.TODAY,
-            // 탭 높이만큼 아래를 띄우고, 그만큼은 이미 썼다고 안쪽 화면에 알려 준다(중복 여백 방지).
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ScreenBackground)
+    ) {
+        if (screenId !in LEGACY_SCREENS) {
+            McTopBar(
+                title = stringResource(Routes.titleRes(route)),
+                showActions = true,
+                // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
+                onNotifications = { go.openOrReturn(Routes.S16) },
+                onSettings = { go.openOrReturn(Routes.S19) }
+            )
+        }
+        // weight(1f): 머리말과 하단 탭을 뺀 나머지 높이를 화면이 모두 차지한다.
+        // consumeWindowInsets: 폰의 내비게이션 바와 하단 탭 높이는 이미 띄웠다고 안쪽 화면에 알려 준다.
+        // (안 알려 주면 아래 여백이 두 번 들어가고, 키보드가 올라올 때 탭 높이만큼 빈 자리가 생긴다)
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
+                .weight(1f)
+                .fillMaxWidth()
+                .then(
+                    if (showBottomBar) {
+                        Modifier.consumeWindowInsets(
+                            WindowInsets.navigationBars.add(WindowInsets(bottom = McBottomBarHeight))
+                        )
+                    } else Modifier
+                )
         ) {
-
-            // ----- 오늘 -----
-            composable(MainRoutes.TODAY) {
-                val viewModel: DayDosesViewModel =
-                    viewModel(factory = DayDosesViewModel.factory(user.id, followToday = true))
-                val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-                // 화면이 다시 보일 때마다(앱으로 돌아왔을 때 등) 오늘까지의 기록을 채운다.
-                LifecycleResumeEffect(viewModel) {
-                    viewModel.refresh()
-                    onPauseOrDispose { }
-                }
-
-                TodayScreen(
-                    displayName = user.displayName,
-                    state = state,
-                    actions = rememberDoseActions(viewModel),
-                    onLogout = onLogout,
-                    banner = { NotificationPermissionBanner() }
-                )
-            }
-
-            // ----- 내 약 -----
-            composable(MainRoutes.MEDICATIONS) {
-                val viewModel: MedicationListViewModel =
-                    viewModel(factory = MedicationListViewModel.factory(user.id))
-                val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-                MedicationListScreen(
-                    state = state,
-                    onAddClick = { navController.navigate(MainRoutes.medicationEdit(null)) },
-                    onMedicationClick = { id -> navController.navigate(MainRoutes.medicationEdit(id)) },
-                    onLogout = onLogout
-                )
-            }
-
-            // ----- 기록 -----
-            composable(MainRoutes.HISTORY) {
-                val viewModel: DayDosesViewModel =
-                    viewModel(factory = DayDosesViewModel.factory(user.id, followToday = false))
-                val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-                HistoryScreen(
-                    state = state,
-                    actions = rememberDoseActions(viewModel),
-                    onPreviousDay = viewModel::goToPreviousDay,
-                    onNextDay = viewModel::goToNextDay,
-                    onDatePicked = viewModel::goToDate,
-                    onLogout = onLogout
-                )
-            }
-
-            // ----- 통계 -----
-            composable(MainRoutes.STATS) {
-                val viewModel: StatsViewModel = viewModel(factory = StatsViewModel.factory(user.id))
-                val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-                // 화면이 다시 보일 때마다 오늘까지의 기록을 채워, 깜빡한 날이 통계에 빠지지 않게 한다.
-                LifecycleResumeEffect(viewModel) {
-                    viewModel.refresh()
-                    onPauseOrDispose { }
-                }
-
-                StatsScreen(
-                    state = state,
-                    onPreviousWeek = viewModel::goToPreviousWeek,
-                    onNextWeek = viewModel::goToNextWeek,
-                    onLogout = onLogout
-                )
-            }
-
-            // ----- 약 등록·수정 -----
-            composable(
-                route = MainRoutes.MEDICATION_EDIT_PATTERN,
-                arguments = listOf(
-                    navArgument(MainRoutes.ARG_MEDICATION_ID) {
-                        type = NavType.LongType
-                        defaultValue = MainRoutes.NO_ID
-                    }
-                )
-            ) { entry ->
-                // 주소에 붙어 온 약 id를 꺼낸다. 없으면(-1) 새 약 등록이다.
-                val medicationId = entry.arguments
-                    ?.getLong(MainRoutes.ARG_MEDICATION_ID)
-                    ?.takeIf { it != MainRoutes.NO_ID }
-
-                val viewModel: MedicationEditViewModel =
-                    viewModel(factory = MedicationEditViewModel.factory(user.id, medicationId))
-                val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-                // 저장·삭제가 끝나면(isFinished) 목록 화면으로 돌아간다.
-                // LaunchedEffect: 괄호 안의 값이 바뀔 때 한 번 실행되는 코드.
-                LaunchedEffect(state.isFinished) {
-                    if (state.isFinished) navController.popBackStack()
-                }
-
-                // remember: 화면이 다시 그려질 때마다 묶음을 새로 만들지 않도록 기억해 둔다.
-                val actions = remember(viewModel, navController) {
-                    MedicationEditActions(
-                        onNameChange = viewModel::onNameChange,
-                        onDosageChange = viewModel::onDosageChange,
-                        onMemoChange = viewModel::onMemoChange,
-                        onStartDateChange = viewModel::onStartDateChange,
-                        onEndDateChange = viewModel::onEndDateChange,
-                        onAddSchedule = viewModel::addSchedule,
-                        onRemoveSchedule = viewModel::removeSchedule,
-                        onScheduleTimeChange = viewModel::onScheduleTimeChange,
-                        onScheduleDayToggle = viewModel::onScheduleDayToggle,
-                        onSave = viewModel::save,
-                        onDelete = viewModel::delete,
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-                MedicationEditScreen(state = state, actions = actions)
+            NavHost(
+                navController = nav,
+                startDestination = Routes.S04,
+                // 화면 전환 애니메이션은 끈다 (프로토타입은 화면이 즉시 바뀐다).
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) {
+                mainGraph(user, go, onLogout)
             }
         }
-    }
-}
-
-/** 복용 기록 카드의 버튼들을 ViewModel의 함수에 이어 준다. */
-@Composable
-private fun rememberDoseActions(viewModel: DayDosesViewModel): DoseActions =
-    remember(viewModel) {
-        DoseActions(
-            onTake = viewModel::markTaken,
-            onSkip = viewModel::markSkipped,
-            onUndo = viewModel::undo
-        )
-    }
-
-/**
- * 아래쪽 탭을 눌렀을 때의 이동.
- * 탭을 여러 번 오가도 화면이 계속 쌓이지 않게 하고, 탭마다 보던 상태(스크롤 위치 등)를 기억한다.
- */
-private fun NavHostController.switchTab(route: String) {
-    navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
+        if (showBottomBar) {
+            McBottomBar(active = activeTab, onTab = { tab -> go.openTab(tab.route) })
+        }
     }
 }
