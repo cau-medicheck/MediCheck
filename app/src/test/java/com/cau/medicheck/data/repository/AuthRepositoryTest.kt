@@ -6,6 +6,7 @@ import com.cau.medicheck.domain.AuthError
 import com.cau.medicheck.domain.SampleData
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -263,6 +264,62 @@ class AuthRepositoryTest {
 
         assertNull(repository.currentUser())
         assertNull(sessionStore.getLoggedInUserId())
+    }
+
+    // ---------- 계정·데이터 삭제 ----------
+
+    /** 삭제 시험용 저장소: 가짜 DAO에서 그 사용자의 줄을 지우는 함수를 끼우고, 알림 정리 호출 횟수를 센다. */
+    private fun repositoryForDelete(onSessionChanged: () -> Unit = {}) = AuthRepository(
+        userDao, settingsDao, sessionStore, FakeTransactionRunner(),
+        zoneId = { ZoneId.of("Asia/Seoul") },
+        onSessionChanged = { onSessionChanged() },
+        eraseUserData = { userId ->
+            settingsDao.deleteForUser(userId)
+            userDao.deleteById(userId)
+        }
+    )
+
+    @Test
+    fun `계정 삭제는 지금 로그인한 계정만 지우고 다른 계정은 남긴다`() = runBlocking<Unit> {
+        var sessionChanges = 0
+        repository = repositoryForDelete { sessionChanges++ }
+        repository.signUp("다른 사람", "other@mail.com", "password1", "password1")
+        signUpSuhwan()   // 지금 로그인한 사람 = 전수환
+        sessionChanges = 0
+
+        val deleted = repository.deleteCurrentAccount()
+
+        assertTrue(deleted)
+        assertEquals(listOf("other@mail.com"), userDao.users.map { it.email })
+        assertEquals(1, settingsDao.rows.value.size)
+        assertNull(sessionStore.getLoggedInUserId())
+        assertEquals(1, sessionChanges)   // 알림 정리·알람 취소를 한 번 부른다
+    }
+
+    @Test
+    fun `계정을 지운 뒤에는 그 이메일로 로그인할 수 없고 다시 가입할 수 있다`() = runBlocking<Unit> {
+        repository = repositoryForDelete()
+        signUpSuhwan()
+        repository.deleteCurrentAccount()
+
+        assertEquals(
+            AuthResult.Failure(AuthError.WRONG_CREDENTIALS),
+            repository.login("suhwan@cau.ac.kr", "password1")
+        )
+        assertTrue(signUpSuhwan() is AuthResult.Success)
+    }
+
+    @Test
+    fun `로그인한 사람이 없으면 계정 삭제는 아무것도 하지 않는다`() = runBlocking<Unit> {
+        var sessionChanges = 0
+        repository = repositoryForDelete { sessionChanges++ }
+        signUpSuhwan()
+        repository.logout()
+        sessionChanges = 0
+
+        assertFalse(repository.deleteCurrentAccount())
+        assertEquals(1, userDao.users.size)
+        assertEquals(0, sessionChanges)
     }
 
     // ---------- 프로필 수정 ----------

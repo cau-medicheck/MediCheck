@@ -12,6 +12,7 @@ import com.cau.medicheck.data.local.AppPrefs
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.data.repository.AuthRepository
 import com.cau.medicheck.data.repository.AuthResult
+import com.cau.medicheck.domain.DeleteConfirm
 import com.cau.medicheck.ui.components.ToastBus
 import com.cau.medicheck.ui.navigation.NavRules
 import com.cau.medicheck.ui.navigation.Routes
@@ -45,6 +46,8 @@ data class AuthUiState(
     val pressed: AuthAction? = null,
     /** 로그아웃 처리 중인지 (S19의 로그아웃 버튼을 두 번 누르지 못하게 한다) */
     val isLoggingOut: Boolean = false,
+    /** 계정·데이터 삭제 처리 중인지 (S44의 버튼에 돌아가는 표시) */
+    val isDeletingAccount: Boolean = false,
     /** 로그인한 사용자. 로그인하지 않았으면 null */
     val currentUser: User? = null
 )
@@ -59,7 +62,10 @@ fun AuthUiState.afterLogout(): AuthUiState =
 
 /** 계정·데이터를 삭제한 뒤의 상태: 사용자 없음, 처음 쓰는 사람처럼 S00부터 (S44가 부른다, 6단계) */
 fun AuthUiState.afterAccountDeleted(): AuthUiState =
-    copy(currentUser = null, isLoading = false, pressed = null, isLoggingOut = false, authStartRoute = Routes.S00)
+    copy(
+        currentUser = null, isLoading = false, pressed = null, isLoggingOut = false, isDeletingAccount = false,
+        authStartRoute = Routes.S00
+    )
 
 /** 앱을 켜서 로그인 기록을 확인한 뒤의 상태 */
 fun AuthUiState.afterSessionChecked(user: User?, onboardingSeen: Boolean): AuthUiState =
@@ -184,8 +190,10 @@ class AuthViewModel(
 
     /** 로그아웃: 세션을 지우고(알림도 정리됨) S01로. 토스트 "로그아웃했습니다." */
     fun logout() {
-        // 버튼을 연달아 눌러도 한 번만 처리한다.
-        if (_uiState.value.isLoggingOut || _uiState.value.currentUser == null) return
+        // 버튼을 연달아 눌러도 한 번만 처리한다. 계정 삭제가 진행 중일 때도 받지 않는다
+        // (삭제가 끝나기 전에 로그아웃 → 다른 계정 로그인이 끼어들면, 늦게 끝난 삭제가 새 로그인을 지워 버린다).
+        val state = _uiState.value
+        if (state.isLoggingOut || state.isDeletingAccount || state.currentUser == null) return
         _uiState.update { it.copy(isLoggingOut = true) }
         // 진행 중인 프로필 저장이 있으면 멈춘다. 로그아웃한 뒤에 그 결과가 상태(처리 중 표시 등)를 건드리지 않게 한다.
         profileJob?.cancel()
@@ -204,13 +212,50 @@ class AuthViewModel(
     }
 
     /**
-     * S44(계정·데이터 삭제, 6단계)가 Room·알람을 지운 뒤 부른다.
-     * 온보딩만 다시 보이게 하고(onboarding_seen = false) 시작 화면을 S00으로.
-     * 접근성 설정은 폰 단위이고 다른 계정이 남아 있을 수 있어 지우지 않는다(08 결정 2·3).
-     * 사용자 없음과 S00을 한 번에 바꾼다 — 따로 바꾸면 잠깐 S01 화면이 그려질 수 있다.
-     * 토스트 문구는 S44 명세가 정하므로 여기서는 띄우지 않는다.
+     * S44 "계정·데이터 삭제". 확인 글자가 맞을 때만 지금 계정의 데이터를 지우고 온보딩(S00)으로 보낸다.
+     *
+     * 흐름: 확인 글자 검사 → AuthRepository.deleteCurrentAccount(DB → 로그인 기억 → 알림 정리)
+     *      → 성공하면 currentUser = null + 시작 화면 S00 → MediCheckApp이 온보딩을 그린다 → 토스트
+     * 실패하면 아무것도 바뀌지 않고 토스트만 뜬다.
+     *
+     * @param confirmText 확인 칸에 입력한 글자
      */
-    fun onAccountDeleted() {
+    fun deleteAccount(confirmText: String) {
+        val state = _uiState.value
+        if (state.isDeletingAccount || state.isLoggingOut || state.currentUser == null) return
+        if (!DeleteConfirm.matches(confirmText)) {
+            toastBus.show(R.string.s44_toast_mismatch)
+            return
+        }
+        _uiState.update { it.copy(isDeletingAccount = true) }
+        profileJob?.cancel()   // 진행 중인 프로필 저장이 지워진 계정의 상태를 건드리지 않게
+        viewModelScope.launch {
+            val deleted = try {
+                authRepository.deleteCurrentAccount()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // DB는 이미 지워졌는데 뒤따르는 알림 정리에서 오류가 난 경우일 수 있다.
+                // 로그인 기억이 지워졌으면 삭제는 끝난 것으로 보고 화면을 로그인 전으로 보낸다.
+                authRepository.currentUser() == null
+            }
+            if (deleted) {
+                onAccountDeleted()
+                toastBus.show(R.string.s44_toast_deleted)
+            } else {
+                // isLoading도 끈다: 위에서 취소한 프로필 저장이 있었다면 그 "처리 중" 표시가 남지 않게.
+                _uiState.update { it.copy(isDeletingAccount = false, isLoading = false) }
+                toastBus.show(R.string.s44_toast_failed)
+            }
+        }
+    }
+
+    /**
+     * 계정을 지운 뒤의 화면 전환. 온보딩이 다시 보이게 하고(onboarding_seen = false) 시작 화면을 S00으로.
+     * 접근성 설정은 폰 단위이고 다른 계정이 남아 있을 수 있어 지우지 않는다(DB_DESIGN ⑧-3).
+     * 사용자 없음과 S00을 한 번에 바꾼다 — 따로 바꾸면 잠깐 S01 화면이 그려질 수 있다.
+     */
+    private fun onAccountDeleted() {
         appPrefs.setOnboardingSeen(false)
         _uiState.update { it.afterAccountDeleted() }
     }

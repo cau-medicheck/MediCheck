@@ -38,6 +38,7 @@ sealed interface AuthResult {
  *                         앱에서는 "알림을 다시 예약하라(로그아웃이면 취소하라)"가 들어온다.
  * @param prepareSampleUser 샘플 계정을 준비해 돌려주는 함수(SampleAccountSeeder.prepare).
  *                          onSessionChanged처럼 함수로 받아, 테스트에서는 가짜로 바꿔 끼운다.
+ * @param eraseUserData 사용자 한 명의 데이터를 DB에서 모두 지우는 함수(UserDataEraser.erase). 계정·데이터 삭제가 쓴다.
  */
 class AuthRepository(
     private val userDao: UserDao,
@@ -48,7 +49,8 @@ class AuthRepository(
     private val now: () -> Long = System::currentTimeMillis,
     private val zoneId: () -> ZoneId = ZoneId::systemDefault,
     private val onSessionChanged: suspend () -> Unit = {},
-    private val prepareSampleUser: suspend () -> User = { error("샘플 계정 준비 함수가 연결되지 않았습니다") }
+    private val prepareSampleUser: suspend () -> User = { error("샘플 계정 준비 함수가 연결되지 않았습니다") },
+    private val eraseUserData: suspend (Long) -> Unit = { error("계정 삭제 함수가 연결되지 않았습니다") }
 ) {
 
     /**
@@ -171,5 +173,28 @@ class AuthRepository(
     suspend fun logout() {
         sessionStore.clear()
         onSessionChanged()
+    }
+
+    /**
+     * 계정·데이터 삭제(S44): 지금 로그인한 계정 하나의 데이터만 지운다. (DB_DESIGN ⑧-3)
+     * 같은 폰의 다른 계정과 폰 단위 설정(글자 크기 등)은 건드리지 않는다.
+     *
+     * 순서가 중요하다. DB를 먼저 지우고, 실패하면 나머지(세션·알림)는 건드리지 않는다.
+     *   ① 그 계정의 약·규칙·기록·이력·설정·사용자 줄을 한 트랜잭션으로 지운다 (하나라도 실패하면 전부 없던 일)
+     *   ② 로그인 기억을 지운다
+     *   ③ 떠 있는 알림을 지우고 알람을 취소한다 (onSessionChanged — 로그아웃과 같은 길)
+     *
+     * @return 지웠으면 true. 로그인한 사람이 없거나 DB 오류로 못 지웠으면 false (이때는 아무것도 바뀌지 않는다)
+     */
+    suspend fun deleteCurrentAccount(): Boolean {
+        val userId = sessionStore.getLoggedInUserId() ?: return false
+        try {
+            transaction.run { eraseUserData(userId) }
+        } catch (e: SQLiteException) {
+            return false
+        }
+        sessionStore.clear()
+        onSessionChanged()
+        return true
     }
 }

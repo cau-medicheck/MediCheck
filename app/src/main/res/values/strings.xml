@@ -749,4 +749,22 @@
     <string name="s39_offline_body">저장된 일정을 계속 이용할 수 있어요.</string>
     <string name="s39_offline_action">일정 확인</string>
     <string name="s39_notice">안내 문구에는 원인과 다음 행동을 포함하고, 오류를 색상만으로 표시하지 않도록 합니다.</string>
+
+    <!-- ===== S44 계정·데이터 삭제 ===== -->
+    <string name="s44_title">계정 및 데이터 삭제</string>
+    <string name="s44_subtitle">삭제 대상과 복구 가능 여부를 명확하게 표시합니다.</string>
+    <string name="s44_card_title">삭제 전 확인</string>
+    <!-- 프로토타입 원문 "이 브라우저의 데모 데이터(…)가 초기화됩니다. … 실제 회원 탈퇴가 아닙니다.": 앱은 실제로 계정을 지우므로 고쳤다.
+         삭제 범위는 지금 계정만이다 (DB_DESIGN ⑧-3) -->
+    <string name="s44_card_body">지금 로그인한 계정과 이 계정의 데이터(등록 약·복용 기록·변경 이력·설정)가 삭제되고, 예약된 복약 알림도 취소됩니다. 삭제한 뒤에는 복구할 수 없습니다. 이 기기에 다른 계정이 있으면 그 계정의 기록은 남습니다.</string>
+    <string name="s44_label">확인을 위해 ‘삭제’를 입력하세요</string>
+    <string name="s44_confirm_word">삭제</string>
+    <!-- 프로토타입 원문 "데모 데이터 초기화" -->
+    <string name="s44_button">계정·데이터 삭제</string>
+    <!-- 프로토타입 원문 "실서비스에서는 … 별도 정책으로 정의해야 합니다.": 이 앱이 정한 정책을 적었다 -->
+    <string name="s44_notice">MediCheck는 서버에 데이터를 보관하지 않아, 삭제하면 이 기기에서 바로 지워지고 따로 남는 사본이 없습니다. 앱을 제거하면 이 기기의 모든 계정과 기록이 함께 지워집니다. 다만 이미 파일로 저장해 둔 백업·CSV는 지워지지 않으므로 필요하면 직접 지워주세요.</string>
+    <string name="s44_toast_mismatch">확인 칸에 삭제를 정확히 입력하세요.</string>
+    <!-- 프로토타입 원문 "기기에 있는 시연 데이터를 초기화했습니다." -->
+    <string name="s44_toast_deleted">계정과 이 계정의 복약 데이터를 삭제했습니다.</string>
+    <string name="s44_toast_failed">삭제하지 못했습니다. 다시 시도해주세요.</string>
 </resources>

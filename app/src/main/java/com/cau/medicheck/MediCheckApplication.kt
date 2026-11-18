@@ -18,6 +18,7 @@ import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.ReminderRepository
 import com.cau.medicheck.data.repository.SampleAccountSeeder
 import com.cau.medicheck.data.repository.SettingsRepository
+import com.cau.medicheck.data.repository.UserDataEraser
 import com.cau.medicheck.domain.AppClock
 import com.cau.medicheck.notification.ReminderNotifier
 import com.cau.medicheck.notification.ReminderScheduler
@@ -134,6 +135,13 @@ class AppContainer(context: Context) {
             sessionStore = sessionStore,
             transaction = transactionRunner,
             prepareSampleUser = { sampleAccountSeeder.prepare() },
+            // 계정·데이터 삭제(S44): 지금 계정의 줄을 정해진 순서로 지운다.
+            eraseUserData = { userId ->
+                UserDataEraser(
+                    database.doseStatusEventDao(), database.doseRecordDao(), database.scheduleDao(),
+                    database.medicationDao(), database.userSettingsDao(), database.userDao()
+                ).erase(userId)
+            },
             // 로그인·로그아웃으로 "지금 로그인한 사람"이 바뀌면 알림도 그 사람 것으로 다시 건다.
             onSessionChanged = {
                 // 새로 로그인한 사람의 설정을 먼저 읽는다 (알림 켜짐·시간대 정책이 계정마다 다르다).

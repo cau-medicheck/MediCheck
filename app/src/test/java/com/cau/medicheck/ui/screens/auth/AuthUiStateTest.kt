@@ -55,4 +55,11 @@ class AuthUiStateTest {
 
         assertEquals(false, loggingOut.afterLogout().isLoggingOut)
     }
+
+    @Test
+    fun `계정 삭제가 끝나면 삭제 처리 중 표시가 꺼진다`() {
+        val deleting = AuthUiState(isCheckingSession = false, isDeletingAccount = true)
+
+        assertEquals(false, deleting.afterAccountDeleted().isDeletingAccount)
+    }
 }
