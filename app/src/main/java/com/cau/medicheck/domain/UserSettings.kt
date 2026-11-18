@@ -7,11 +7,17 @@ import java.time.ZoneId
 /** 알림 기준 시간 정책 (S35). LOCAL = 폰의 지금 시간대, HOME = 가입할 때 등록한 시간대 */
 enum class TimeZoneMode { LOCAL, HOME }
 
+/** 앱 잠금을 풀 때 본인 확인 방법 (S41). BIOMETRIC = 기기 생체인증, DEVICE_CREDENTIAL = 기기 PIN·패턴·비밀번호 */
+enum class AppLockMethod { BIOMETRIC, DEVICE_CREDENTIAL }
+
 /**
- * 계정별 설정 중 알림·시간대에 쓰는 값. (user_settings 표의 화면·계산용 모양)
- * 기본값은 v3 프로토타입의 처음 상태와 같다: 알림·소리·진동 켜짐, 재알림 꺼짐, 15분, 약 이름 숨김 켜짐.
+ * 계정별 설정. (user_settings 표의 화면·계산용 모양)
+ * 기본값은 v3 프로토타입의 처음 상태와 같다: 알림·소리·진동 켜짐, 재알림 꺼짐, 15분, 약 이름 숨김 켜짐,
+ * 통계 미리보기 숨김·앱 잠금 꺼짐.
  *
  * @param homeZoneId 가입할 때 폰의 시간대 (예: "Asia/Seoul"). 로그인 전에는 null
+ * @param hideStatsPreview '통계 미리보기 숨김'(S36): 최근 앱 목록에 앱 화면 미리보기가 보이지 않게 한다
+ * @param appLockEnabled '앱 잠금'(S41)
  */
 data class UserSettings(
     val reminderEnabled: Boolean = true,
@@ -21,8 +27,17 @@ data class UserSettings(
     val realertMinutes: Int = DEFAULT_REALERT_MINUTES,
     val hideMedName: Boolean = true,
     val timeZoneMode: TimeZoneMode = TimeZoneMode.LOCAL,
-    val homeZoneId: String? = null
+    val homeZoneId: String? = null,
+    val hideStatsPreview: Boolean = false,
+    val appLockEnabled: Boolean = false,
+    val appLockMethod: AppLockMethod = AppLockMethod.BIOMETRIC
 ) {
+    /**
+     * 최근 앱 목록(앱 전환 화면)에 이 앱의 화면 미리보기를 가려야 하는지.
+     * 통계 미리보기 숨김을 켰거나, 앱 잠금을 켠 경우(잠긴 앱의 화면이 미리보기로 보이면 안 되므로).
+     */
+    val hidesRecentsPreview: Boolean get() = hideStatsPreview || appLockEnabled
+
     /**
      * 앱이 "지금·오늘"을 계산할 시간대.
      * HOME이면 등록한 시간대, 그 밖에는(또는 등록한 시간대를 읽을 수 없으면) 폰의 지금 시간대.

@@ -42,6 +42,11 @@ object Glyph {
     const val PERMISSION = "♙"            // 알림 권한·OS 줄
     const val HELP = "?"                  // 도움말 줄
 
+    // 빈 화면·오류 상태 예시(S39)
+    const val EXAMPLE_EMPTY = "▤"         // 빈 상태
+    const val EXAMPLE_INPUT = "⚠\uFE0E"   // 입력 오류
+    const val EXAMPLE_OFFLINE = "⌁"       // 오프라인
+
     const val PREV = "‹"                  // 이전 달
     const val NEXT = "›"                  // 다음 달
 }

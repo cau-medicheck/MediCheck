@@ -1,6 +1,7 @@
 package com.cau.medicheck.data.repository
 
 import com.cau.medicheck.data.local.UserSettingsEntity
+import com.cau.medicheck.domain.AppLockMethod
 import com.cau.medicheck.domain.TimeZoneMode
 import com.cau.medicheck.domain.UserSettings
 import kotlinx.coroutines.runBlocking
@@ -107,6 +108,40 @@ class SettingsRepositoryTest {
         assertEquals(true, saved.appLockEnabled)
         assertEquals("America/New_York", saved.homeZoneId)
         assertEquals(false, saved.vibrateEnabled)
+    }
+
+    @Test
+    fun `통계 미리보기 숨김과 앱 잠금 설정을 저장하고 다시 읽는다`() = runBlocking<Unit> {
+        sessionStore.saveLoggedInUserId(me)
+        repository.loadForCurrentUser()
+
+        repository.update {
+            it.copy(hideStatsPreview = true, appLockEnabled = true, appLockMethod = AppLockMethod.DEVICE_CREDENTIAL)
+        }
+        repository.loadForCurrentUser()
+
+        val loaded = repository.current.value
+        assertEquals(true, loaded.hideStatsPreview)
+        assertEquals(true, loaded.appLockEnabled)
+        assertEquals(AppLockMethod.DEVICE_CREDENTIAL, loaded.appLockMethod)
+        assertEquals("DEVICE_CREDENTIAL", dao.find(me)?.appLockMethod)
+    }
+
+    @Test
+    fun `모르는 잠금 방식이 저장돼 있으면 생체인증으로 읽는다`() = runBlocking<Unit> {
+        sessionStore.saveLoggedInUserId(me)
+        dao.insert(UserSettingsEntity(userId = me, homeZoneId = "Asia/Seoul", appLockMethod = "???"))
+
+        repository.loadForCurrentUser()
+
+        assertEquals(AppLockMethod.BIOMETRIC, repository.current.value.appLockMethod)
+    }
+
+    @Test
+    fun `통계 미리보기 숨김이나 앱 잠금 중 하나라도 켜면 최근 앱 미리보기를 가린다`() {
+        assertEquals(false, UserSettings().hidesRecentsPreview)
+        assertEquals(true, UserSettings(hideStatsPreview = true).hidesRecentsPreview)
+        assertEquals(true, UserSettings(appLockEnabled = true).hidesRecentsPreview)
     }
 
     @Test

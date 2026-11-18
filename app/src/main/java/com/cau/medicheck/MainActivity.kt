@@ -2,14 +2,22 @@ package com.cau.medicheck
 
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.cau.medicheck.ui.navigation.DeepLinkInbox
 import com.cau.medicheck.ui.navigation.MediCheckApp
 import com.cau.medicheck.ui.theme.MediCheckTheme
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * 앱 아이콘을 누르면 열리는 화면(Activity).
@@ -32,10 +40,40 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
+        watchRecentsPreview()
         setContent {
             MediCheckTheme {
                 MediCheckApp()
             }
+        }
+    }
+
+    /**
+     * '통계 미리보기 숨김'(S36)이나 앱 잠금이 켜져 있으면 최근 앱 목록(앱 전환 화면)에 이 앱의 화면이 보이지 않게 한다.
+     * 미리보기에는 홈의 완료율·통계가 그대로 찍혀 옆 사람이 볼 수 있기 때문이다.
+     *
+     * 로그인한 사람의 설정(SettingsRepository.current)을 지켜보다가 값이 바뀌면 바로 적용한다.
+     * 로그아웃하면 설정이 기본값(끔)이 되어 로그인 화면은 다시 미리보기에 보인다.
+     *   repeatOnLifecycle(CREATED): 이 화면(Activity)이 살아 있는 동안만 지켜보고, 닫히면 그만둔다.
+     */
+    private fun watchRecentsPreview() {
+        val settings = (application as MediCheckApplication).container.settingsRepository.current
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                settings.map { it.hidesRecentsPreview }.distinctUntilChanged().collect(::applyRecentsPreview)
+            }
+        }
+    }
+
+    private fun applyRecentsPreview(hide: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 이상: 미리보기 사진만 찍지 않게 한다. 화면 캡처는 그대로 된다.
+            setRecentsScreenshotEnabled(!hide)
+        } else if (hide) {
+            // Android 12 이하: 미리보기가 검게 나오게 한다. 이 방법은 화면 캡처·녹화도 함께 막는다.
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 
