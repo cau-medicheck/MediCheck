@@ -11,6 +11,7 @@ import com.cau.medicheck.data.local.SharedPrefsAppPrefs
 import com.cau.medicheck.data.local.SharedPrefsSessionStore
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.data.repository.AuthRepository
+import com.cau.medicheck.data.system.NetworkMonitor
 import com.cau.medicheck.data.repository.DoseRecordGenerator
 import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
@@ -83,6 +84,9 @@ class AppContainer(context: Context) {
 
     /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
     val selection: SelectionStore by lazy { SelectionStore(clock) }
+
+    /** 인터넷 연결 상태를 알려 주는 도구 (S38) */
+    val networkMonitor: NetworkMonitor by lazy { NetworkMonitor(appContext) }
 
     /** 사용자가 고른 파일에 CSV를 쓰는 도구 (S43) */
     val csvFileWriter: CsvFileWriter by lazy { CsvFileWriter(appContext) }

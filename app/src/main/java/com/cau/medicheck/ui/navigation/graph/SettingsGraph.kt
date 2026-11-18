@@ -1,6 +1,10 @@
 package com.cau.medicheck.ui.navigation.graph
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.cau.medicheck.data.local.User
@@ -9,10 +13,20 @@ import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.screens.settings.S19SettingsScreen
 import com.cau.medicheck.ui.screens.settings.S20PolicyScreen
 import com.cau.medicheck.ui.screens.settings.S21ProfileScreen
+import com.cau.medicheck.ui.screens.settings.AccessibilityActions
+import com.cau.medicheck.ui.screens.settings.OfflineActions
+import com.cau.medicheck.ui.screens.settings.PrivacyActions
 import com.cau.medicheck.ui.screens.settings.S22HelpScreen
+import com.cau.medicheck.ui.screens.settings.S36PrivacyScreen
+import com.cau.medicheck.ui.screens.settings.S36PrivacyViewModel
+import com.cau.medicheck.ui.screens.settings.S37AccessibilityScreen
+import com.cau.medicheck.ui.screens.settings.S37AccessibilityViewModel
+import com.cau.medicheck.ui.screens.settings.S38OfflineScreen
+import com.cau.medicheck.ui.screens.settings.S38OfflineViewModel
+import com.cau.medicheck.ui.screens.settings.S39ErrorStatesScreen
 
 /** 이 파일이 붙여 둔 화면 ID */
-val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22")
+val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S36", "S37", "S38", "S39")
 
 /**
  * 설정 화면들이 "계정"에 하는 일을 묶은 것. 로그인 상태는 AuthViewModel이 들고 있어서,
@@ -38,7 +52,11 @@ data class SettingsCallbacks(
  *                 ├ 안전·편의 기능 → S37 · S36 · S38 · S32 · S45 · S23
  *                 └ 로그아웃      → 로그인 화면(S01)
  *
+ *   S36 개인정보 센터 → S41 앱 잠금 · S28 백업·복원 · S43 내보내기 · S44 계정·데이터 삭제
+ *   S38 오프라인 상태 → S06 · S05 · S12 · S45        S39 빈 화면·오류 상태 → S08 · S05
+ *
  * S20·S21·S22의 "‹ 설정"은 backTo(S19): 지나온 S19가 있으면 거기까지 돌아가고, 없으면 지금 화면을 S19로 바꾼다.
+ * S36~S39의 "‹ 이전 화면"은 back(): 바로 앞 화면으로.
  */
 fun NavGraphBuilder.settingsGraph(user: User, go: AppNavigator, cb: SettingsCallbacks) {
 
@@ -79,5 +97,67 @@ fun NavGraphBuilder.settingsGraph(user: User, go: AppNavigator, cb: SettingsCall
     // ----- S22 도움말·범위 -----
     composable(Routes.S22) {
         S22HelpScreen(onBack = { go.backTo(Routes.S19) }, onOpen = go::open)
+    }
+
+    // ----- S36 개인정보 센터 -----
+    composable(Routes.S36) {
+        val vm: S36PrivacyViewModel = viewModel(factory = S36PrivacyViewModel.Factory)
+        val settings by vm.settings.collectAsStateWithLifecycle()
+        S36PrivacyScreen(
+            settings = settings,
+            actions = remember(vm, go) {
+                PrivacyActions(
+                    onBack = go::back,
+                    onHideMedName = vm::setHideMedName,
+                    onHideStatsPreview = vm::setHideStatsPreview,
+                    onOpen = go::open
+                )
+            }
+        )
+    }
+
+    // ----- S37 접근성 설정 -----
+    composable(Routes.S37) {
+        val vm: S37AccessibilityViewModel = viewModel(factory = S37AccessibilityViewModel.Factory)
+        val settings by vm.settings.collectAsStateWithLifecycle()
+        S37AccessibilityScreen(
+            settings = settings,
+            actions = remember(vm, go) {
+                AccessibilityActions(
+                    onBack = go::back,
+                    onFontScale = vm::setFontScale,
+                    onHighContrast = vm::setHighContrast,
+                    onReduceMotion = vm::setReduceMotion
+                )
+            }
+        )
+    }
+
+    // ----- S38 오프라인 상태 -----
+    composable(Routes.S38) {
+        val vm: S38OfflineViewModel = viewModel(factory = S38OfflineViewModel.Factory)
+        // 이 화면이 보이는 동안에만 연결 상태를 듣는다.
+        val online by vm.isOnline.collectAsStateWithLifecycle()
+        S38OfflineScreen(
+            online = online,
+            actions = remember(go) {
+                OfflineActions(
+                    onBack = go::back,
+                    onOpenMeds = { go.openTab(Routes.S06) },
+                    onOpenSchedule = { go.openTab(Routes.S05) },
+                    onOpenRecords = { go.open(Routes.S12) },   // 선택 날짜의 기록
+                    onOpenVerify = { go.open(Routes.S45) }
+                )
+            }
+        )
+    }
+
+    // ----- S39 빈 화면·오류 상태 -----
+    composable(Routes.S39) {
+        S39ErrorStatesScreen(
+            onBack = go::back,
+            onAddMedication = { go.open(Routes.s08New()) },
+            onOpenSchedule = { go.openTab(Routes.S05) }
+        )
     }
 }

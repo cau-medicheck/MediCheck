@@ -1,19 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Android 12 이상에서 "무엇을 폰 밖으로 내보낼 수 있는가"를 정하는 규칙.
+   이 앱은 계정과 복약 기록을 이 기기 안에만 둔다고 안내하므로, 구글 클라우드 백업(cloud-backup)과
+   새 폰으로 옮기기(device-transfer) 모두에서 앱 데이터 전부를 뺀다.
+   (domain: root = 앱 데이터 폴더, file = files/, database = DB, sharedpref = 설정 파일, external = 외부 저장소의 앱 폴더)
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
     </device-transfer>
-    -->
 </data-extraction-rules>

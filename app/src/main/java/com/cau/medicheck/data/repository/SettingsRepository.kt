@@ -3,6 +3,7 @@ package com.cau.medicheck.data.repository
 import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.UserSettingsDao
 import com.cau.medicheck.data.local.UserSettingsEntity
+import com.cau.medicheck.domain.AppLockMethod
 import com.cau.medicheck.domain.TimeZoneMode
 import com.cau.medicheck.domain.UserSettings
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,7 @@ class SettingsRepository(
     suspend fun update(transform: (UserSettings) -> UserSettings) {
         mutex.withLock {
             val userId = sessionStore.getLoggedInUserId() ?: return
-            // 화면에 없는 칸(앱 잠금 등)을 잃지 않도록 DB의 줄을 다시 읽어 그 위에 고친다.
+            // 메모리의 값이 아니라 DB의 줄을 다시 읽어 그 위에 고친다 (home_zone_id처럼 고치지 않는 칸을 잃지 않게).
             val entity = loadEntity(userId)
             val changed = transform(entity.toDomain())
             val saved = entity.copy(
@@ -61,7 +62,10 @@ class SettingsRepository(
                 realertEnabled = changed.realertEnabled,
                 realertMinutes = UserSettings.normalizeRealertMinutes(changed.realertMinutes),
                 hideMedName = changed.hideMedName,
-                timeZoneMode = changed.timeZoneMode.name
+                timeZoneMode = changed.timeZoneMode.name,
+                hideStatsPreview = changed.hideStatsPreview,
+                appLockEnabled = changed.appLockEnabled,
+                appLockMethod = changed.appLockMethod.name
             )
             userSettingsDao.upsert(saved)
             _current.value = saved.toDomain()
@@ -82,6 +86,14 @@ class SettingsRepository(
         realertMinutes = UserSettings.normalizeRealertMinutes(realertMinutes),
         hideMedName = hideMedName,
         timeZoneMode = if (timeZoneMode == UserSettingsEntity.TIME_ZONE_HOME) TimeZoneMode.HOME else TimeZoneMode.LOCAL,
-        homeZoneId = homeZoneId
+        homeZoneId = homeZoneId,
+        hideStatsPreview = hideStatsPreview,
+        appLockEnabled = appLockEnabled,
+        // 모르는 글자가 저장돼 있으면 생체인증으로 읽는다.
+        appLockMethod = if (appLockMethod == UserSettingsEntity.APP_LOCK_DEVICE_CREDENTIAL) {
+            AppLockMethod.DEVICE_CREDENTIAL
+        } else {
+            AppLockMethod.BIOMETRIC
+        }
     )
 }

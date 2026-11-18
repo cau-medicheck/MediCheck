@@ -675,4 +675,78 @@
     <string name="s22_section_related">관련 화면</string>
     <string name="s22_row_errors_desc">오류·무결성 오류·빈 상태 패턴</string>
     <string name="s22_row_safety_desc">자동 복용량 추천 제외 및 구현 경계</string>
+
+    <!-- ===== S36 개인정보 센터 ===== -->
+    <string name="s36_subtitle">복약 내역이 다른 사람에게 보이는 범위를 관리합니다.</string>
+    <string name="s36_hide_name_title">잠금 화면에 약 이름 숨김</string>
+    <string name="s36_hide_name_desc">약 이름 대신 일반 알림 문구 표시</string>
+    <string name="s36_hide_stats_title">통계 미리보기 숨김</string>
+    <string name="s36_hide_stats_desc">다른 사람이 화면을 볼 때 통계 노출 최소화</string>
+    <string name="s36_section_data">내 데이터 관리</string>
+    <string name="s36_row_lock_title">앱 잠금</string>
+    <string name="s36_row_lock_desc">추가 보호 기능</string>
+    <string name="s36_row_backup_title">기기 백업·복원</string>
+    <string name="s36_row_backup_desc">민감정보 포함 가능</string>
+    <string name="s36_row_export_title">복용 기록 내보내기</string>
+    <string name="s36_row_export_desc">CSV 파일 다운로드</string>
+    <string name="s36_row_delete_title">계정·데이터 삭제</string>
+    <string name="s36_row_delete_desc">데이터 처리 범위 확인</string>
+    <string name="s36_mark_extra">추가</string>
+    <!-- 프로토타입 원문 "ⓘ 브라우저 내 데모 데이터만 변경합니다. …": 스위치가 실제 알림과 최근 앱 미리보기를 바꾸므로 고쳤다 -->
+    <string name="s36_notice">ⓘ 모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
+
+    <!-- ===== S37 접근성 설정 ===== -->
+    <string name="s37_title">접근성 및 글자 크기</string>
+    <string name="s37_subtitle">약 이름과 복용 상태를 누구나 쉽게 구분할 수 있도록 설정합니다.</string>
+    <string name="s37_preview_title">글자 확대 미리보기</string>
+    <!-- 프로토타입 원문 "Android 시스템 글꼴 확대와 함께 검증해야 해요."는 개발 메모라 실제 규칙으로 바꿨다 -->
+    <string name="s37_preview_desc" formatted="false">Android 시스템 글꼴 크기에 곱해져 적용되고, 합쳐서 200%를 넘지 않아요.</string>
+    <string name="s37_scale">%1$d%%</string>
+    <string name="s37_cd_font_scale">글자 크기 %1$d%%</string>
+    <string name="s37_sample_title">오늘 08:00 · 비타민 D</string>
+    <string name="s37_sample_status">✓ 복용 완료 · 1정</string>
+    <string name="s37_contrast_title">높은 대비 사용</string>
+    <string name="s37_contrast_desc">색상만으로 상태를 구분하지 않음</string>
+    <string name="s37_motion_title">움직임 최소화</string>
+    <string name="s37_motion_desc">불필요한 화면 움직임 줄이기</string>
+    <!-- 프로토타입 원문 "TalkBack 읽기 순서 … 별도 기기 테스트가 필요해요."는 개발 메모라 이 설정이 실제로 하는 일로 바꿨다 -->
+    <string name="s37_notice">글자 크기와 높은 대비는 모든 화면의 본문에 바로 적용되고, 이 기기의 모든 계정에 함께 적용돼요. TalkBack(화면 읽어 주기)과 기기 글꼴 크기는 Android 설정의 접근성에서 바꿀 수 있어요.</string>
+
+    <!-- ===== S38 오프라인 상태 ===== -->
+    <string name="s38_title">오프라인 사용</string>
+    <string name="s38_subtitle">연결이 불안정해도 중요한 복약 흐름은 유지되어야 합니다.</string>
+    <!-- 프로토타입은 "네트워크 상태 시뮬레이션" 스위치였다. 앱은 스위치 없이 실제 연결 상태를 보여 준다 -->
+    <string name="s38_status_title">네트워크 상태</string>
+    <string name="s38_status_online">연결된 상태</string>
+    <string name="s38_status_offline">인터넷 연결 없음</string>
+    <string name="s38_pill_online">연결됨</string>
+    <string name="s38_pill_offline">오프라인</string>
+    <string name="s38_notice_online">인터넷 없이도 모든 기능이 동작합니다. 비행기 모드를 켜고 약 등록과 복용 기록을 확인해보세요.</string>
+    <string name="s38_notice_offline">인터넷 없이도 앱 내 약·일정·기록 화면을 탐색할 수 있습니다. 약 등록·복용 기록·복약 알림까지 모든 기능이 인터넷 없이 동작합니다.</string>
+    <string name="s38_row_meds_title">내 약 목록</string>
+    <string name="s38_row_meds_desc">기기에 있는 로컬 데이터 조회</string>
+    <string name="s38_row_schedule_title">오늘의 일정</string>
+    <string name="s38_row_schedule_desc">계산된 회차 확인</string>
+    <string name="s38_row_records_title">복약 기록</string>
+    <string name="s38_row_records_desc">기기 안에 보관된 기록 확인</string>
+    <string name="s38_row_verify_title">오프라인 기능 검증</string>
+    <string name="s38_row_verify_desc">Room DB 및 알림 동작은 Android에서 검증</string>
+
+    <!-- ===== S39 빈 화면·오류 상태 ===== -->
+    <string name="s39_title">빈 화면 및 오류 상태</string>
+    <string name="s39_subtitle">정상 경로만큼 예외 상황 안내도 중요합니다.</string>
+    <string name="s39_card_title">상태별 UX 패턴</string>
+    <string name="s39_tab_empty">빈 상태</string>
+    <string name="s39_tab_input">입력 오류</string>
+    <string name="s39_tab_offline">오프라인</string>
+    <string name="s39_empty_title">아직 등록된 약이 없습니다</string>
+    <string name="s39_empty_body">약을 등록하면 오늘의 일정이 생성됩니다.</string>
+    <string name="s39_empty_action">약 추가</string>
+    <string name="s39_input_title">입력값을 확인해주세요</string>
+    <string name="s39_input_body">약 이름과 1회 복용량은 필수입니다.</string>
+    <string name="s39_input_action">다시 입력</string>
+    <string name="s39_offline_title">인터넷 연결 없음</string>
+    <string name="s39_offline_body">저장된 일정을 계속 이용할 수 있어요.</string>
+    <string name="s39_offline_action">일정 확인</string>
+    <string name="s39_notice">안내 문구에는 원인과 다음 행동을 포함하고, 오류를 색상만으로 표시하지 않도록 합니다.</string>
 </resources>

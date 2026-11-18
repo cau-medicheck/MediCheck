@@ -5,9 +5,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.cau.medicheck.MediCheckApplication
 import androidx.compose.ui.res.stringResource
@@ -19,11 +16,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.PlaceholderScreen
 import com.cau.medicheck.ui.components.rememberNotificationsOff
 import com.cau.medicheck.ui.navigation.AppNavigator
@@ -76,7 +70,7 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  *
  * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
  * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계),
- * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계), 설정 화면(S19~S22)은 SettingsGraph.kt (6단계).
+ * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계), 설정 화면(S19~S22·S36~S39)은 SettingsGraph.kt (6단계).
  * 그 밖의 화면은 "준비 중" 임시 화면이다.
  */
 fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCallbacks) {
@@ -203,21 +197,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
         .forEach { screenId ->
             composable(screenId) {
                 val title = stringResource(Routes.titleRes(screenId))
-                // 개인정보 센터(S36)는 다음 작업(6-2)에서 만든다. 그때까지 거기서 들어가게 될
-                // "복약 기록 내보내기"(S43)로 가는 길이 끊기지 않게 임시 버튼을 둔다.
-                if (screenId == Routes.S36) {
-                    PlaceholderScreen(title) {
-                        McButton(
-                            text = stringResource(R.string.screen_title_s43),
-                            onClick = { go.open(Routes.S43) },
-                            kind = ButtonKind.WHITE,
-                            full = true,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
-                    }
-                } else {
-                    PlaceholderScreen(title)
-                }
+                PlaceholderScreen(title)
             }
         }
 }
