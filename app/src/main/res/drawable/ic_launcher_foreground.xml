@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 앱 아이콘의 그림: 가운데의 흰색 십자 (프로토타입의 ✚ 로고) -->
+<!--
+    앱 아이콘의 그림: 비스듬히 놓인 캡슐 알약 하나.
+    반은 흰색, 반은 옅은 흰색이라 색을 쓰지 않고도 캡슐로 보인다.
+    (전에는 흰 십자였는데 병원·응급처럼 보여서 바꿨다)
+    가운데 66dp 원 안에 들어오게 그렸다 — 폰마다 아이콘을 원·둥근 네모로 잘라 쓰기 때문이다.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M47,36 h14 v11 h11 v14 h-11 v11 h-14 v-11 h-11 v-14 h11 z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+        <!-- 왼쪽 반 -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M42,43 H54 V65 H42 A11,11 0 0 1 42,43 Z" />
+        <!-- 오른쪽 반 -->
+        <path
+            android:fillAlpha="0.55"
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,43 H66 A11,11 0 0 1 66,65 H54 Z" />
+    </group>
 </vector>

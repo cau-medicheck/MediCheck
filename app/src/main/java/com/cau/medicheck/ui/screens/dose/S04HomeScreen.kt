@@ -29,10 +29,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -206,6 +212,7 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
             .fillMaxWidth()
             .clip(shape)
             .background(Mint)
+            .drawBehind { drawPillArt() }
             .border(1.dp, NoticeBorder, shape)
             .padding(horizontal = 18.dp, vertical = 20.dp)
     ) {
@@ -251,6 +258,57 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
             modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
         )
         McButton(text = stringResource(R.string.s04_next_action), onClick = { onOpenDose(next.key) })
+    }
+}
+
+/**
+ * 카드 오른쪽에 깔리는 바탕 그림: 옅은 동그라미 두 개 위에 캡슐 하나와 둥근 알약 하나.
+ *
+ * 사진 대신 선과 면으로 직접 그린다. 사진은 파일이 무겁고, 앱의 청록색과 따로 놀기 때문이다.
+ * 글자가 있는 왼쪽은 비워 두고 오른쪽 40%쯤에만 그려서 글자를 가리지 않는다.
+ * 크기는 카드 높이를 기준으로 잡는다(글자를 키워 카드가 길어지면 그림도 같이 커진다. 너무 커지지 않게 위를 막는다).
+ */
+private fun DrawScope.drawPillArt() {
+    val unit = size.height.coerceAtMost(190.dp.toPx())   // 그림의 기준 크기
+    val right = size.width
+    val midY = size.height * 0.48f
+
+    // 바탕의 옅은 동그라미 둘
+    drawCircle(Teal.copy(alpha = 0.07f), radius = unit * 0.62f, center = Offset(right - unit * 0.18f, midY + unit * 0.10f))
+    drawCircle(Teal.copy(alpha = 0.06f), radius = unit * 0.34f, center = Offset(right - unit * 0.74f, size.height + unit * 0.04f))
+
+    // 캡슐: 비스듬히 놓인 긴 알약. 반은 청록, 반은 흰색
+    val capLength = unit * 0.52f
+    val capWidth = unit * 0.20f
+    val capCenter = Offset(right - unit * 0.42f, midY - unit * 0.04f)
+    rotate(degrees = -35f, pivot = capCenter) {
+        val left = capCenter.x - capLength / 2
+        val top = capCenter.y - capWidth / 2
+        val radius = CornerRadius(capWidth / 2)
+        drawRoundRect(Color.White, topLeft = Offset(left, top), size = Size(capLength, capWidth), cornerRadius = radius)
+        // 왼쪽 반만 청록으로 덮는다
+        clipRect(left = left, top = top, right = capCenter.x, bottom = top + capWidth) {
+            drawRoundRect(Teal.copy(alpha = 0.78f), topLeft = Offset(left, top), size = Size(capLength, capWidth), cornerRadius = radius)
+        }
+        drawRoundRect(
+            Teal.copy(alpha = 0.30f), topLeft = Offset(left, top), size = Size(capLength, capWidth),
+            cornerRadius = radius, style = Stroke(1.2.dp.toPx())
+        )
+    }
+
+    // 둥근 알약: 흰 동그라미 + 가운데 금
+    val tabCenter = Offset(right - unit * 0.20f, midY + unit * 0.30f)
+    val tabRadius = unit * 0.115f
+    drawCircle(Color.White, radius = tabRadius, center = tabCenter)
+    drawCircle(Teal.copy(alpha = 0.30f), radius = tabRadius, center = tabCenter, style = Stroke(1.2.dp.toPx()))
+    rotate(degrees = -35f, pivot = tabCenter) {
+        drawLine(
+            Teal.copy(alpha = 0.35f),
+            start = Offset(tabCenter.x - tabRadius * 0.62f, tabCenter.y),
+            end = Offset(tabCenter.x + tabRadius * 0.62f, tabCenter.y),
+            strokeWidth = 1.4.dp.toPx(),
+            cap = StrokeCap.Round
+        )
     }
 }
 
