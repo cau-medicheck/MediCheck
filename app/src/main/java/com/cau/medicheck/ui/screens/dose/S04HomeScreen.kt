@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -50,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
+import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.periodOf
@@ -211,13 +211,11 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
             .clip(RoundedCornerShape(18.dp))
             .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
     ) {
-        // 그림은 카드 높이에 맞춰 오른쪽에 붙인다. 장식이라 TalkBack이 읽지 않는다(contentDescription = null).
+        // 그림은 오른쪽 위에 둔다. 장식이라 TalkBack이 읽지 않는다(contentDescription = null).
         Image(
             painter = painterResource(R.drawable.home_pills),
             contentDescription = null,
-            contentScale = ContentScale.FillHeight,
-            alignment = Alignment.CenterEnd,
-            modifier = Modifier.matchParentSize().offset(x = 18.dp)
+            modifier = Modifier.align(Alignment.TopEnd).offset(x = 16.dp, y = 8.dp).size(196.dp)
         )
         Column(Modifier.padding(horizontal = 20.dp, vertical = 22.dp)) {
             if (next == null) {
@@ -229,6 +227,7 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
+                RateBlock(state.counts, Modifier.padding(top = 18.dp))
                 return@Column
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -266,7 +265,67 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
                 onClick = { onOpenDose(next.key) },
                 kind = ButtonKind.WHITE
             )
+            RateBlock(state.counts, Modifier.padding(top = 20.dp))
         }
+    }
+}
+
+/**
+ * 카드 아래쪽의 복약 완료율: 가는 선 / "복약 완료율" / 큰 숫자 "33%" / 진행 막대 / "집계 대상 3회 중 1회 완료".
+ * (새 시안 MediCheck4.html의 홈 카드) 완료율의 분모는 예정 시각이 된 회차다 — 계산은 DoseCounts가 한다.
+ */
+@Composable
+private fun RateBlock(counts: DoseCounts, modifier: Modifier = Modifier) {
+    val rate = counts.completionRate   // null이면 아직 예정 시각이 된 회차가 없다
+    Column(modifier) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.18f)))
+        Text(
+            text = stringResource(R.string.s04_rate_label),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.88f),
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        // "33" 크게 + "%" 작게. TalkBack에는 "33퍼센트"로 한 번에 읽히도록 한 Text에 넣는다.
+        Text(
+            text = buildAnnotatedString {
+                if (rate == null) append(stringResource(R.string.common_na))
+                else {
+                    append(rate.toString())
+                    withStyle(SpanStyle(fontSize = 17.sp, fontWeight = FontWeight.Bold)) { append(" %") }
+                }
+            },
+            fontSize = 36.sp,
+            lineHeight = 42.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-1).sp,
+            color = Color.White,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        // 진행 막대. 숫자가 위에 글자로 있으므로 TalkBack은 읽지 않는다.
+        Box(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .width(150.dp)
+                .height(5.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color.White.copy(alpha = 0.22f))
+                .clearAndSetSemantics { }
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(((rate ?: 0) / 100f).coerceIn(0f, 1f))
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(Color.White)
+            )
+        }
+        Text(
+            text = stringResource(R.string.s04_rate_caption, counts.due, counts.taken),
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.padding(top = 9.dp)
+        )
     }
 }
 
