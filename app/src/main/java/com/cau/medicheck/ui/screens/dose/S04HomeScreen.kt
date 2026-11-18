@@ -19,14 +19,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,7 +52,9 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,21 +69,25 @@ import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.PeriodStats
 import com.cau.medicheck.domain.periodOf
+import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DateChipStrip
 import com.cau.medicheck.ui.components.DoseRowUi
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
+import com.cau.medicheck.ui.components.LabelValueRow
 import com.cau.medicheck.ui.components.LinkText
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.NotificationOffCard
 import com.cau.medicheck.ui.components.ProgressBar
+import com.cau.medicheck.ui.components.ProvideBodyFontScale
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.Amber
 import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.CardBorder
@@ -87,6 +103,7 @@ import com.cau.medicheck.ui.theme.HomeChipWaitText
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.ParagraphText
 import com.cau.medicheck.ui.theme.ProgressTrack
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.TimelineLine
@@ -98,6 +115,7 @@ class HomeActions(
     val onOpenSchedule: () -> Unit,
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
+    val onQuickSkip: (DoseKey) -> Unit,
     val onAddMedication: () -> Unit,
     val onOpenStats: () -> Unit,
     val onOpenNotificationHelp: () -> Unit
@@ -120,6 +138,22 @@ fun S04HomeScreen(
     showNotificationOffCard: Boolean,
     actions: HomeActions
 ) {
+    // 지금 기록 창에 띄운 회차. null이면 창이 닫혀 있다. 줄이나 카드의 버튼을 누르면 그 회차로 채운다.
+    var sheetKey by remember { mutableStateOf<DoseKey?>(null) }
+    val sheetRow = state.rows.firstOrNull { it.key == sheetKey }
+    if (sheetRow != null && !LocalAppLocked.current) {   // 앱이 잠긴 동안에는 그리지 않는다(잠금 화면 위에 뜨지 않게)
+        RecordSheet(
+            row = sheetRow,
+            date = state.date,
+            isFuture = state.date.isAfter(state.today),
+            onDismiss = { sheetKey = null },
+            onTaken = { actions.onQuickTake(sheetRow.key); sheetKey = null },
+            onSkipped = { actions.onQuickSkip(sheetRow.key); sheetKey = null },
+            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) }
+        )
+    }
+    val openSheet: (DoseKey) -> Unit = { sheetKey = it }
+
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s04)) {
         // ----- 날짜 + 큰 제목 + [＋ 약 등록] -----
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -144,7 +178,7 @@ fun S04HomeScreen(
             )
         }
 
-        NextDoseCard(state, onOpenDose = actions.onOpenDose, modifier = Modifier.padding(top = 16.dp))
+        NextDoseCard(state, onOpenDose = openSheet, modifier = Modifier.padding(top = 16.dp))
 
         if (showNotificationOffCard) {
             NotificationOffCard(onClick = actions.onOpenNotificationHelp, modifier = Modifier.padding(top = 16.dp))
@@ -152,7 +186,7 @@ fun S04HomeScreen(
 
         // ----- 하루 복약 일정 -----
         SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
-            ScheduleCard(state, actions)
+            ScheduleCard(state, actions, onOpenDose = openSheet)
         }
 
         // ----- 복약 캘린더 (한 주) -----
@@ -414,7 +448,7 @@ private fun ClockMark() {
  * 탭은 이 화면 안에서만 쓰는 보기 설정이라 ViewModel에 두지 않는다(화면을 돌려도 남도록 rememberSaveable).
  */
 @Composable
-private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions) {
+private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions, onOpenDose: (DoseKey) -> Unit) {
     var pendingOnly by rememberSaveable { mutableStateOf(false) }
     val rows = if (pendingOnly) {
         state.rows.filter { it.display == DoseDisplayStatus.MISSED || it.display == DoseDisplayStatus.UPCOMING }
@@ -482,7 +516,7 @@ private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions) {
                         row = row,
                         isFirst = index == 0,
                         isLast = index == rows.lastIndex,
-                        onOpen = { actions.onOpenDose(row.key) }
+                        onOpen = { onOpenDose(row.key) }
                     )
                 }
             }
@@ -516,7 +550,7 @@ private fun UnderlineTab(label: String, selected: Boolean, onClick: () -> Unit) 
  *                  아침  │  1정 · 아침 식후
  *
  * 시각 오른쪽의 세로선이 줄과 줄을 이어 하루의 흐름을 보여 준다. 점은 복용 완료면 채운 청록, 아니면 빈 주황 고리.
- * 줄 전체를 누르면 회차 상세로 간다(기록은 거기서 한다).
+ * 줄 전체를 누르면 기록 창(RecordSheet)이 아래에서 올라온다.
  */
 @Composable
 private fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () -> Unit) {
@@ -594,4 +628,111 @@ private fun HomeStatusChip(status: DoseDisplayStatus) {
             .background(background)
             .padding(horizontal = 10.dp, vertical = 5.dp)
     )
+}
+
+/**
+ * 복약 기록 창: 화면 아래에서 올라오는 창에서 "복용 완료"·"건너뜀"을 바로 기록한다. (새 시안 MediCheck5.html)
+ *
+ * 화면을 옮기지 않고 기록할 수 있게 하려는 것이다. 실제 복용 시각 입력이나 변경 이력은 "회차 상세 보기"로 들어가서 한다.
+ * 내일 이후의 회차는 기록할 수 없으므로 버튼 대신 안내 한 줄을 보인다.
+ * 이 창은 따로 뜨는 창이라 본문의 글자 배율이 전해지지 않는다 → 안에서 ProvideBodyFontScale을 한 번 더 부른다.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RecordSheet(
+    row: DoseRowUi,
+    date: LocalDate,
+    isFuture: Boolean,
+    onDismiss: () -> Unit,
+    onTaken: () -> Unit,
+    onSkipped: () -> Unit,
+    onOpenDetail: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = CardBackground,
+        dragHandle = null
+    ) {
+        ProvideBodyFontScale {
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 22.dp)) {
+                // 복약 기록                                  [×]
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.s04_sheet_title),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Muted,
+                        modifier = Modifier.weight(1f)
+                    )
+                    val closeLabel = stringResource(R.string.s04_sheet_close)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .clickable(role = Role.Button, onClickLabel = closeLabel, onClick = onDismiss)
+                            .clearAndSetSemantics { contentDescription = closeLabel; role = Role.Button }
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = null, tint = Navy, modifier = Modifier.size(22.dp))
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    Avatar(Glyph.DOSE)
+                    Spacer(Modifier.weight(1f))
+                    HomeStatusChip(row.display)
+                }
+                Text(
+                    text = row.name,
+                    fontSize = 25.sp,
+                    lineHeight = 33.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-0.9).sp,
+                    color = Navy,
+                    modifier = Modifier.padding(top = 14.dp).semantics { heading() }
+                )
+                Text(
+                    text = stringResource(R.string.s04_sheet_when, fullDateText(date), timeText(row.time)),
+                    fontSize = 13.sp,
+                    color = ParagraphText,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                )
+                HorizontalDivider(thickness = 1.dp, color = Line)
+                LabelValueRow(stringResource(R.string.s04_sheet_dosage), row.dosage, showDivider = row.memo.isNotBlank())
+                if (row.memo.isNotBlank()) LabelValueRow(stringResource(R.string.s04_sheet_memo), row.memo, showDivider = false)
+                HorizontalDivider(thickness = 1.dp, color = Line)
+
+                if (isFuture) {
+                    Text(
+                        text = stringResource(R.string.s04_sheet_future),
+                        fontSize = 13.sp,
+                        color = Muted,
+                        modifier = Modifier.padding(vertical = 18.dp)
+                    )
+                } else {
+                    Row(Modifier.padding(top = 18.dp)) {
+                        McButton(
+                            text = stringResource(R.string.s10_btn_taken),
+                            onClick = onTaken,
+                            enabled = row.display != DoseDisplayStatus.TAKEN,
+                            modifier = Modifier.weight(1.4f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        McButton(
+                            text = stringResource(R.string.s10_btn_skipped),
+                            onClick = onSkipped,
+                            kind = ButtonKind.LIGHT,
+                            enabled = row.display != DoseDisplayStatus.SKIPPED,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                LinkText(
+                    text = stringResource(R.string.s04_sheet_detail),
+                    onClick = onOpenDetail,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp)
+                )
+            }
+        }
+    }
 }

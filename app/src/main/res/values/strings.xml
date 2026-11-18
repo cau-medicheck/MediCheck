@@ -286,6 +286,13 @@
     <string name="s04_btn_today">오늘</string>
     <string name="s04_rate_label">복약 완료율</string>
     <string name="s04_chip_missed">미기록</string>
+    <string name="s04_sheet_title">복약 기록</string>
+    <string name="s04_sheet_close">닫기</string>
+    <string name="s04_sheet_when">%1$s · 예정 %2$s</string>
+    <string name="s04_sheet_dosage">1회 복용량</string>
+    <string name="s04_sheet_memo">복용 메모</string>
+    <string name="s04_sheet_future">이날의 복약 일정이에요. 그날이 되면 기록할 수 있어요.</string>
+    <string name="s04_sheet_detail">회차 상세 보기 ›</string>
     <string name="s04_chip_upcoming">예정</string>
     <string name="s04_chip_skipped">건너뜀</string>
     <string name="s04_section_calendar">복약 캘린더</string>

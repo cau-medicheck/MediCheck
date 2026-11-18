@@ -98,6 +98,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
                     onOpenSchedule = { go.openTab(Routes.S05) },
                     onOpenDose = { key -> go.open(Routes.s10(key)) },
                     onQuickTake = vm::quickTake,
+                    onQuickSkip = vm::quickSkip,
                     onAddMedication = { go.open(Routes.s08New()) },
                     onOpenStats = { go.openTab(Routes.S13) },
                     onOpenNotificationHelp = { go.open(Routes.S34) }

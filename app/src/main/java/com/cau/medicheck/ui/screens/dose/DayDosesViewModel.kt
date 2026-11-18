@@ -152,6 +152,19 @@ class DayDosesViewModel(
         }
     }
 
+    /** 홈의 기록 창에서 "건너뜀"을 눌렀을 때. quickTake와 같은 흐름이고 상태만 다르다. */
+    fun quickSkip(key: DoseKey) {
+        viewModelScope.launch {
+            when (doseRepository.changeStatus(userId, key, DoseStatus.SKIPPED)) {
+                StatusChangeResult.CHANGED ->
+                    toastBus.show(R.string.common_toast_marked_skipped, ToastAction(R.string.s04_toast_undo) { undo(key) })
+                StatusChangeResult.UNCHANGED -> toastBus.show(R.string.common_toast_marked_skipped)
+                StatusChangeResult.FUTURE,
+                StatusChangeResult.NOT_FOUND -> toastBus.show(R.string.common_toast_dose_not_found)
+            }
+        }
+    }
+
     /**
      * 토스트의 "실행취소". viewModelScope가 아니라 앱 전체의 작업 공간(appScope)에서 돈다.
      * 버튼을 누르기 전에 다른 탭으로 가서 이 ViewModel이 없어졌더라도 끝까지 실행되게 하려는 것이다.
