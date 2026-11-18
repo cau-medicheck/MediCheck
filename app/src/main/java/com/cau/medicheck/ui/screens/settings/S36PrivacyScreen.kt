@@ -13,7 +13,7 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
@@ -41,11 +41,7 @@ data class PrivacyActions(
 fun S36PrivacyScreen(settings: UserSettings, actions: PrivacyActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s36)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.screen_title_s36),
-            subtitle = stringResource(R.string.s36_subtitle),
-            modifier = Modifier.padding(vertical = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s36_subtitle), Modifier.padding(vertical = Gap16))
 
         // ----- 스위치 두 개 -----
         SurfaceCard(padding = 0.dp) {

@@ -18,12 +18,13 @@ import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Glyph
+import com.cau.medicheck.ui.components.GlyphText
 import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.DateChipText
@@ -46,18 +47,14 @@ fun S34NotificationDeniedScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s34)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s34_title),
-            subtitle = stringResource(R.string.s34_subtitle),
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        ScreenIntro(stringResource(R.string.s34_subtitle), Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
-                Text(
-                    text = if (notificationsOn) Glyph.BELL else Glyph.BELL_OFF,
-                    fontSize = 40.sp,
+                GlyphText(
+                    symbol = if (notificationsOn) Glyph.BELL else Glyph.BELL_OFF,
+                    fontSize = 40,
                     modifier = Modifier.clearAndSetSemantics { }
                 )
                 Text(

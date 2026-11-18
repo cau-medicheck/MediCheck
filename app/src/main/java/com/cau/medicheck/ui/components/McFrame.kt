@@ -124,12 +124,6 @@ fun McTopBar(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.header_eyebrow),
-                    fontSize = 10.sp,
-                    color = Faint,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-                Text(
                     text = title,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
@@ -182,7 +176,7 @@ fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onC
             .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
     ) {
-        Text(text = symbol, fontSize = 18.sp, color = IconBtnText)
+        GlyphText(symbol, fontSize = 18, color = IconBtnText)
     }
 }
 

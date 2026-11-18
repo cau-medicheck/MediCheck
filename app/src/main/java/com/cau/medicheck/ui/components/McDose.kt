@@ -321,12 +321,16 @@ fun NotificationOffCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
             .clickable(role = Role.Button, onClick = onClick)
             .padding(12.dp)
     ) {
-        Text(
-            text = Glyph.BELL_OFF + " " + stringResource(R.string.s34_off_title),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = WarnText
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            GlyphText(Glyph.BELL_OFF, fontSize = 15, color = WarnText)
+            Text(
+                text = stringResource(R.string.s34_off_title),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = WarnText,
+                modifier = Modifier.padding(start = 5.dp)
+            )
+        }
         Text(
             text = stringResource(R.string.s34_off_body),
             fontSize = 11.sp,

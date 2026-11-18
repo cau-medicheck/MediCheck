@@ -17,7 +17,7 @@ import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SegmentedTabs
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
@@ -64,11 +64,7 @@ fun S39ErrorStatesScreen(onBack: () -> Unit, onAddMedication: () -> Unit, onOpen
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s39)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s39_title),
-            subtitle = stringResource(R.string.s39_subtitle),
-            modifier = Modifier.padding(vertical = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s39_subtitle), Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             Text(stringResource(R.string.s39_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)

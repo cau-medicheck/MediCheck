@@ -30,7 +30,7 @@ import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
 import com.cau.medicheck.ui.theme.Gap16
@@ -59,11 +59,7 @@ data class AccessibilityActions(
 fun S37AccessibilityScreen(settings: A11ySettings, actions: AccessibilityActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s37)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s37_title),
-            subtitle = stringResource(R.string.s37_subtitle),
-            modifier = Modifier.padding(vertical = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s37_subtitle), Modifier.padding(vertical = Gap16))
 
         // ----- 글자 크기 -----
         SurfaceCard {

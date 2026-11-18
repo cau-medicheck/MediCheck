@@ -147,6 +147,15 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
     }
 }
 
+/**
+ * 화면 맨 위의 설명 한 줄. 화면 이름은 머리말에 있으므로 본문에는 큰 제목을 다시 쓰지 않는다.
+ * (로그인 전 화면과 약 등록 화면만 ScreenTitle로 큰 제목을 그린다)
+ */
+@Composable
+fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
+    Text(text = text, fontSize = 12.sp, color = ParagraphText, lineHeight = 21.sp, modifier = modifier)
+}
+
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = null) {
@@ -299,7 +308,7 @@ fun Avatar(symbol: String, modifier: Modifier = Modifier, size: Dp = 43.dp, font
             .background(AvatarBg)
             .clearAndSetSemantics { }
     ) {
-        Text(text = symbol, fontSize = fontSize.sp, fontWeight = FontWeight.Black, color = AvatarText)
+        GlyphText(symbol, fontSize = fontSize, fontWeight = FontWeight.Black, color = AvatarText)
     }
 }
 
@@ -340,7 +349,7 @@ fun EmptyState(
             .padding(horizontal = 16.dp, vertical = 30.dp)
     ) {
         // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
-        Text(text = emoji, fontSize = 35.sp, modifier = Modifier.clearAndSetSemantics { })
+        GlyphText(emoji, fontSize = 35, modifier = Modifier.clearAndSetSemantics { })
         Spacer(Modifier.height(13.dp))
         Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))

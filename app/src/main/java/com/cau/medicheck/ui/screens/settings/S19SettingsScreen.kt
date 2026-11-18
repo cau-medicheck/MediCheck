@@ -23,7 +23,7 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.OptionRow
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.navigation.Routes
@@ -71,11 +71,7 @@ fun S19SettingsScreen(
     loggingOut: Boolean = false
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s19)) {
-        ScreenTitle(
-            title = stringResource(R.string.s19_title),
-            subtitle = stringResource(R.string.s19_subtitle),
-            modifier = Modifier.padding(bottom = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s19_subtitle), Modifier.padding(bottom = Gap16))
 
         // ----- 프로필 카드 -----
         SurfaceCard {

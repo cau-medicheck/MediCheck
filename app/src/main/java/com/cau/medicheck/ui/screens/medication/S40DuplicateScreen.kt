@@ -23,7 +23,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.Muted
@@ -47,11 +47,7 @@ fun S40DuplicateScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s40)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s40_title),
-            subtitle = stringResource(R.string.s40_subtitle),
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        ScreenIntro(stringResource(R.string.s40_subtitle), Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Text(text = Glyph.WARNING, fontSize = 33.sp, modifier = Modifier.clearAndSetSemantics { })

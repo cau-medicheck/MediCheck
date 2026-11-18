@@ -20,7 +20,7 @@ import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Muted
@@ -47,11 +47,7 @@ data class OfflineActions(
 fun S38OfflineScreen(online: Boolean, actions: OfflineActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s38)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s38_title),
-            subtitle = stringResource(R.string.s38_subtitle),
-            modifier = Modifier.padding(vertical = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s38_subtitle), Modifier.padding(vertical = Gap16))
 
         // ----- 지금 연결 상태 -----
         SurfaceCard {

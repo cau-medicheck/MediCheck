@@ -34,7 +34,7 @@ import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
@@ -55,7 +55,7 @@ fun S06MedicationListScreen(
     val focusManager = LocalFocusManager.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s06)) {
-        ScreenTitle(stringResource(R.string.s06_title), stringResource(R.string.s06_subtitle))
+        ScreenIntro(stringResource(R.string.s06_subtitle))
 
         // [약 이름으로 검색........] [＋ 추가]
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {

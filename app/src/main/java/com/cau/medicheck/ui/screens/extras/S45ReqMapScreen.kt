@@ -43,7 +43,7 @@ import com.cau.medicheck.ui.components.McSelectField
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.navigation.NavRules
@@ -89,11 +89,7 @@ fun S45ReqMapScreen(state: ReqMapUiState, onRowClick: (Requirement) -> Unit) {
     val keyboard = LocalSoftwareKeyboardController.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s45)) {
-        ScreenTitle(
-            title = stringResource(R.string.s45_title),
-            subtitle = stringResource(R.string.s45_desc),
-            modifier = Modifier.padding(bottom = Gap16)
-        )
+        ScreenIntro(stringResource(R.string.s45_desc), Modifier.padding(bottom = Gap16))
 
         if (state.loadFailed) {
             Notice(stringResource(R.string.req_load_failed), warn = true)

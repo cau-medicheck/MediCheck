@@ -88,7 +88,7 @@ fun Illustration(symbol: String, modifier: Modifier = Modifier) {
             )
             .clearAndSetSemantics { }
     ) {
-        Text(text = symbol, fontSize = 67.sp)
+        GlyphText(symbol, fontSize = 67)
     }
 }
 
