@@ -56,7 +56,7 @@ fun S06MedicationListScreen(
     val focusManager = LocalFocusManager.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s06)) {
-        ScreenIntro(stringResource(R.string.s06_subtitle))
+        ScreenIntro()
 
         // [약 이름으로 검색........] [＋ 추가]
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {

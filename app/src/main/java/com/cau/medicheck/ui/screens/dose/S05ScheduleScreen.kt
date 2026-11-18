@@ -3,18 +3,13 @@ package com.cau.medicheck.ui.screens.dose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,8 +48,6 @@ import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Pill
-import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -62,12 +55,12 @@ import com.cau.medicheck.ui.components.TimelineRow
 import com.cau.medicheck.ui.components.WeekPager
 import com.cau.medicheck.ui.components.dottedDateText
 import com.cau.medicheck.ui.components.fullDateText
-import com.cau.medicheck.ui.components.mondayOf
 import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.FieldBorder
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.Teal
 import java.time.LocalDate
 
 /** 일정 화면의 버튼들이 부를 함수 묶음 */
@@ -87,7 +80,6 @@ class ScheduleActions(
  * 날짜를 하루씩 또는 달력으로 옮겨 가며, 그날의 회차를 아침·점심·저녁·밤으로 묶어 본다.
  * 내일 이후 날짜는 지금의 약·규칙으로 계산한 "예정 회차"가 보인다(보기 전용).
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     // 날짜 고르는 창이 열려 있는가
@@ -110,76 +102,51 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
         // 복약 일정                                   [＋ 약 등록]
-        // 2026년 11월
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ScreenIntro(
-                stringResource(R.string.common_month_title, state.date.year, state.date.monthValue),
-                Modifier.weight(1f)
-            )
+            ScreenIntro(modifier = Modifier.weight(1f))
             McButton(stringResource(R.string.s04_btn_add_med), actions.onAddMedication, kind = ButtonKind.WHITE, small = true)
         }
 
         HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(top = 14.dp))
-        // ‹ 11월 16일 – 11월 22일 ›                 [2026. 11. 18. ▦] [오늘]
-        // 글자를 키워 한 줄에 안 들어가면 오른쪽 묶음이 다음 줄로 내려간다(FlowRow).
-        val monday = mondayOf(state.date)
-        FlowRow(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.offset(x = (-8).dp)) {
+        // ‹ 11월 18일 수요일 [달력] ›                         [오늘]
+        // 가운데 글자는 지금 고른 날짜다. 화살표는 한 주씩 넘기고, 달력 그림을 누르면 달력 창이 열린다.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f).offset(x = (-8).dp)) {
                 WeekArrow(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, stringResource(R.string.s05_cd_prev_week)) { actions.onShiftDay(-7) }
                 Text(
-                    text = stringResource(
-                        R.string.s05_week_range,
-                        monday.monthValue, monday.dayOfMonth, monday.plusDays(6).monthValue, monday.plusDays(6).dayOfMonth
-                    ),
-                    fontSize = 13.sp,
+                    text = fullDateText(state.date),
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = (-0.3).sp,
                     color = Navy
                 )
-                WeekArrow(Icons.AutoMirrored.Rounded.KeyboardArrowRight, stringResource(R.string.s05_cd_next_week)) { actions.onShiftDay(7) }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // 날짜 칸: 고른 날짜를 보여 주고, 누르면 달력 창이 열린다.
-                // TalkBack 이름: "날짜 선택, 2026. 11. 17." (이름만 넣으면 고른 날짜를 읽지 않는다)
+                // 달력 그림: TalkBack 이름은 "날짜 선택, 2026. 11. 17."
                 val dateFieldName = stringResource(R.string.s05_cd_date_field) + ", " + dottedDateText(state.date)
-                val fieldShape = RoundedCornerShape(8.dp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .clip(fieldShape)
-                        .background(Color.White)
-                        .border(1.dp, FieldBorder, fieldShape)
+                        .size(36.dp)
+                        .clip(CircleShape)
                         .clickable(role = Role.Button, onClick = { showDatePicker = true })
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
                         .clearAndSetSemantics { contentDescription = dateFieldName; role = Role.Button }
                 ) {
-                    Text(text = dottedDateText(state.date), fontSize = 12.sp, color = Navy)
-                    Icon(
-                        Icons.Outlined.CalendarMonth,
-                        contentDescription = null,
-                        tint = Navy,
-                        modifier = Modifier.padding(start = 6.dp).size(15.dp)
-                    )
+                    Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Teal, modifier = Modifier.size(20.dp))
                 }
-                Spacer(Modifier.width(6.dp))
-                // [오늘]: 날짜 칸과 같은 높이의 작은 버튼
-                Text(
-                    text = stringResource(R.string.s05_btn_today),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Navy,
-                    modifier = Modifier
-                        .clip(fieldShape)
-                        .background(Color.White)
-                        .border(1.dp, FieldBorder, fieldShape)
-                        .clickable(role = Role.Button, onClick = actions.onToday)
-                        .padding(horizontal = 9.dp, vertical = 8.dp)
-                )
+                WeekArrow(Icons.AutoMirrored.Rounded.KeyboardArrowRight, stringResource(R.string.s05_cd_next_week)) { actions.onShiftDay(7) }
             }
+            val todayShape = RoundedCornerShape(8.dp)
+            Text(
+                text = stringResource(R.string.s05_btn_today),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Navy,
+                modifier = Modifier
+                    .clip(todayShape)
+                    .background(Color.White)
+                    .border(1.dp, FieldBorder, todayShape)
+                    .clickable(role = Role.Button, onClick = actions.onToday)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            )
         }
         // 한 주씩 옆으로 넘기는 날짜 띠
         WeekPager(
@@ -189,33 +156,6 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
             modifier = Modifier.padding(top = 10.dp, bottom = 12.dp)
         )
         HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(bottom = 16.dp))
-
-        // 요약: "1 / 2회 완료"  "건너뜀 0 · 미기록 1"   [50%]  — 도래한 회차만 센 숫자다.
-        val counts = state.counts
-        val rate = counts.completionRate
-        SurfaceCard(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.s05_summary_count, counts.taken, counts.due),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(
-                        text = stringResource(R.string.s05_summary_detail, counts.skipped, counts.missed),
-                        fontSize = 11.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-                Pill(
-                    text = if (rate == null) stringResource(R.string.common_na)
-                    else stringResource(R.string.common_percent, rate),
-                    kind = PillKind.BLUE
-                )
-            }
-        }
 
         if (state.rows.isEmpty() && !state.isLoading) {
             SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {

@@ -152,11 +152,11 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
 val LocalScreenTitle = compositionLocalOf<String?> { null }
 
 /**
- * 화면 맨 위: 큰 제목(화면 이름) + 설명 한 줄.
+ * 화면 맨 위: 큰 제목(화면 이름) + (있으면) 설명 한 줄.
  * 머리말에는 앱 이름이 있으므로 화면 이름은 여기서 보여 준다. 이름은 화면 틀이 넣어 준 값(LocalScreenTitle)을 쓴다.
  */
 @Composable
-fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
+fun ScreenIntro(text: String? = null, modifier: Modifier = Modifier) {
     val title = LocalScreenTitle.current
     Column(modifier) {
         if (title != null) {
@@ -167,10 +167,19 @@ fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
                 color = Navy,
                 lineHeight = 31.sp,
                 letterSpacing = (-0.9).sp,
-                modifier = Modifier.padding(bottom = 7.dp).semantics { heading() }
+                modifier = Modifier.semantics { heading() }
             )
         }
-        Text(text = text, fontSize = 12.sp, color = ParagraphText, lineHeight = 21.sp)
+        // 설명은 있을 때만. 탭의 첫 화면들은 제목만 둔다.
+        if (text != null) {
+            Text(
+                text = text,
+                fontSize = 12.sp,
+                color = ParagraphText,
+                lineHeight = 21.sp,
+                modifier = Modifier.padding(top = if (title != null) 7.dp else 0.dp)
+            )
+        }
     }
 }
 

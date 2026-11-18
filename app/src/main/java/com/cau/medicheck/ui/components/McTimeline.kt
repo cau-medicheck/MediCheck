@@ -54,8 +54,8 @@ import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
 import com.cau.medicheck.ui.theme.HomeChipDoneText
-import com.cau.medicheck.ui.theme.HomeChipMissedBg
-import com.cau.medicheck.ui.theme.HomeChipMissedText
+import com.cau.medicheck.ui.theme.HomeChipSkippedBg
+import com.cau.medicheck.ui.theme.HomeChipSkippedText
 import com.cau.medicheck.ui.theme.HomeChipWaitBg
 import com.cau.medicheck.ui.theme.HomeChipWaitText
 import com.cau.medicheck.ui.theme.Line
@@ -63,7 +63,7 @@ import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
 import com.cau.medicheck.ui.theme.Teal
-import com.cau.medicheck.ui.theme.TimelineDotMissed
+import com.cau.medicheck.ui.theme.TimelineDotSkipped
 import com.cau.medicheck.ui.theme.TimelineDotWait
 import com.cau.medicheck.ui.theme.TimelineLine
 import java.time.LocalDate
@@ -109,11 +109,11 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
                 strokeWidth = 1.5.dp.toPx()
             )
             drawCircle(Color.White, radius = r + 1.5.dp.toPx(), center = Offset(x, dotY))   // 선을 가리는 흰 바탕
-            // 점의 색은 오른쪽 상태 표시와 맞춘다: 복용 완료 = 채운 청록, 시간이 지난 미기록 = 주황 고리, 예정·건너뜀 = 회색 고리
+            // 점의 색은 오른쪽 상태 표시와 맞춘다: 복용 완료 = 채운 청록, 건너뜀 = 주황 고리, 예정 = 회색 고리
             when (row.display) {
                 DoseDisplayStatus.TAKEN -> drawCircle(Teal, radius = r, center = Offset(x, dotY))
-                DoseDisplayStatus.MISSED ->
-                    drawCircle(TimelineDotMissed, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
+                DoseDisplayStatus.SKIPPED ->
+                    drawCircle(TimelineDotSkipped, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
                 else ->
                     drawCircle(TimelineDotWait, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
             }
@@ -137,14 +137,15 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
 }
 
 /**
- * 회차의 상태 표시: 복용 완료(진한 청록) / 미기록(회색) / 예정 · 건너뜀(옅은 회색). 앱의 모든 화면이 함께 쓴다.
+ * 회차의 상태 표시: 복용 완료(진한 청록) / 건너뜀(주황) / 예정(회색, 아직 기록하지 않은 회차). 앱의 모든 화면이 함께 쓴다.
  */
 @Composable
 fun DoseStatusChip(status: DoseDisplayStatus, modifier: Modifier = Modifier) {
     val (textRes, background, textColor) = when (status) {
         DoseDisplayStatus.TAKEN -> Triple(R.string.status_pill_taken, HomeChipDoneBg, HomeChipDoneText)
-        DoseDisplayStatus.SKIPPED -> Triple(R.string.s04_chip_skipped, HomeChipWaitBg, HomeChipWaitText)
-        DoseDisplayStatus.MISSED -> Triple(R.string.s04_chip_missed, HomeChipMissedBg, HomeChipMissedText)
+        DoseDisplayStatus.SKIPPED -> Triple(R.string.s04_chip_skipped, HomeChipSkippedBg, HomeChipSkippedText)
+        // 시간이 지났든 아니든, 아직 기록하지 않은 회차는 모두 "예정"으로 적는다.
+        DoseDisplayStatus.MISSED,
         DoseDisplayStatus.UPCOMING -> Triple(R.string.s04_chip_upcoming, HomeChipWaitBg, HomeChipWaitText)
     }
     Text(

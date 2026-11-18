@@ -41,7 +41,7 @@ fun S11RecordsCalendarScreen(
     onOpenDay: () -> Unit
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s11)) {
-        ScreenIntro(stringResource(R.string.s11_subtitle))
+        ScreenIntro()
 
         SurfaceCard(Modifier.padding(top = 16.dp)) {
             MonthSwitcher(month = state.month, onPrev = { onShiftMonth(-1) }, onNext = { onShiftMonth(1) })

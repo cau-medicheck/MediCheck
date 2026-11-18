@@ -286,7 +286,6 @@
     <string name="s04_pending_none">기록을 기다리는 복약이 없어요.</string>
     <string name="s04_btn_today">오늘</string>
     <string name="s04_rate_label">복약 완료율</string>
-    <string name="s04_chip_missed">미기록</string>
     <string name="s04_sheet_title">복약 기록</string>
     <string name="s04_sheet_close">닫기</string>
     <string name="s04_sheet_when">%1$s · 예정 %2$s</string>
@@ -311,17 +310,13 @@
     <!-- ===== S05 일정/캘린더 ===== -->
     <string name="s05_cd_prev_week">지난주</string>
     <string name="s05_cd_next_week">다음 주</string>
-    <string name="s05_week_range">%1$d월 %2$d일 – %3$d월 %4$d일</string>
     <string name="s05_cd_date_field">날짜 선택</string>
     <string name="s05_btn_today">오늘</string>
-    <string name="s05_summary_count">%1$d / %2$d회 완료</string>
-    <string name="s05_summary_detail">건너뜀 %1$d · 미기록 %2$d</string>
     <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>
     <string name="s05_period_evening">저녁</string>
     <string name="s05_period_night">밤</string>
-    <string name="s05_period_count">(%1$d)</string>
     <string name="s05_empty_title">이 날짜에는 복용할 약이 없어요</string>
     <string name="s05_empty_body">반복 요일과 복용 기간을 확인해주세요.</string>
     <string name="s05_empty_action">약 등록</string>
@@ -390,10 +385,8 @@
     <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
 
     <!-- ===== S06 내 약 목록 ===== -->
-    <string name="s06_subtitle">등록한 약 정보를 관리하세요.</string>
     <string name="s06_search_hint">약 이름으로 검색</string>
     <string name="s06_btn_add">＋ 추가</string>
-    <string name="s06_cd_detail">%1$s 상세</string>
     <string name="s06_empty_title">해당 약이 없어요</string>
     <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
     <string name="s06_empty_action">약 추가하기</string>
@@ -536,7 +529,6 @@
     <string name="stats_badge_extra">추가 기능</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
-    <string name="s11_subtitle">지난 복용 내역을 날짜별로 확인하세요.</string>
     <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미기록 %3$d</string>
     <string name="s11_btn_open">기록 보기 ›</string>
     <string name="s11_notice">달력 점은 해당 날짜에 등록된 복용 일정이 있음을 뜻합니다.</string>
@@ -551,7 +543,6 @@
     <string name="s12_empty_body">해당 날짜에 예정된 복용 일정이 없습니다.</string>
 
     <!-- ===== S13 주간 통계 ===== -->
-    <string name="s13_subtitle">기록을 바탕으로 복약 습관을 확인하세요.</string>
     <string name="s13_rate_label">최근 7일 복약 완료율</string>
     <string name="s13_section_daily">요일별 완료율</string>
     <string name="s13_cd_bar">%1$s %2$s</string>
@@ -559,7 +550,6 @@
     <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 기한 경과 미기록은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
 
     <!-- ===== S14 월간 통계 ===== -->
-    <string name="s14_subtitle">한 달 단위로 복약 흐름을 확인하세요.</string>
     <string name="s14_rate_label">월간 완료율</string>
     <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미기록 %3$d회</string>
     <string name="s14_section_daily">일자별 복약 완료율</string>
@@ -568,7 +558,6 @@
     <string name="s14_cd_bar">%1$s: %2$s</string>
 
     <!-- ===== S15 건너뜀 패턴 ===== -->
-    <string name="s15_subtitle">최근 30일간 명시적으로 건너뛴 기록만 집계합니다.</string>
     <string name="s15_total_label">최근 30일 건너뜀 횟수</string>
     <string name="s15_unit">회</string>
     <string name="s15_section_periods">시간대별 분포</string>
