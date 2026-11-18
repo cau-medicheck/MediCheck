@@ -251,32 +251,6 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
 }
 
 /**
- * 아직 만들지 않은 화면 자리에 두는 임시 화면: "준비 중". 해당 단계에서 진짜 화면으로 바꾼다.
- * @param actionLabel (선택) 임시로 달아 두는 버튼 글자 — 설정 허브가 생기기 전의 로그아웃 등
- * @param extra (선택) 카드 아래에 더 그릴 것 — 아직 입구가 없는 화면으로 가는 임시 버튼 등
- */
-@Composable
-fun PlaceholderScreen(
-    title: String,
-    actionLabel: String? = null,
-    onAction: () -> Unit = {},
-    extra: @Composable ColumnScope.() -> Unit = {}
-) {
-    McScreenColumn(paneTitle = title) {
-        SurfaceCard {
-            EmptyState(
-                emoji = Glyph.PLACEHOLDER,
-                title = title,
-                body = stringResource(R.string.common_placeholder),
-                actionLabel = actionLabel,
-                onAction = onAction
-            )
-        }
-        extra()
-    }
-}
-
-/**
  * 본문: 세로 스크롤 하나, 여백 좌우 18·위 18·아래 24dp. (v3 .phone-body)
  *
  * - 키보드가 올라오면 본문이 그만큼 줄어들어(imePadding) 입력칸이 가리지 않는다.
