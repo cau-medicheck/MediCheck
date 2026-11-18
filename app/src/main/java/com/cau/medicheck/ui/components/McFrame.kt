@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
@@ -228,12 +227,15 @@ fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onC
     }
 }
 
-/** 하단 탭 다섯 개. 순서대로 그려진다. (v3 nav) */
+/**
+ * 하단 탭 네 개. 순서대로 그려진다.
+ * v3에는 "기록" 탭이 따로 있었지만 일정과 같은 내용(그날의 복용 회차)이라 일정 탭 하나로 합쳤다.
+ * 기록 화면들(S11·S12)은 남아 있고, 열리면 일정 탭이 강조된다.
+ */
 enum class McTab(val route: String, val icon: ImageVector, @param:StringRes val labelRes: Int) {
     HOME(Routes.S04, Icons.Outlined.Home, R.string.tab_home),
     SCHEDULE(Routes.S05, Icons.Outlined.CalendarMonth, R.string.tab_schedule),
     MEDS(Routes.S06, Icons.Outlined.Medication, R.string.tab_meds),
-    RECORDS(Routes.S11, Icons.Outlined.Assignment, R.string.tab_records),
     STATS(Routes.S13, Icons.Outlined.BarChart, R.string.tab_stats)
 }
 
@@ -241,7 +243,7 @@ enum class McTab(val route: String, val icon: ImageVector, @param:StringRes val 
 val McBottomBarHeight = 59.dp
 
 /**
- * 하단 5탭: 홈 · 일정 · 내 약 · 기록 · 통계. (v3 .bottom-nav)
+ * 하단 4탭: 홈 · 일정 · 내 약 · 통계.
  * 탭을 누르면 언제나 그 탭의 첫 화면으로 간다(이동 규칙은 AppNavigator.openTab).
  *
  * @param active 강조할 탭. 어느 탭에도 속하지 않는 화면(설정 등)이면 null

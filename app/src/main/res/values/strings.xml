@@ -243,7 +243,6 @@
     <string name="tab_home">홈</string>
     <string name="tab_schedule">일정</string>
     <string name="tab_meds">내 약</string>
-    <string name="tab_records">기록</string>
     <string name="common_back_previous">이전 화면</string>
     <string name="common_detail">상세 ›</string>
     <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
@@ -312,6 +311,7 @@
     <string name="s05_cd_next_week">다음 주</string>
     <string name="s05_cd_date_field">날짜 선택</string>
     <string name="s05_btn_today">오늘</string>
+    <string name="s05_counts">완료 %1$d · 건너뜀 %2$d · 예정 %3$d</string>
     <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>

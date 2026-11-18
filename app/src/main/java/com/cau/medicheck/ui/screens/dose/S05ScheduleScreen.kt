@@ -42,11 +42,9 @@ import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DatePickerPopup
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.ScreenIntro
@@ -101,11 +99,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
-        // 복약 일정                                   [＋ 약 등록]
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ScreenIntro(modifier = Modifier.weight(1f))
-            McButton(stringResource(R.string.s04_btn_add_med), actions.onAddMedication, kind = ButtonKind.WHITE, small = true)
-        }
+        ScreenIntro()
 
         HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(top = 14.dp))
         // ‹ 11월 18일 수요일 [달력] ›                         [오늘]
@@ -185,6 +179,16 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     )
                     Text(text = stringResource(R.string.s05_total, state.rows.size), fontSize = 12.sp, color = Muted)
                 }
+                // 그날의 상태별 횟수(기록 탭이 보여 주던 것): "완료 1 · 건너뜀 0 · 예정 2"
+                Text(
+                    text = stringResource(
+                        R.string.s05_counts,
+                        state.counts.taken, state.counts.skipped, state.counts.missed + state.counts.upcoming
+                    ),
+                    fontSize = 12.sp,
+                    color = Muted,
+                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 4.dp)
+                )
                 Column(Modifier.padding(bottom = 10.dp)) {
                     state.rows.forEachIndexed { index, row ->
                         TimelineRow(

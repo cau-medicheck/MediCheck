@@ -65,7 +65,7 @@ class NavRulesTest {
         // 회차 상세는 어디서 열었든 일정 탭
         assertEquals("S05", NavRules.tabRootOf("S10?scheduleId=3&date=2026-11-17"))
         assertEquals("S06", NavRules.tabRootOf("S08?medId={medId}"))
-        assertEquals("S11", NavRules.tabRootOf("S12"))
+        assertEquals("S05", NavRules.tabRootOf("S12"))   // 기록 화면은 일정 탭에 속한다
         assertEquals("S13", NavRules.tabRootOf("S15"))
         // 설정·알림·이력 등은 어느 탭에도 속하지 않는다
         assertEquals(null, NavRules.tabRootOf("S19"))
