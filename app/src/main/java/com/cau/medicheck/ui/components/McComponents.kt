@@ -148,6 +148,15 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
     }
 }
 
+/**
+ * 화면 맨 위의 설명 한 줄. 화면 이름은 머리말에 있으므로, 본문은 이 화면에서 알아야 할 것만 짧게 적는다.
+ * 설명이 필요 없는 화면은 이 부품을 쓰지 않는다.
+ */
+@Composable
+fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
+    Text(text = text, fontSize = 12.sp, color = ParagraphText, lineHeight = 21.sp, modifier = modifier)
+}
+
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = null) {
