@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -24,10 +23,10 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Navy
 
-/** 탭 하나에 딸린 예시: 탭 이름, 아이콘, 제목, 설명, 버튼 글자 */
+/** 탭 하나에 딸린 예시: 탭 이름, 그림 글자, 제목, 설명, 버튼 글자 */
 private data class StateExample(
     val tabRes: Int,
-    val symbol: ImageVector,
+    val symbol: String,
     val titleRes: Int,
     val bodyRes: Int,
     val actionRes: Int

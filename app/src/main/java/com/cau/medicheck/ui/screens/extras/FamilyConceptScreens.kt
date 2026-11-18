@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -45,7 +44,6 @@ import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.Kicker
 import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
@@ -63,7 +61,6 @@ import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
 import com.cau.medicheck.ui.theme.SettingDivider
 import com.cau.medicheck.ui.theme.Teal
-import com.cau.medicheck.ui.theme.WarnText
 
 /*
  * 가족·보호자 기능의 "시안" 화면 다섯 개 (S23~S27).
@@ -161,9 +158,9 @@ fun S23FamilyProfilesScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onUnsu
 
 /** 프로필 한 줄: 그림 글자 + 이름·설명 + 오른쪽 배지 */
 @Composable
-private fun ProfileRow(symbol: ImageVector, nameRes: Int, subRes: Int, badgeRes: Int, badgeKind: PillKind) {
+private fun ProfileRow(symbol: String, nameRes: Int, subRes: Int, badgeRes: Int, badgeKind: PillKind) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Avatar(symbol)   // 아이콘은 장식이라 TalkBack이 읽지 않는다 (Avatar가 처리)
+        Avatar(symbol)   // 그림 글자는 장식이라 TalkBack이 읽지 않는다 (Avatar가 처리)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(stringResource(nameRes), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
@@ -388,7 +385,7 @@ fun S27DoubleDoseScreen(onBack: () -> Unit, onUnsupported: () -> Unit) {
 
         SurfaceCard(padding = 24.dp) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                McIcon(Glyph.WARNING, size = 42, tint = WarnText)
+                Text(Glyph.WARNING, fontSize = 42.sp, modifier = Modifier.clearAndSetSemantics { })
                 Text(
                     text = stringResource(R.string.s27_card_title),
                     fontSize = 19.sp,

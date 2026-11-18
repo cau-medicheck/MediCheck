@@ -34,7 +34,6 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LocalToastBus
-import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
@@ -123,7 +122,7 @@ private fun UploadBox() {
             }
             .padding(horizontal = 15.dp, vertical = 30.dp)
     ) {
-        McIcon(Glyph.UPLOAD, size = 35, tint = Muted)
+        Text(text = Glyph.UPLOAD, fontSize = 35.sp, color = Muted, modifier = Modifier.clearAndSetSemantics { })
         Text(
             text = stringResource(R.string.s29_upload_title),
             fontSize = 14.sp,

@@ -1,16 +1,15 @@
 package com.cau.medicheck.ui.screens.auth
 
 import androidx.annotation.StringRes
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.Glyph
 
 /**
- * S00 온보딩의 한 장: 아이콘 + 제목 + 설명. (v3 welcome()의 slides 배열)
+ * S00 온보딩의 한 장: 그림 기호 + 제목 + 설명. (v3 welcome()의 slides 배열)
  * 제목·설명은 문구 번호로 들고 있어서 화면에서 stringResource로 글자를 꺼낸다.
  */
 data class OnboardingPage(
-    val symbol: ImageVector,
+    val symbol: String,
     @param:StringRes val titleRes: Int,
     @param:StringRes val bodyRes: Int
 )
