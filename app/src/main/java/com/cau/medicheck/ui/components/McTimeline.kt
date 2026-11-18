@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -48,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
-import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.periodOf
+import com.cau.medicheck.ui.screens.dose.DayProgress
 import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
@@ -94,14 +94,18 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
             .padding(horizontal = 18.dp)
     ) {
         // 시각 + 시간대
-        Column(Modifier.widthIn(min = 52.dp).padding(vertical = 13.dp)) {
-            Text(text = timeText(row.time), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy)
+        // 폭을 "시각 글자(15sp) 크기의 3.7배"로 고정한다. 줄마다 폭이 같아야 세로선이 한 줄로 이어지고,
+        // 글자를 키워 써도(접근성 200%) "08:00"이 잘리지 않는다.
+        // (56.sp처럼 큰 sp 값을 바로 dp로 바꾸면 안 된다 — Android 14부터 큰 글자는 덜 커지게 계산해서 폭이 모자란다)
+        val timeWidth = with(LocalDensity.current) { 15.sp.toDp() * 3.7f }
+        Column(Modifier.width(timeWidth).padding(vertical = 13.dp)) {
+            Text(text = timeText(row.time), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy, maxLines = 1, softWrap = false)
             Text(text = stringResource(periodRes), fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 3.dp))
         }
         // 세로선 + 점
         Canvas(Modifier.padding(horizontal = 9.dp).width(12.dp).fillMaxHeight().clearAndSetSemantics { }) {
             val x = size.width / 2
-            val dotY = 22.dp.toPx()
+            val dotY = 13.dp.toPx() + 15.sp.toPx() * 0.6f   // 위 여백 + 시각 글자 높이의 절반쯤 (글자를 키우면 점도 따라 내려간다)
             val r = 4.dp.toPx()
             drawLine(
                 color = TimelineLine,
@@ -269,13 +273,15 @@ fun RecordSheet(
 }
 
 /**
- * 하루의 복용률 카드: "복약 완료율 33%"  [총 3회] / 진행 막대 / 완료 · 건너뜀 · 미기록 횟수.
- * 날짜별 기록(S12)과, 일정(S05)에서 지난 날짜를 볼 때 함께 쓴다.
- * 분모(총 n회)는 예정 시각이 된 회차만 센다 — 계산은 DoseCounts가 한다.
+ * 하루의 진행률 카드: "복약 진행률 33%"  [총 3회] / 진행 막대 / 완료 · 건너뜀 · 미기록(오늘은 "예정") 횟수.
+ * 날짜별 기록(S12)과, 일정(S05)에서 오늘과 지난 날짜를 볼 때 함께 쓴다.
+ * 기록한 상태로 센다(DayProgress) — 복용 완료를 누르면 시각과 상관없이 바로 올라간다.
+ *
+ * @param isToday true면 남은 회차를 "예정"으로, 아니면 "미기록"으로 적는다(지난 날의 기록 안 한 약은 예정이 아니다)
  */
 @Composable
-fun DayRateCard(counts: DoseCounts, modifier: Modifier = Modifier) {
-    val rate = counts.completionRate
+fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Modifier) {
+    val rate = progress.percent
     SurfaceCard(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -286,9 +292,9 @@ fun DayRateCard(counts: DoseCounts, modifier: Modifier = Modifier) {
                     fontSize = 30
                 )
             }
-            Pill(stringResource(R.string.s12_total, counts.due), PillKind.BLUE)
+            Pill(stringResource(R.string.s12_total, progress.total), PillKind.BLUE)
         }
-        // 계산할 것이 없으면(N/A) 빈 막대. 큰 숫자와 같은 정보라 TalkBack은 읽지 않는다.
+        // 회차가 없으면(N/A) 빈 막대. 큰 숫자와 같은 정보라 TalkBack은 읽지 않는다.
         ProgressBar(
             fraction = (rate ?: 0) / 100f,
             modifier = Modifier
@@ -297,9 +303,9 @@ fun DayRateCard(counts: DoseCounts, modifier: Modifier = Modifier) {
         )
         CountTriple(
             listOf(
-                stringResource(R.string.common_count_taken) to counts.taken,
-                stringResource(R.string.common_count_skipped) to counts.skipped,
-                stringResource(R.string.common_count_missed) to counts.missed
+                stringResource(R.string.common_count_taken) to progress.taken,
+                stringResource(R.string.common_count_skipped) to progress.skipped,
+                stringResource(if (isToday) R.string.s04_chip_upcoming else R.string.common_count_missed) to progress.pending
             )
         )
     }

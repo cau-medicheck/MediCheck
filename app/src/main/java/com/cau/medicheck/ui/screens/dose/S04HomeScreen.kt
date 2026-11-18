@@ -53,12 +53,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
-import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.PeriodStats
 import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.DateChipStrip
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LinkText
@@ -85,7 +83,6 @@ import java.time.LocalDate
 
 /** 홈 화면의 버튼들이 부를 함수 묶음. (화면 함수의 인자가 너무 길어지지 않게 묶었다) */
 class HomeActions(
-    val onSelectDay: (LocalDate) -> Unit,
     val onOpenSchedule: () -> Unit,
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
@@ -130,9 +127,10 @@ fun S04HomeScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s04)) {
         // ----- 날짜 + 큰 제목 -----
+        // 홈은 언제나 오늘의 복약만 보여 준다(날짜를 옮겨 보는 것은 일정 탭에서 한다).
         Text(text = fullDateText(state.date), fontSize = 12.sp, color = Muted)
         Text(
-            text = stringResource(if (state.date == state.today) R.string.s04_title_today else R.string.s04_title_other),
+            text = stringResource(R.string.s04_title_today),
             fontSize = 25.sp,
             lineHeight = 33.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -150,28 +148,6 @@ fun S04HomeScreen(
         // ----- 하루 복약 일정 -----
         SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
             ScheduleCard(state, actions, onOpenDose = openSheet)
-        }
-
-        // ----- 복약 캘린더 (한 주) -----
-        SurfaceCard(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
-                Text(
-                    text = stringResource(R.string.s04_section_calendar),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Navy,
-                    modifier = Modifier.weight(1f).semantics { heading() }
-                )
-                if (state.date != state.today) {
-                    McButton(
-                        text = stringResource(R.string.s04_btn_today),
-                        onClick = { actions.onSelectDay(state.today) },
-                        kind = ButtonKind.WHITE,
-                        small = true
-                    )
-                }
-            }
-            DateChipStrip(today = state.today, selected = state.date, onSelect = actions.onSelectDay)
         }
 
         WeekRateCard(weekStats, today = state.today, onOpenStats = actions.onOpenStats, modifier = Modifier.padding(top = 16.dp))
@@ -298,7 +274,7 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-                RateBlock(state.counts, Modifier.padding(top = 18.dp))
+                RateBlock(state.progress, Modifier.padding(top = 18.dp))
                 return@Column
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -336,18 +312,18 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
                 onClick = { onOpenDose(next.key) },
                 kind = ButtonKind.WHITE
             )
-            RateBlock(state.counts, Modifier.padding(top = 20.dp))
+            RateBlock(state.progress, Modifier.padding(top = 20.dp))
         }
     }
 }
 
 /**
- * 카드 아래쪽의 복약 완료율: 가는 선 / "복약 완료율" / 큰 숫자 "33%" / 진행 막대.
- * (새 시안 MediCheck4.html의 홈 카드) 완료율의 분모는 예정 시각이 된 회차다 — 계산은 DoseCounts가 한다.
+ * 카드 아래쪽의 오늘 진행률: 가는 선 / "오늘 복약 진행률" / 큰 숫자 "33%" / 진행 막대. (새 시안 MediCheck4.html의 홈 카드)
+ * 복용 완료를 누르면 시각과 상관없이 바로 올라간다(DayProgress).
  */
 @Composable
-private fun RateBlock(counts: DoseCounts, modifier: Modifier = Modifier) {
-    val rate = counts.completionRate   // null이면 아직 예정 시각이 된 회차가 없다
+private fun RateBlock(progress: DayProgress, modifier: Modifier = Modifier) {
+    val rate = progress.percent   // 오늘 기록한 만큼 바로 올라간다. null이면 오늘 회차가 없다
     Column(modifier) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.18f)))
         Text(
@@ -446,14 +422,14 @@ private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions, onOpenDos
             modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 8.dp)
         ) {
             Text(
-                text = stringResource(R.string.s04_progress, state.counts.taken, state.rows.size),
+                text = stringResource(R.string.s04_progress, state.progress.taken, state.progress.total),
                 fontSize = 12.sp,
                 color = Muted
             )
             Spacer(Modifier.width(10.dp))
             // 막대는 글자와 같은 내용이라 TalkBack이 읽지 않는다.
             ProgressBar(
-                fraction = if (state.rows.isEmpty()) 0f else state.counts.taken / state.rows.size.toFloat(),
+                fraction = (state.progress.percent ?: 0) / 100f,
                 modifier = Modifier.width(84.dp).clearAndSetSemantics { }
             )
         }

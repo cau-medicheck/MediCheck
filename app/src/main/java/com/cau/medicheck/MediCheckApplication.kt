@@ -97,11 +97,6 @@ class AppContainer(context: Context) {
     /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
     val selection: SelectionStore by lazy { SelectionStore(clock) }
 
-    /**
-     * 홈 화면만 쓰는 "고른 날짜". 일정·기록 화면에서 날짜를 옮겨 다녀도 홈은 따라 바뀌지 않게 따로 둔다.
-     * (홈은 "오늘 무엇을 먹어야 하나"를 보는 화면이라, 다른 탭에서 본 날짜에 끌려가면 안 된다)
-     */
-    val homeSelection: SelectionStore by lazy { SelectionStore(clock) }
 
     /** 인터넷 연결 상태를 알려 주는 도구 (S38) */
     val networkMonitor: NetworkMonitor by lazy { NetworkMonitor(appContext) }
@@ -171,7 +166,6 @@ class AppContainer(context: Context) {
                 }
                 // 앞 사람이 보던 날짜·회차가 다음 사람에게 남지 않게 처음 값으로.
                 selection.reset()
-                homeSelection.reset()
                 reminderScheduler.reschedule()
             }
         )
@@ -219,7 +213,6 @@ class AppContainer(context: Context) {
             // 복원하면 약과 회차가 통째로 바뀐다. 앞에서 고른 날짜·회차를 처음 값으로 돌리고 알람을 다시 건다.
             onChanged = {
                 selection.reset()
-                homeSelection.reset()
                 reminderScheduler.reschedule()
             }
         )

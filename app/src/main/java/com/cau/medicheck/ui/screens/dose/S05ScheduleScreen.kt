@@ -184,7 +184,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                 Text(
                     text = stringResource(
                         R.string.s05_counts,
-                        state.counts.taken, state.counts.skipped, state.counts.missed + state.counts.upcoming
+                        state.progress.taken, state.progress.skipped, state.progress.pending
                     ),
                     fontSize = 12.sp,
                     color = Muted,
@@ -203,10 +203,9 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
             }
         }
 
-        // 지난 날짜를 보고 있을 때만: 그날의 복용률 카드(기록 탭이 보여 주던 것)를 일정 아래에 둔다.
-        // 오늘과 앞날은 아직 진행 중이거나 시작 전이라 보이지 않는다.
-        if (state.rows.isNotEmpty() && state.date.isBefore(state.today)) {
-            DayRateCard(state.counts, Modifier.padding(top = 16.dp))
+        // 오늘과 지난 날짜: 그날의 진행률 카드(기록 탭이 보여 주던 것)를 일정 아래에 둔다. 앞날은 아직 시작 전이라 보이지 않는다.
+        if (state.rows.isNotEmpty() && !state.date.isAfter(state.today)) {
+            DayRateCard(state.progress, isToday = state.date == state.today, modifier = Modifier.padding(top = 16.dp))
         }
     }
 

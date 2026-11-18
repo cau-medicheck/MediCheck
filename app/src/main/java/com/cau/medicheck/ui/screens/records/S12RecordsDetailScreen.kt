@@ -35,8 +35,6 @@ fun S12RecordsDetailScreen(
     onBackToCalendar: () -> Unit,
     onOpenDose: (DoseKey) -> Unit
 ) {
-    val counts = state.counts
-    val rate = counts.completionRate   // null이면 도래한 회차가 없다 → "N/A"
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s12)) {
         BackLink(stringResource(R.string.s12_back), onBackToCalendar)
@@ -45,7 +43,7 @@ fun S12RecordsDetailScreen(
         // 기록을 읽어 오는 잠깐 동안은 "N/A · 총 0회"가 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn
 
-        DayRateCard(counts)
+        DayRateCard(state.progress, isToday = state.date == state.today)
 
         SectionTitle(stringResource(R.string.s12_section_list))
         SurfaceCard(padding = 0.dp) {

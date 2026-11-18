@@ -80,7 +80,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
 
     // ----- S04 홈 대시보드 -----
     composable(Routes.S04) {
-        // forHome: 홈은 자기만의 "고른 날짜"를 쓴다(일정·기록에서 날짜를 옮겨도 홈은 그대로).
+        // forHome: 홈은 언제나 오늘을 본다(일정에서 날짜를 옮겨도 홈은 그대로).
         val vm: DayDosesViewModel = viewModel(factory = DayDosesViewModel.factory(user.id, forHome = true))
         val state by vm.uiState.collectAsStateWithLifecycle()
         RefreshOnResume(vm::refresh)
@@ -95,7 +95,6 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
             showNotificationOffCard = rememberNotificationsOff(),
             actions = remember(vm, go) {
                 HomeActions(
-                    onSelectDay = vm::selectDay,
                     onOpenSchedule = { go.openTab(Routes.S05) },
                     onOpenDose = { key -> go.open(Routes.s10(key)) },
                     onQuickTake = vm::quickTake,
