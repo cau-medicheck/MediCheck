@@ -59,24 +59,14 @@ class SampleAccountSeeder(
         val hash = withContext(hashDispatcher) { PasswordHasher.hash(UUID.randomUUID().toString()) }
 
         return transaction.run {
-            userDao.findSampleUsers().forEach { deleteUserData(it.id) }
+            userDao.findSampleUsers().forEach { eraser.erase(it.id) }
             createSample(today, hash)
         }
     }
 
-    /**
-     * 사용자 한 명의 데이터를 지운다. 순서가 중요하다 (DB_DESIGN ⑧ "명시적 삭제 순서"):
-     * 이력 → 기록 → 규칙 → 약 → 설정 → 사용자.
-     * 가리키는 쪽(자식)을 먼저 지우므로, FK의 CASCADE가 꺼져 있어도 결과가 같다.
-     */
-    private suspend fun deleteUserData(userId: Long) {
-        statusEventDao.deleteAllForUser(userId)
-        doseRecordDao.deleteAllForUser(userId)
-        scheduleDao.deleteAllForUser(userId)
-        medicationDao.deleteAllForUser(userId)
-        userSettingsDao.deleteForUser(userId)
-        userDao.deleteById(userId)
-    }
+    /** 옛 샘플 계정의 데이터를 지우는 도구 (계정·데이터 삭제 S44와 같은 순서를 쓴다) */
+    private val eraser =
+        UserDataEraser(statusEventDao, doseRecordDao, scheduleDao, medicationDao, userSettingsDao, userDao)
 
     /** 새 샘플 계정과 약 3개·규칙 3개·기록 99줄·설정 기본 줄을 만든다. 이력은 만들지 않는다(v3 auditEvents가 빈 목록). */
     private suspend fun createSample(today: LocalDate, passwordHash: String): User {

@@ -24,9 +24,10 @@ import com.cau.medicheck.ui.screens.settings.S37AccessibilityViewModel
 import com.cau.medicheck.ui.screens.settings.S38OfflineScreen
 import com.cau.medicheck.ui.screens.settings.S38OfflineViewModel
 import com.cau.medicheck.ui.screens.settings.S39ErrorStatesScreen
+import com.cau.medicheck.ui.screens.settings.S44AccountDeleteScreen
 
 /** 이 파일이 붙여 둔 화면 ID */
-val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S36", "S37", "S38", "S39")
+val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S36", "S37", "S38", "S39", "S44")
 
 /**
  * 설정 화면들이 "계정"에 하는 일을 묶은 것. 로그인 상태는 AuthViewModel이 들고 있어서,
@@ -36,12 +37,16 @@ val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S36", "S37", "S38", "S
  * @param loggingOut 로그아웃 처리 중인지
  * @param onUpdateProfile (이름, 이메일, 성공했을 때 부를 함수) — 프로필 저장 (S21)
  * @param profileSaving 프로필 저장 처리 중인지
+ * @param onDeleteAccount (확인 칸에 입력한 글자) — 계정·데이터 삭제 (S44)
+ * @param deletingAccount 계정 삭제 처리 중인지
  */
 data class SettingsCallbacks(
     val onLogout: () -> Unit,
     val loggingOut: Boolean = false,
     val onUpdateProfile: (String, String, () -> Unit) -> Unit = { _, _, _ -> },
-    val profileSaving: Boolean = false
+    val profileSaving: Boolean = false,
+    val onDeleteAccount: (String) -> Unit = {},
+    val deletingAccount: Boolean = false
 )
 
 /**
@@ -52,7 +57,7 @@ data class SettingsCallbacks(
  *                 ├ 안전·편의 기능 → S37 · S36 · S38 · S32 · S45 · S23
  *                 └ 로그아웃      → 로그인 화면(S01)
  *
- *   S36 개인정보 센터 → S41 앱 잠금 · S28 백업·복원 · S43 내보내기 · S44 계정·데이터 삭제
+ *   S36 개인정보 센터 → S41 앱 잠금 · S28 백업·복원 · S43 내보내기 · S44 계정·데이터 삭제 ─ 삭제 → 온보딩(S00)
  *   S38 오프라인 상태 → S06 · S05 · S12 · S45        S39 빈 화면·오류 상태 → S08 · S05
  *
  * S20·S21·S22의 "‹ 설정"은 backTo(S19): 지나온 S19가 있으면 거기까지 돌아가고, 없으면 지금 화면을 S19로 바꾼다.
@@ -150,6 +155,12 @@ fun NavGraphBuilder.settingsGraph(user: User, go: AppNavigator, cb: SettingsCall
                 )
             }
         )
+    }
+
+    // ----- S44 계정·데이터 삭제 -----
+    composable(Routes.S44) {
+        // 삭제에 성공하면 로그인한 사용자가 없어져 MediCheckApp이 온보딩(S00)을 그린다. 여기서 따로 이동하지 않는다.
+        S44AccountDeleteScreen(deleting = cb.deletingAccount, onDelete = cb.onDeleteAccount, onBack = go::back)
     }
 
     // ----- S39 빈 화면·오류 상태 -----

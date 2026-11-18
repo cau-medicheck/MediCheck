@@ -380,14 +380,14 @@ S44는 **지금 로그인한 계정 하나의 데이터**만 지운다(그 계�
 | 순서 | 대상 | 방법 |
 |---|---|---|
 | ① | 그 계정의 Room 줄 전부 | 한 트랜잭션에서 ⑧ "명시적 삭제 순서" 1~5 (이력 → 기록 → 규칙 → 약 → 설정 → 사용자). `Dispatchers.IO`. `clearAllTables()`는 **쓰지 않는다**(다른 계정까지 지우므로) |
-| ② | 세션 | `SessionStore.clear()` — 6단계에서 `commit()`으로 바꾼다(부록 A-3) |
+| ② | 세션 | `SessionStore.clear()` — `commit()`으로 저장한다(부록 A-3) |
 | ③ | 메모리 상자 | `SelectionStore.reset()`, `DeepLinkInbox` 비우기, 앱 잠금 상태 초기화 (부록 E) |
 | ④ | 알람·떠 있는 알림 | 떠 있는 알림 모두 지우기 + 알람 다시 계산(로그인 사용자 없음 → 취소) |
 
-- **폰 단위 설정(`AppPrefs`)은 지우지 않는다** — 결정 2로 접근성 설정은 폰 단위이고 다른 계정도 쓰기 때문이다(이 문서의 해석. 6단계 S44 구현 때 전수환 확인). S00으로 가는 것은 화면 이동(`authStartRoute = S00`)으로 한다.
+- **폰 단위 설정(`AppPrefs`)은 지우지 않는다** — 결정 2로 접근성 설정은 폰 단위이고 다른 계정도 쓰기 때문이다(구현: `AuthRepository.deleteCurrentAccount` → `UserDataEraser.erase`. 온보딩만 다시 보이게 `onboarding_seen`을 false로 돌린다). S00으로 가는 것은 화면 이동(`authStartRoute = S00`)으로 한다.
 - 지우지 않는 것: 다른 계정의 모든 데이터, 사용자가 SAF로 저장해 둔 백업·CSV 파일(앱 밖의 사용자 파일).
 - 같은 이메일로 다시 가입할 수 있다.
-- **매니페스트 `android:allowBackup="false"`** (06 S44 규칙 5): 안드로이드 자동 백업이 DB를 클라우드에 복사해 두면 지운 계정이 앱 재설치 때 되살아날 수 있다. 백업은 S28의 사용자 파일로만 한다. (6단계에서 적용, 아직 안 함)
+- **매니페스트 `android:allowBackup="false"`** (06 S44 규칙 5): 안드로이드 자동 백업이 DB를 클라우드에 복사해 두면 지운 계정이 앱 재설치 때 되살아날 수 있다. 백업은 S28의 사용자 파일로만 한다. (적용함 — PR #37. `res/xml/backup_rules.xml`·`data_extraction_rules.xml`에서도 모든 영역을 제외해 새 폰으로 옮기기에도 실리지 않는다)
 
 ### ⑧-4 그 밖의 경우
 
@@ -662,7 +662,7 @@ D의 요일 ∈ s.repeat_days
 - [ ] S33 "내일부터 적용" 선택, 종료일 늘림(`raiseEffectiveFrom`)·당김 정리, 일시중지·재개 Repository 함수 — 3단계 (DAO는 있음)
 - [ ] `AppClock` 주입(10.7) — 2단계
 - [ ] 매니페스트 `android:allowBackup="false"` (⑧-3) — 6단계
-- [ ] `SessionStore`의 `commit()` (부록 A-3) — 6단계
+- [x] `SessionStore`의 `commit()` (부록 A-3) — 6단계에서 적용
 
 ---
 
@@ -711,7 +711,7 @@ D의 요일 ∈ s.repeat_days
 
 ### A-3. 세션 `SessionStore` (파일 `session`) — 키는 지금 코드 그대로 (확인함)
 
-지금 `SessionStore`의 `saveLoggedInUserId`·`clear`는 `apply()`(돌아온 뒤 나중에 디스크에 씀)를 쓴다. A의 `commit()` 원칙에 맞추고 S44·로그아웃 직후 앱이 죽어도 세션이 남지 않게 **6단계에서 둘 다 `commit()`으로 바꾼다**(부록 G).
+`SessionStore`의 `saveLoggedInUserId`·`clear`도 A의 원칙대로 `commit()`을 쓴다 — S44·로그아웃 직후 앱이 죽어도 세션이 남지 않게 하기 위해서다(6단계에서 `apply()`에서 바꿈).
 
 | 키 | 타입 | 기본값 | 뜻 |
 |---|---|---|---|

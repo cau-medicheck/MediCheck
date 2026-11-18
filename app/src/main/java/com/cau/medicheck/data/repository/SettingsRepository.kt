@@ -1,5 +1,6 @@
 package com.cau.medicheck.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import com.cau.medicheck.data.local.SessionStore
 import com.cau.medicheck.data.local.UserSettingsDao
 import com.cau.medicheck.data.local.UserSettingsEntity
@@ -73,9 +74,17 @@ class SettingsRepository(
         onChanged()
     }
 
-    private suspend fun loadEntity(userId: Long): UserSettingsEntity =
-        userSettingsDao.find(userId)
-            ?: UserSettingsEntity.defaultsFor(userId, systemZone().id).also { userSettingsDao.upsert(it) }
+    private suspend fun loadEntity(userId: Long): UserSettingsEntity {
+        userSettingsDao.find(userId)?.let { return it }
+        val defaults = UserSettingsEntity.defaultsFor(userId, systemZone().id)
+        try {
+            userSettingsDao.upsert(defaults)
+        } catch (e: SQLiteConstraintException) {
+            // 그 사이에 계정이 삭제됐으면(S44) "없는 사용자의 설정"이라 DB가 저장을 거부한다.
+            // 그럴 때는 저장하지 않고 기본값만 돌려준다 (알림 수신기가 삭제와 동시에 깨어난 경우 등).
+        }
+        return defaults
+    }
 
     /** 표의 줄(글자·숫자) → 계산에 쓰는 모양 */
     private fun UserSettingsEntity.toDomain() = UserSettings(

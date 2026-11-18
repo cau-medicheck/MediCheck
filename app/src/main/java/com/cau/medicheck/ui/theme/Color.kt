@@ -106,3 +106,4 @@ val DashedBg = Color(0xFFF5FBFB)
 // 월간 통계(S14) 막대: 완료율이 100%가 아닌 날 (v3 #8dbec6)
 val ChartBarMuted = Color(0xFF8DBEC6)
 val PreviewBg = Color(0xFFF0F8F7)         // S37 글자 확대 미리보기 상자
+val DangerTitle = Color(0xFFBE5959)       // S44 "삭제 전 확인" 제목
