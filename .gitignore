@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android Studio 개인 설정 (사람마다 달라서 올리지 않는다)
+/.idea/
+
+# Kotlin 컴파일러가 만드는 임시 폴더
+.kotlin/
