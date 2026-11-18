@@ -72,24 +72,20 @@ fun S36PrivacyScreen(settings: UserSettings, actions: PrivacyActions) {
         SectionTitle(stringResource(R.string.s36_section_data))
         SurfaceCard(padding = 0.dp) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 3.dp)) {
-                val extra = stringResource(R.string.s36_mark_extra)
                 OptionRow(
                     title = stringResource(R.string.s36_row_lock_title),
                     description = stringResource(R.string.s36_row_lock_desc),
-                    onClick = { actions.onOpen(Routes.S41) },
-                    mark = extra
+                    onClick = { actions.onOpen(Routes.S41) }
                 )
                 OptionRow(
                     title = stringResource(R.string.s36_row_backup_title),
                     description = stringResource(R.string.s36_row_backup_desc),
-                    onClick = { actions.onOpen(Routes.S28) },
-                    mark = extra
+                    onClick = { actions.onOpen(Routes.S28) }
                 )
                 OptionRow(
                     title = stringResource(R.string.s36_row_export_title),
                     description = stringResource(R.string.s36_row_export_desc),
-                    onClick = { actions.onOpen(Routes.S43) },
-                    mark = extra
+                    onClick = { actions.onOpen(Routes.S43) }
                 )
                 OptionRow(
                     title = stringResource(R.string.s36_row_delete_title),

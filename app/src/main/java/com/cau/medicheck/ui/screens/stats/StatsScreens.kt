@@ -26,8 +26,6 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.MetricNumber
 import com.cau.medicheck.ui.components.MonthSwitcher
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.Pill
-import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ProgressBar
 import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
@@ -197,8 +195,6 @@ fun S14MonthStatsScreen(state: MonthStatsUiState, onTab: (Int) -> Unit, onShiftM
                 Text(stringResource(R.string.s14_last_day, state.month.lengthOfMonth()), fontSize = 11.sp, color = Muted)
             }
         }
-
-        Pill(stringResource(R.string.stats_badge_extra), PillKind.ORANGE, Modifier.padding(top = 16.dp))
     }
 }
 
@@ -263,9 +259,7 @@ fun S15SkipPatternScreen(state: SkipPatternUiState, onTab: (Int) -> Unit) {
             stringResource(R.string.s15_notice, pattern.overdueUnrecorded, pattern.totalSkipped),
             Modifier.padding(top = 16.dp),
             warn = true
-        )
-        Pill(stringResource(R.string.stats_badge_extra), PillKind.ORANGE, Modifier.padding(top = 16.dp))
-    }
+        )    }
 }
 
 /** 시간대 → 이름 문구 (일정 화면 S05의 구역 제목과 같은 글자) */
