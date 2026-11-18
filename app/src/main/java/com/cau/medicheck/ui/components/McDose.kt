@@ -72,15 +72,7 @@ import java.time.LocalTime
  *   ✓ 복용 완료(민트) / ↷ 건너뜀(주황) / ! 기한 경과 · 미기록(회색) / ○ 복용 예정(회색)
  */
 @Composable
-fun StatusPill(status: DoseDisplayStatus, modifier: Modifier = Modifier) {
-    val (textRes, kind) = when (status) {
-        DoseDisplayStatus.TAKEN -> R.string.status_pill_taken to PillKind.MINT
-        DoseDisplayStatus.SKIPPED -> R.string.status_pill_skipped to PillKind.ORANGE
-        DoseDisplayStatus.MISSED -> R.string.status_pill_overdue to PillKind.GRAY
-        DoseDisplayStatus.UPCOMING -> R.string.status_pill_upcoming to PillKind.GRAY
-    }
-    Pill(text = stringResource(textRes), kind = kind, modifier = modifier)
-}
+fun StatusPill(status: DoseDisplayStatus, modifier: Modifier = Modifier) = DoseStatusChip(status, modifier)
 
 /**
  * 회차 줄 하나를 그리는 데 필요한 값. ViewModel이 만들어서 화면에 넘긴다.

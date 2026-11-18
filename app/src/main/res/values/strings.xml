@@ -10,7 +10,7 @@
     <string name="screen_title_s02">회원가입</string>
     <string name="screen_title_s03">비밀번호 재설정</string>
     <string name="screen_title_s04">홈</string>
-    <string name="screen_title_s05">일정</string>
+    <string name="screen_title_s05">복약 일정</string>
     <string name="screen_title_s06">내 약</string>
     <string name="screen_title_s07">약 상세</string>
     <string name="screen_title_s08">약 등록·수정</string>
@@ -21,8 +21,8 @@
     <string name="screen_title_s13">복약 통계</string>
     <string name="screen_title_s14">복약 통계</string>
     <string name="screen_title_s15">복약 통계</string>
-    <string name="screen_title_s16">알림</string>
-    <string name="screen_title_s17">알림 설정</string>
+    <string name="screen_title_s16">알림 센터</string>
+    <string name="screen_title_s17">복약 알림 설정</string>
     <string name="screen_title_s18">알림 권한</string>
     <string name="screen_title_s19">설정</string>
     <string name="screen_title_s20">복약률 계산 기준</string>
@@ -41,7 +41,7 @@
     <string name="screen_title_s33">일정 변경 적용 범위</string>
     <string name="screen_title_s34">알림이 오지 않을 때</string>
     <string name="screen_title_s35">시간대 설정</string>
-    <string name="screen_title_s36">개인정보</string>
+    <string name="screen_title_s36">개인정보 센터</string>
     <string name="screen_title_s37">접근성</string>
     <string name="screen_title_s38">오프라인 사용</string>
     <string name="screen_title_s39">빈 화면·오류 예시</string>
@@ -239,10 +239,10 @@
     <!-- ===== 로그인 뒤 틀: 머리말 버튼 · 하단 탭 · 여러 화면 공통 (2단계) ===== -->
     <string name="header_cd_notifications">알림</string>
     <string name="header_cd_settings">설정</string>
-    <string name="tab_home">홈</string>
-    <string name="tab_schedule">일정</string>
+    <string name="tab_home">복약 홈</string>
+    <string name="tab_schedule">복약 일정</string>
     <string name="tab_meds">내 약</string>
-    <string name="tab_records">기록</string>
+    <string name="tab_records">복약 기록</string>
     <string name="common_back_previous">이전 화면</string>
     <string name="common_detail">상세 ›</string>
     <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
@@ -315,6 +315,7 @@
     <string name="s05_btn_today">오늘로</string>
     <string name="s05_summary_count">%1$d / %2$d회 완료</string>
     <string name="s05_summary_detail">건너뜀 %1$d · 미기록 %2$d</string>
+    <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>
     <string name="s05_period_evening">저녁</string>

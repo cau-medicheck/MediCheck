@@ -31,6 +31,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -39,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -61,6 +67,7 @@ import com.cau.medicheck.ui.theme.HeaderDivider
 import com.cau.medicheck.ui.theme.IconBtnBg
 import com.cau.medicheck.ui.theme.IconBtnText
 import com.cau.medicheck.ui.theme.Line
+import com.cau.medicheck.ui.theme.Mint
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ScreenBackground
 import com.cau.medicheck.ui.theme.TabActive
@@ -211,12 +218,12 @@ fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onC
 }
 
 /** 하단 탭 다섯 개. 순서대로 그려진다. (v3 nav) */
-enum class McTab(val route: String, val symbol: String, @param:StringRes val labelRes: Int) {
-    HOME(Routes.S04, Glyph.TAB_HOME, R.string.tab_home),
-    SCHEDULE(Routes.S05, Glyph.TAB_SCHEDULE, R.string.tab_schedule),
-    MEDS(Routes.S06, Glyph.TAB_MEDS, R.string.tab_meds),
-    RECORDS(Routes.S11, Glyph.TAB_RECORDS, R.string.tab_records),
-    STATS(Routes.S13, Glyph.TAB_STATS, R.string.tab_stats)
+enum class McTab(val route: String, val icon: ImageVector, @param:StringRes val labelRes: Int) {
+    HOME(Routes.S04, Icons.Outlined.Home, R.string.tab_home),
+    SCHEDULE(Routes.S05, Icons.Outlined.CalendarMonth, R.string.tab_schedule),
+    MEDS(Routes.S06, Icons.Outlined.Medication, R.string.tab_meds),
+    RECORDS(Routes.S11, Icons.Outlined.Assignment, R.string.tab_records),
+    STATS(Routes.S13, Icons.Outlined.BarChart, R.string.tab_stats)
 }
 
 /** 하단 탭이 차지하는 높이(내비게이션 바 제외). 토스트를 이 위에 띄운다. */
@@ -240,7 +247,7 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
             modifier = Modifier
                 // 폰의 내비게이션 바(화면 맨 아래 막대) 높이만큼 아래를 띄운다.
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
-                .padding(top = 9.dp, bottom = 12.dp)
+                .padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 8.dp)
                 .selectableGroup()
         ) {
             McTab.entries.forEach { tab ->
@@ -250,17 +257,14 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        // 고른 탭은 옅은 청록 바탕으로 한 번 더 구분한다 (새 시안의 하단 메뉴)
+                        .background(if (selected) Mint else Color.Transparent)
                         .selectable(selected = selected, role = Role.Tab, onClick = { onTab(tab) })
+                        .padding(vertical = 6.dp)
                 ) {
-                    // 기호는 장식이다. TalkBack은 아래 글자("홈")만 읽는다.
-                    Text(
-                        text = tab.symbol,
-                        fontSize = 20.sp,
-                        lineHeight = 22.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = color,
-                        modifier = Modifier.clearAndSetSemantics { }
-                    )
+                    // 아이콘은 장식이다. TalkBack은 아래 글자("복약 홈")만 읽는다.
+                    Icon(tab.icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
                     Text(
                         text = stringResource(tab.labelRes),
                         fontSize = 10.sp,

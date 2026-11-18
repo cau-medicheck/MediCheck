@@ -15,7 +15,6 @@ import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.CountTriple
-import com.cau.medicheck.ui.components.DoseRow
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
@@ -26,6 +25,7 @@ import com.cau.medicheck.ui.components.ProgressBar
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.TimelineRow
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.screens.dose.DayDosesUiState
 import com.cau.medicheck.ui.theme.Muted
@@ -92,13 +92,14 @@ fun S12RecordsDetailScreen(
                     body = stringResource(R.string.s12_empty_body)
                 )
             } else {
-                Column(Modifier.padding(horizontal = 16.dp)) {
+                // 지난 기록을 보는 화면이라 줄을 누르면 기록 창이 아니라 회차 상세로 간다.
+                Column(Modifier.padding(vertical = 8.dp)) {
                     state.rows.forEachIndexed { index, row ->
-                        DoseRow(
+                        TimelineRow(
                             row = row,
-                            onDetail = { onOpenDose(row.key) },
-                            onQuickTake = null,   // 이 화면에서는 줄에서 바로 복용 완료를 하지 않는다
-                            showDivider = index != state.rows.lastIndex
+                            isFirst = index == 0,
+                            isLast = index == state.rows.lastIndex,
+                            onOpen = { onOpenDose(row.key) }
                         )
                     }
                 }

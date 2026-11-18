@@ -10,19 +10,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.MedicationStatus
 import com.cau.medicheck.ui.components.Avatar
-import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.Glyph
@@ -38,6 +38,7 @@ import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.theme.Faint
 
 /**
  * S06 내 약 목록 (v3 medsList()).
@@ -104,18 +105,10 @@ fun S06MedicationListScreen(
 @Composable
 private fun MedicationRow(row: MedicationRowUi, onOpen: (Long) -> Unit, showDivider: Boolean) {
     val med = row.med
-    val detailName = stringResource(R.string.s06_cd_detail, med.name)
     ListRow(
         leading = { Avatar(Glyph.DOSE) },
-        trailing = {
-            McButton(
-                text = stringResource(R.string.common_detail),
-                onClick = { onOpen(med.id) },
-                kind = ButtonKind.LIGHT,
-                small = true,
-                modifier = Modifier.semantics { contentDescription = detailName }
-            )
-        },
+        trailing = { Text("›", fontSize = 18.sp, color = Faint, modifier = Modifier.clearAndSetSemantics { }) },
+        onClick = { onOpen(med.id) },
         showDivider = showDivider
     ) {
         // 이름이 길어 배지가 옆에 안 들어가면 배지가 아래 줄로 내려간다.

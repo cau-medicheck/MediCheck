@@ -12,18 +12,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.cau.medicheck.MediCheckApplication
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.data.local.User
+import com.cau.medicheck.ui.components.LocalScreenTitle
 import com.cau.medicheck.ui.components.McBottomBar
 import com.cau.medicheck.ui.components.McBottomBarHeight
 import com.cau.medicheck.ui.components.McTab
@@ -73,7 +75,7 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
         McTopBar(
             title = stringResource(Routes.titleRes(route)),
             showActions = true,
-            brand = NavRules.screenIdOf(route) == Routes.S04,   // 홈에서는 화면 이름 대신 앱 로고와 이름
+            brand = true,   // 머리말은 어느 화면에서나 앱 로고와 이름. 화면 이름은 본문의 큰 제목(ScreenIntro)이 보여 준다
             // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
             onNotifications = { go.openOrReturn(Routes.S16) },
             onSettings = { go.openOrReturn(Routes.S19) }
@@ -87,6 +89,8 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
                 .fillMaxWidth()
                 .consumeWindowInsets(WindowInsets.navigationBars.add(WindowInsets(bottom = McBottomBarHeight)))
         ) {
+            // 지금 화면의 이름을 본문에 건넨다. 본문의 ScreenIntro가 큰 제목으로 그린다.
+            CompositionLocalProvider(LocalScreenTitle provides stringResource(Routes.titleRes(route))) {
             NavHost(
                 navController = nav,
                 startDestination = Routes.S04,
@@ -97,6 +101,7 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
                 popExitTransition = { ExitTransition.None }
             ) {
                 mainGraph(user, go, settings)
+            }
             }
         }
         McBottomBar(active = activeTab, onTab = { tab -> go.openTab(tab.route) })

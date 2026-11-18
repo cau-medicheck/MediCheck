@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,19 +29,20 @@ import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DatePickerPopup
-import com.cau.medicheck.ui.components.DoseRow
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.PickerField
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.PickerField
+import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.ScreenIntro
-import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.TimelineRow
 import com.cau.medicheck.ui.components.dottedDateText
 import com.cau.medicheck.ui.components.fullDateText
+import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import java.time.LocalDate
@@ -52,6 +54,7 @@ class ScheduleActions(
     val onToday: () -> Unit,
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
+    val onQuickSkip: (DoseKey) -> Unit,
     val onAddMedication: () -> Unit
 )
 
@@ -65,6 +68,21 @@ class ScheduleActions(
 fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     // 날짜 고르는 창이 열려 있는가
     var showDatePicker by remember { mutableStateOf(false) }
+
+    // 지금 기록 창에 띄운 회차. null이면 닫혀 있다.
+    var sheetKey by remember { mutableStateOf<DoseKey?>(null) }
+    val sheetRow = state.rows.firstOrNull { it.key == sheetKey }
+    if (sheetRow != null && !LocalAppLocked.current) {
+        RecordSheet(
+            row = sheetRow,
+            date = state.date,
+            isFuture = state.date.isAfter(state.today),
+            onDismiss = { sheetKey = null },
+            onTaken = { actions.onQuickTake(sheetRow.key); sheetKey = null },
+            onSkipped = { actions.onQuickSkip(sheetRow.key); sheetKey = null },
+            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) }
+        )
+    }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
         ScreenIntro(stringResource(R.string.s05_subtitle))
@@ -150,20 +168,29 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
             }
         }
 
-        // 시간대 묶음: 아침 (1) / 점심 (1) / … 회차가 있는 묶음만 그린다.
-        state.rowsByPeriod.forEach { (period, rows) ->
-            SectionTitle(
-                text = stringResource(period.labelRes()),
-                suffix = stringResource(R.string.s05_period_count, rows.size)
-            )
-            SurfaceCard(padding = 0.dp) {
-                Column(Modifier.padding(horizontal = 16.dp)) {
-                    rows.forEachIndexed { index, row ->
-                        DoseRow(
+        // 그날의 회차를 카드 하나에 시간표로 그린다. 줄을 누르면 기록 창이 올라온다.
+        if (state.rows.isNotEmpty()) {
+            SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 4.dp)
+                ) {
+                    Text(
+                        text = fullDateText(state.date),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Navy,
+                        modifier = Modifier.weight(1f).semantics { heading() }
+                    )
+                    Text(text = stringResource(R.string.s05_total, state.rows.size), fontSize = 12.sp, color = Muted)
+                }
+                Column(Modifier.padding(bottom = 10.dp)) {
+                    state.rows.forEachIndexed { index, row ->
+                        TimelineRow(
                             row = row,
-                            onDetail = { actions.onOpenDose(row.key) },
-                            onQuickTake = { actions.onQuickTake(row.key) },
-                            showDivider = index != rows.lastIndex
+                            isFirst = index == 0,
+                            isLast = index == state.rows.lastIndex,
+                            onOpen = { sheetKey = row.key }
                         )
                     }
                 }
