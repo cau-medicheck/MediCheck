@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- 인터넷 연결 상태를 읽는 권한 (오프라인 상태 화면 S38). 설치할 때 자동으로 허용되고 사용자에게 묻지 않는다 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 기기의 본인 확인 창(생체인증·PIN)을 띄우는 권한 (앱 잠금 S41). 설치할 때 자동으로 허용되고 사용자에게 묻지 않는다 -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <!--
         allowBackup="false": 안드로이드의 자동 백업(구글 클라우드로 앱 데이터를 복사해 두는 기능)을 끈다.

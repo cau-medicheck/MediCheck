@@ -12,6 +12,7 @@ import com.cau.medicheck.data.local.A11ySettings
 import com.cau.medicheck.data.local.AppPrefs
 import com.cau.medicheck.data.repository.SettingsRepository
 import com.cau.medicheck.data.system.NetworkMonitor
+import com.cau.medicheck.domain.AppLockMethod
 import com.cau.medicheck.domain.UserSettings
 import com.cau.medicheck.ui.components.ToastBus
 import kotlinx.coroutines.CancellationException
@@ -65,6 +66,59 @@ class S36PrivacyViewModel(
             initializer {
                 val app = this[APPLICATION_KEY] as MediCheckApplication
                 S36PrivacyViewModel(app.container.settingsRepository, app.container.toastBus)
+            }
+        }
+    }
+}
+
+// =============================================================================================
+// S41 앱 잠금 설정
+// =============================================================================================
+
+/**
+ * S41 앱 잠금 설정의 ViewModel. 화면의 상태는 계정별 설정(UserSettings)이다.
+ *
+ * 켜기는 "본인 확인을 통과한 뒤"에만 저장한다. 본인 확인 창은 Activity가 있어야 띄울 수 있어서
+ * 화면 쪽(SettingsGraph)이 띄우고, 결과에 따라 여기의 함수를 부른다.
+ */
+class S41AppLockViewModel(
+    private val settingsRepository: SettingsRepository,
+    private val toastBus: ToastBus
+) : ViewModel() {
+
+    val settings: StateFlow<UserSettings> = settingsRepository.current
+
+    /** 본인 확인을 통과했을 때: 앱 잠금을 켠다. 지금은 잠그지 않는다(방금 확인했으므로). */
+    fun enable() = save { it.copy(appLockEnabled = true) }
+
+    /** 끄기는 묻지 않는다 (이 화면까지 들어온 사람은 이미 잠금을 푼 사람이다). */
+    fun disable() = save { it.copy(appLockEnabled = false) }
+
+    fun setMethod(method: AppLockMethod) = save { it.copy(appLockMethod = method) }
+
+    /** 기기에 화면 잠금이 없어서 켤 수 없을 때 */
+    fun onNoDeviceLock() = toastBus.show(R.string.s41_toast_no_device_lock)
+
+    /** 본인 확인을 취소했거나 통과하지 못했을 때 */
+    fun onNotVerified() = toastBus.show(R.string.s41_toast_not_verified)
+
+    private fun save(transform: (UserSettings) -> UserSettings) {
+        viewModelScope.launch {
+            try {
+                settingsRepository.update(transform)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                toastBus.show(R.string.error_generic)
+            }
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as MediCheckApplication
+                S41AppLockViewModel(app.container.settingsRepository, app.container.toastBus)
             }
         }
     }

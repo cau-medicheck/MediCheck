@@ -781,6 +781,29 @@
     <string name="s39_offline_action">일정 확인</string>
     <string name="s39_notice">안내 문구에는 원인과 다음 행동을 포함하고, 오류를 색상만으로 표시하지 않도록 합니다.</string>
 
+    <!-- ===== S41 앱 잠금 설정 + 잠금 화면 =====
+         프로토타입은 값만 저장하는 시안이었다. 앱은 실제로 잠그므로 '시안'·'(Android 구현 필요)'·'시연 UI' 문구를 뺐다. -->
+    <string name="s41_title">앱 잠금</string>
+    <!-- 원문: 복약 정보 보호를 위한 추가 잠금 시안입니다. -->
+    <string name="s41_subtitle">복약 정보 보호를 위한 추가 잠금입니다.</string>
+    <!-- 원문: 앱 재진입 시 인증 수단 요청 (시안) -->
+    <string name="s41_switch_desc">앱 재진입 시 인증 수단 요청</string>
+    <string name="s41_method_label">잠금 방식</string>
+    <!-- 원문: 기기 생체인증 (Android 구현 필요) -->
+    <string name="s41_method_biometric">기기 생체인증</string>
+    <string name="s41_method_pin">기기 PIN/화면 잠금</string>
+    <string name="s41_method_fallback">이 기기에서는 기기 PIN/화면 잠금으로 확인합니다.</string>
+    <!-- 원문: ⓘ 실제 기기 기능이 아닌 시연 UI입니다. Android 네이티브 구현과 권한 검증이 필요합니다. -->
+    <string name="s41_notice">ⓘ 앱을 다시 열 때 기기 화면 잠금(PIN·패턴·비밀번호)이나 생체인증으로 본인을 확인합니다. 기기에 화면 잠금이 설정되어 있어야 켤 수 있습니다. 앱 잠금을 켜면 최근 앱 목록의 화면 미리보기도 가려집니다.</string>
+    <string name="s41_toast_no_device_lock">기기에 화면 잠금(PIN·패턴·비밀번호)을 먼저 설정해주세요.</string>
+    <string name="s41_toast_not_verified">본인 확인을 마치지 않아 앱 잠금을 켜지 않았어요.</string>
+    <string name="s41_toast_auto_off">기기 화면 잠금이 없어 앱 잠금을 껐어요.</string>
+    <string name="lock_body">앱이 잠겨 있어요. 기기 잠금을 풀 때와 같은 방법으로 본인을 확인해주세요.</string>
+    <string name="lock_unlock">잠금 해제</string>
+    <string name="lock_prompt_title">MediCheck 잠금 해제</string>
+    <string name="lock_prompt_subtitle">복약 기록을 보려면 본인 확인이 필요해요.</string>
+    <string name="lock_prompt_enable_subtitle">앱 잠금을 켜려면 본인 확인이 필요해요.</string>
+
     <!-- ===== S44 계정·데이터 삭제 ===== -->
     <string name="s44_title">계정 및 데이터 삭제</string>
     <string name="s44_subtitle">삭제 대상과 복구 가능 여부를 명확하게 표시합니다.</string>

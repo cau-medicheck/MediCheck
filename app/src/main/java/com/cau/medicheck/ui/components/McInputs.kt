@@ -55,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.lock.LocalAppLocked
 import java.time.LocalTime
 
 /**
@@ -75,6 +76,8 @@ fun TimePickerPopup(
         initialMinute = initialTime.minute,
         is24Hour = true
     )
+    // 앱이 잠겨 있는 동안에는 그리지 않는다 (따로 뜨는 창이라 잠금 화면 위에 보일 수 있다). 풀면 다시 보인다.
+    if (LocalAppLocked.current) return
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
@@ -227,7 +230,7 @@ fun <T> McSelectField(
     var expanded by remember { mutableStateOf(false) }
     Box(modifier) {
         PickerField(text = label(selected), onClick = { expanded = true }, trailing = "▾")
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(expanded = expanded && !LocalAppLocked.current, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(label(option), fontSize = 13.sp, color = Navy) },

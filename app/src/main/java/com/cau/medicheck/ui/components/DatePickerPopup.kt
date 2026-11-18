@@ -10,6 +10,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.lock.LocalAppLocked
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -39,6 +40,8 @@ fun DatePickerPopup(
                 maxDate == null || year <= maxDate.year
         }
     )
+    // 앱이 잠겨 있는 동안에는 그리지 않는다 (따로 뜨는 창이라 잠금 화면 위에 보일 수 있다). 풀면 다시 보인다.
+    if (LocalAppLocked.current) return
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {

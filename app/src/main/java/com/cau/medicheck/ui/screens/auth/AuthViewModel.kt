@@ -303,7 +303,12 @@ class AuthViewModel(
                 val app = this[APPLICATION_KEY] as MediCheckApplication
                 AuthViewModel(
                     app.container.authRepository, app.container.appPrefs, app.container.toastBus,
-                    loadSettings = { app.container.settingsRepository.loadForCurrentUser() }
+                    loadSettings = {
+                        app.container.settingsRepository.loadForCurrentUser()
+                        // 설정을 읽자마자 "처음부터 잠글지"를 정한다. 이 뒤에야 로딩 화면이 걷히므로
+                        // 잠금을 켠 계정의 홈 화면이 한순간도 보이지 않는다.
+                        app.container.appLock.onColdStart()
+                    }
                 )
             }
         }

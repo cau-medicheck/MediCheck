@@ -21,8 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cau.medicheck.MediCheckApplication
@@ -32,6 +36,9 @@ import com.cau.medicheck.ui.components.LocalToastBus
 import com.cau.medicheck.ui.components.McToastHost
 import com.cau.medicheck.ui.components.TOAST_DURATION_MS
 import com.cau.medicheck.ui.components.toastBottomOffset
+import com.cau.medicheck.ui.lock.LocalAppLocked
+import com.cau.medicheck.ui.lock.LockOverlay
+import com.cau.medicheck.ui.lock.rememberUnlockAction
 import com.cau.medicheck.ui.navigation.graph.SettingsCallbacks
 import com.cau.medicheck.ui.screens.auth.AuthViewModel
 import com.cau.medicheck.ui.theme.PreLoginFrameBottom
@@ -83,12 +90,39 @@ fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewMode
         }
     }
 
+    // ----- 앱 잠금 (S41) -----
+    // 잠겨 있으면 아래에서 잠금 화면을 맨 위에 덮는다. 로그인 전 화면에는 보호할 기록이 없어 잠그지 않는다.
+    val lockedFlag by container.appLock.locked.collectAsStateWithLifecycle()
+    val locked = lockedFlag && state.currentUser != null && !state.isCheckingSession
+    val requestUnlock = rememberUnlockAction()
+    // 잠긴 채로 앱에 들어올 때마다(새로 켰을 때, 나갔다 돌아왔을 때) 본인 확인 창을 자동으로 한 번 띄운다.
+    // 확인 창을 취소한 뒤에는 자동으로 다시 띄우지 않는다(잠금 화면의 "잠금 해제" 버튼으로 다시 시도).
+    val promptRequests by container.appLock.promptRequests.collectAsStateWithLifecycle()
+    LaunchedEffect(promptRequests, locked) {
+        if (locked) requestUnlock()
+    }
+    // 잠기는 순간 입력칸의 커서를 뺀다. 그대로 두면 잠금 화면 위로 키보드가 남아 아래 화면의 입력칸에 글자가 들어간다.
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(locked) {
+        if (locked) focusManager.clearFocus(force = true)
+    }
+
     CompositionLocalProvider(
         LocalToastBus provides toastBus,
         LocalA11ySettings provides a11y,
-        LocalReduceMotion provides a11y.reduceMotion
+        LocalReduceMotion provides a11y.reduceMotion,
+        LocalAppLocked provides locked
     ) {
-        Box(Modifier.fillMaxSize()) {
+        // 잠겨 있는 동안 아래 화면은 ① TalkBack이 읽지 못하고 ② 키보드로도 조작하지 못한다.
+        // 터치는 잠금 화면이 받아 버리지만, 블루투스 키보드 같은 외장 키보드의 Tab·Enter는 가려진 버튼까지 닿는다.
+        // focusProperties(canFocus = false): 아래 부품들이 키보드 포커스를 받지 못하게 한다(Tab으로 가려진 버튼에 들어가지 않게).
+        // onPreviewKeyEvent에서 true를 돌려주면 그 키 입력은 아래 부품에 전해지지 않는다(이중 안전장치).
+        val lockedGuard = if (locked) {
+            Modifier.clearAndSetSemantics { }.focusProperties { canFocus = false }.onPreviewKeyEvent { true }
+        } else {
+            Modifier
+        }
+        Box(Modifier.fillMaxSize().then(lockedGuard)) {
             val user = state.currentUser
             when {
                 state.isCheckingSession -> LoadingScreen()
@@ -131,6 +165,8 @@ fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewMode
                 }
             )
         }
+        // 잠금 화면: 로그인 뒤 화면과 토스트까지 모두 덮는다. 아래 화면은 그대로 살아 있다(풀면 보던 화면 그대로).
+        if (locked) LockOverlay(onUnlock = requestUnlock)
     }
 }
 

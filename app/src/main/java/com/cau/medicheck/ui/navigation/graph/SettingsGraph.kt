@@ -2,12 +2,18 @@ package com.cau.medicheck.ui.navigation.graph
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.cau.medicheck.MediCheckApplication
+import com.cau.medicheck.R
 import com.cau.medicheck.data.local.User
+import com.cau.medicheck.ui.lock.DeviceAuth
+import com.cau.medicheck.ui.lock.findComponentActivity
 import com.cau.medicheck.ui.navigation.AppNavigator
 import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.screens.settings.S19SettingsScreen
@@ -27,10 +33,12 @@ import com.cau.medicheck.ui.screens.settings.S37AccessibilityViewModel
 import com.cau.medicheck.ui.screens.settings.S38OfflineScreen
 import com.cau.medicheck.ui.screens.settings.S38OfflineViewModel
 import com.cau.medicheck.ui.screens.settings.S39ErrorStatesScreen
+import com.cau.medicheck.ui.screens.settings.S41AppLockScreen
+import com.cau.medicheck.ui.screens.settings.S41AppLockViewModel
 import com.cau.medicheck.ui.screens.settings.S44AccountDeleteScreen
 
 /** 이 파일이 붙여 둔 화면 ID */
-val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S28", "S36", "S37", "S38", "S39", "S44")
+val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S28", "S36", "S37", "S38", "S39", "S41", "S44")
 
 /**
  * 설정 화면들이 "계정"에 하는 일을 묶은 것. 로그인 상태는 AuthViewModel이 들고 있어서,
@@ -60,7 +68,7 @@ data class SettingsCallbacks(
  *                 ├ 안전·편의 기능 → S37 · S36 · S38 · S32 · S45 · S23
  *                 └ 로그아웃      → 로그인 화면(S01)
  *
- *   S36 개인정보 센터 → S41 앱 잠금 · S28 백업·복원 · S43 내보내기 · S44 계정·데이터 삭제 ─ 삭제 → 온보딩(S00)
+ *   S36 개인정보 센터 → S41 앱 잠금(켤 때 기기 본인 확인) · S28 백업·복원 · S43 내보내기 · S44 계정·데이터 삭제 ─ 삭제 → 온보딩(S00)
  *   S38 오프라인 상태 → S06 · S05 · S12 · S45        S39 빈 화면·오류 상태 → S08 · S05
  *
  * S20·S21·S22의 "‹ 설정"은 backTo(S19): 지나온 S19가 있으면 거기까지 돌아가고, 없으면 지금 화면을 S19로 바꾼다.
@@ -176,6 +184,39 @@ fun NavGraphBuilder.settingsGraph(user: User, go: AppNavigator, cb: SettingsCall
                     onOpenVerify = { go.open(Routes.S45) }
                 )
             }
+        )
+    }
+
+    // ----- S41 앱 잠금 설정 -----
+    composable(Routes.S41) {
+        val vm: S41AppLockViewModel = viewModel(factory = S41AppLockViewModel.Factory)
+        val settings by vm.settings.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        val promptTitle = stringResource(R.string.lock_prompt_title)
+        val promptSubtitle = stringResource(R.string.lock_prompt_enable_subtitle)
+        S41AppLockScreen(
+            settings = settings,
+            biometricChoiceSupported = DeviceAuth.SUPPORTS_BIOMETRIC_CHOICE,
+            onBack = go::back,
+            onToggle = { turnOn ->
+                val appLock = (context.applicationContext as MediCheckApplication).container.appLock
+                val activity = context.findComponentActivity()
+                when {
+                    !turnOn -> vm.disable()
+                    // 기기에 화면 잠금이 없으면 본인을 확인할 방법이 없다 → 켜지 않는다.
+                    !DeviceAuth.isDeviceSecure(context) -> vm.onNoDeviceLock()
+                    activity == null || appLock.authenticating -> Unit
+                    else -> {
+                        // 켜기 전에 본인 확인을 한 번 통과해야 한다 — 켜 놓고 못 들어가는 일이 없게.
+                        appLock.authenticating = true
+                        DeviceAuth.prompt(activity, settings.appLockMethod, promptTitle, promptSubtitle) { ok ->
+                            appLock.authenticating = false
+                            if (ok) vm.enable() else vm.onNotVerified()
+                        }
+                    }
+                }
+            },
+            onMethod = vm::setMethod
         )
     }
 

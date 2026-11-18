@@ -30,6 +30,7 @@ import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
@@ -127,7 +128,8 @@ fun S28BackupScreen(state: BackupUiState, actions: BackupActions) {
     }
 
     // ----- 덮어쓰기 확인 창 (불러온 파일이 검사를 통과했을 때만) -----
-    state.pending?.let { pending ->
+    // 앱이 잠겨 있는 동안에는 그리지 않는다(잠금 화면 위에 뜨지 않게). 풀면 다시 보인다.
+    state.pending?.takeIf { !LocalAppLocked.current }?.let { pending ->
         AlertDialog(
             onDismissRequest = actions.onCancelRestore,   // 바깥을 누르거나 뒤로 가기 = 취소
             title = { Text(stringResource(R.string.s28_confirm), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
