@@ -37,6 +37,11 @@ object Glyph {
     const val NOT_FOUND = "📋"            // 약을 찾지 못함 (S07·S08)
     const val WARNING = "⚠️"              // 삭제 확인(S09) · 중복 확인(S40)
     const val UPLOAD = "▧"                // 사진 올리기 상자 (S29)
+    // 설정 허브(S19)·프로필(S21)
+    const val PROFILE = "☺\uFE0E"             // 프로필 카드
+    const val PERMISSION = "♙"            // 알림 권한·OS 줄
+    const val HELP = "?"                  // 도움말 줄
+
     const val PREV = "‹"                  // 이전 달
     const val NEXT = "›"                  // 다음 달
 }

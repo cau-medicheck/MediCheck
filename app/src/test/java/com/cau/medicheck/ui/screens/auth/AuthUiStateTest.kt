@@ -48,4 +48,11 @@ class AuthUiStateTest {
         assertNull(state.currentUser)
         assertEquals(Routes.S00, state.authStartRoute)
     }
+
+    @Test
+    fun `로그아웃이 끝나면 로그아웃 처리 중 표시가 꺼진다`() {
+        val loggingOut = AuthUiState(isCheckingSession = false, isLoggingOut = true)
+
+        assertEquals(false, loggingOut.afterLogout().isLoggingOut)
+    }
 }

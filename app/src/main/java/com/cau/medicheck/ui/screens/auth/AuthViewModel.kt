@@ -16,6 +16,7 @@ import com.cau.medicheck.ui.components.ToastBus
 import com.cau.medicheck.ui.navigation.NavRules
 import com.cau.medicheck.ui.navigation.Routes
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,8 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     /** 처리 중인 버튼 */
     val pressed: AuthAction? = null,
+    /** 로그아웃 처리 중인지 (S19의 로그아웃 버튼을 두 번 누르지 못하게 한다) */
+    val isLoggingOut: Boolean = false,
     /** 로그인한 사용자. 로그인하지 않았으면 null */
     val currentUser: User? = null
 )
@@ -52,11 +55,11 @@ data class AuthUiState(
 
 /** 로그아웃한 뒤의 상태: 사용자 없음, 로그인 전 틀은 S01부터 (온보딩은 이미 봤으므로) */
 fun AuthUiState.afterLogout(): AuthUiState =
-    copy(currentUser = null, isLoading = false, pressed = null, authStartRoute = Routes.S01)
+    copy(currentUser = null, isLoading = false, pressed = null, isLoggingOut = false, authStartRoute = Routes.S01)
 
 /** 계정·데이터를 삭제한 뒤의 상태: 사용자 없음, 처음 쓰는 사람처럼 S00부터 (S44가 부른다, 6단계) */
 fun AuthUiState.afterAccountDeleted(): AuthUiState =
-    copy(currentUser = null, isLoading = false, pressed = null, authStartRoute = Routes.S00)
+    copy(currentUser = null, isLoading = false, pressed = null, isLoggingOut = false, authStartRoute = Routes.S00)
 
 /** 앱을 켜서 로그인 기록을 확인한 뒤의 상태 */
 fun AuthUiState.afterSessionChecked(user: User?, onboardingSeen: Boolean): AuthUiState =
@@ -88,6 +91,9 @@ class AuthViewModel(
     // _uiState는 이 클래스 안에서만 바꿀 수 있고, 화면에는 읽기 전용(uiState)으로 내보낸다.
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    /** 진행 중인 프로필 저장 작업. 로그아웃할 때 취소하려고 들고 있는다. (Job = 실행 중인 코루틴 작업 하나) */
+    private var profileJob: Job? = null
 
     init {
         // 앱이 켜지면 이전에 로그인해 둔 사용자가 있는지, 온보딩을 본 적 있는지 확인한다.
@@ -134,16 +140,39 @@ class AuthViewModel(
         appPrefs.setOnboardingSeen(true)
     }
 
-    /** 프로필(이름·이메일)을 고친다(S21, 6단계). 성공하면 화면들이 보는 currentUser도 새 값으로 바뀐다. */
+    /**
+     * 프로필(이름·이메일)을 고친다(S21). 성공하면 화면들이 보는 currentUser도 새 값으로 바뀌어
+     * 설정 허브의 카드와 홈의 인사말이 바로 바뀐다.
+     * @param onDone 저장에 성공했을 때 부를 함수 (화면을 설정 허브로 돌려보낸다)
+     */
     fun updateProfile(displayName: String, email: String, onDone: () -> Unit) {
         val userId = _uiState.value.currentUser?.id ?: return
         if (_uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            when (val result = authRepository.updateProfile(userId, displayName, email)) {
+        profileJob = viewModelScope.launch {
+            // 예상 못 한 오류(DB 등)가 나도 앱이 꺼지지 않게 하고, 버튼 잠금을 풀어 준다.
+            val result = try {
+                authRepository.updateProfile(userId, displayName, email)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+                toastBus.show(R.string.s21_toast_failed)
+                return@launch
+            }
+            when (result) {
                 is AuthResult.Success -> {
-                    _uiState.update { it.copy(isLoading = false, currentUser = result.user) }
-                    onDone()
+                    // 저장하는 사이에 로그아웃했을 수 있다. 그때 currentUser를 다시 채우면 로그아웃한 계정의
+                    // 화면이 되살아나므로, 아직 같은 사람이 로그인해 있을 때만 새 값으로 바꾼다.
+                    val stillLoggedIn = _uiState.value.currentUser?.id == userId
+                    _uiState.update {
+                        if (it.currentUser?.id == userId) it.copy(isLoading = false, currentUser = result.user)
+                        else it.copy(isLoading = false)
+                    }
+                    if (stillLoggedIn) {
+                        toastBus.show(R.string.s21_toast_saved)
+                        onDone()
+                    }
                 }
                 is AuthResult.Failure -> {
                     _uiState.update { it.copy(isLoading = false) }
@@ -155,8 +184,20 @@ class AuthViewModel(
 
     /** 로그아웃: 세션을 지우고(알림도 정리됨) S01로. 토스트 "로그아웃했습니다." */
     fun logout() {
+        // 버튼을 연달아 눌러도 한 번만 처리한다.
+        if (_uiState.value.isLoggingOut || _uiState.value.currentUser == null) return
+        _uiState.update { it.copy(isLoggingOut = true) }
+        // 진행 중인 프로필 저장이 있으면 멈춘다. 로그아웃한 뒤에 그 결과가 상태(처리 중 표시 등)를 건드리지 않게 한다.
+        profileJob?.cancel()
         viewModelScope.launch {
-            authRepository.logout()
+            try {
+                authRepository.logout()
+            } catch (e: CancellationException) {
+                throw e   // 작업이 취소된 것은 오류가 아니므로 그대로 넘긴다
+            } catch (e: Exception) {
+                // 세션은 logout()의 첫 줄에서 이미 지워졌다. 뒤따르는 알림 정리에서 오류가 나도
+                // 앱이 꺼지지 않게 하고, 화면은 아래에서 로그인 전으로 보낸다.
+            }
             _uiState.update { it.afterLogout() }
             toastBus.show(R.string.toast_logout_done)
         }

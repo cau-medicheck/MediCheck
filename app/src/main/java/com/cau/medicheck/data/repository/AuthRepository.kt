@@ -159,7 +159,12 @@ class AuthRepository(
         if (owner != null && owner.id != userId) return AuthResult.Failure(AuthError.EMAIL_TAKEN)
 
         val updated = user.copy(displayName = displayName.trim(), email = cleanEmail)
-        userDao.update(updated)
+        try {
+            userDao.update(updated)
+        } catch (e: SQLiteConstraintException) {
+            // 위에서 중복을 확인했지만 그 사이에 같은 이메일이 들어왔다면 DB의 "이메일 중복 금지" 규칙이 거부한다.
+            return AuthResult.Failure(AuthError.EMAIL_TAKEN)
+        }
         return AuthResult.Success(updated)
     }
 

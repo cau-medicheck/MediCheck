@@ -589,4 +589,90 @@
     <string name="s43_notice">다운로드된 파일에 약 이름 및 복약 기록이 포함되므로 파일 보관·공유에 주의해주세요.</string>
     <string name="s43_toast_saved">CSV 파일을 내려받았습니다.</string>
     <string name="s43_toast_failed">파일을 저장하지 못했습니다. 다시 시도해주세요.</string>
+
+    <!-- ===== S19 설정 허브 ===== -->
+    <string name="s19_title">설정</string>
+    <string name="s19_subtitle">앱과 계정을 관리합니다.</string>
+    <string name="s19_name">%1$s님</string>
+    <string name="s19_edit">수정 ›</string>
+    <string name="s19_cd_edit">프로필 수정</string>
+    <string name="s19_section_app">알림 및 앱</string>
+    <string name="s19_row_noti_title">복약 알림 설정</string>
+    <string name="s19_row_noti_desc">알림·소리·재알림</string>
+    <string name="s19_row_perm_title">알림 권한·OS</string>
+    <string name="s19_row_perm_desc">Android 알림 제한 확인</string>
+    <string name="s19_row_policy_title">복약률 계산 정책</string>
+    <string name="s19_row_policy_desc">미기록/건너뜀 기준</string>
+    <!-- 프로토타입 원문 "도움말·프로토타입": 실제 앱은 프로토타입이 아니라서 S22 본문 제목과 같은 말로 바꿨다 -->
+    <string name="s19_row_help_title">도움말·구현 범위</string>
+    <string name="s19_row_help_desc">사용법 및 기능 범위</string>
+    <string name="s19_section_safety">안전·편의 기능</string>
+    <string name="s19_row_a11y_title">접근성·글자 크기</string>
+    <string name="s19_row_a11y_desc" formatted="false">200% 글꼴·높은 대비</string>
+    <string name="s19_row_privacy_title">개인정보 센터</string>
+    <string name="s19_row_privacy_desc">잠금화면 정보·내보내기</string>
+    <!-- 프로토타입 원문 "오프라인 시연": S38은 시연 스위치가 아니라 실제 연결 상태를 보여 주므로 바꿨다 -->
+    <string name="s19_row_offline_title">오프라인 사용</string>
+    <string name="s19_row_offline_desc">기기 로컬 기록 사용</string>
+    <string name="s19_row_archive_title">과거 기록 보존</string>
+    <string name="s19_row_archive_desc">삭제 이후 과거 기록</string>
+    <string name="s19_row_reqmap_title">전체 기능 목록</string>
+    <string name="s19_row_reqmap_desc">107개 MoSCoW 요구사항</string>
+    <!-- 프로토타입에는 S23으로 들어가는 길이 없어서 더한 줄 -->
+    <string name="s19_row_family_title">가족·보호자 (준비 중)</string>
+    <string name="s19_row_family_desc">보호할 가족의 프로필 전환 시안</string>
+
+    <!-- ===== S20 통계 계산 정책 ===== -->
+    <string name="s20_back">설정</string>
+    <string name="s20_title">복약률 계산 기준</string>
+    <!-- 프로토타입 원문 "팀에서 최종 확정해야 할 정책입니다.": 이미 확정해 구현했으므로 바꿨다 -->
+    <string name="s20_subtitle">홈·기록·통계 화면의 복약률은 모두 이 기준으로 계산합니다.</string>
+    <string name="s20_taken_desc">사용자가 실제 복용 완료를 눌렀을 때 기록</string>
+    <string name="s20_skipped_desc">사용자가 이번 회차를 먹지 않았다고 명시</string>
+    <string name="s20_pending_title">○ 미기록</string>
+    <string name="s20_pending_desc">아직 완료/건너뜀을 선택하지 않은 상태</string>
+    <string name="s20_pending_display">예정 시각 전에는 ‘○ 복용 예정’, 예정 시각이 지나면 ‘! 기한 경과 · 미기록’으로 표시합니다.</string>
+    <!-- 프로토타입 원문 "현재 데모 산식" -->
+    <string name="s20_kicker">현재 산식</string>
+    <!-- 프로토타입 원문 "완료율 = 완료 횟수 ÷ 예정 횟수 × 100": 실제 계산(StatsCalculator)과 같게 고쳤다 -->
+    <string name="s20_formula">완료율 = 완료 횟수 ÷ 예정 시각이 된 횟수 × 100</string>
+    <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 기한 경과 미기록까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+    <!-- 프로토타입 원문은 "…미확정으로 명시되어 있습니다."(주황). 지금은 정해졌으므로 바꿨다 -->
+    <string name="s20_notice">계획서 7장에서 미확정이던 ‘미복용과 명시적 건너뜀 구분’과 ‘복약률 계산 기준’을 위와 같이 정했습니다.</string>
+
+    <!-- ===== S21 프로필 관리 ===== -->
+    <string name="s21_title">프로필 수정</string>
+    <string name="s21_subtitle">사용자 정보를 관리하세요.</string>
+    <string name="s21_label_name">표시 이름</string>
+    <string name="s21_save">프로필 저장</string>
+    <!-- 프로토타입 원문 "실제 사용자 인증 및 계정 정보 변경은 인증 기술을 결정한 뒤 연결해야 합니다.": 실제로 바뀌므로 고쳤다 -->
+    <string name="s21_notice">계정 정보는 서버 없이 이 기기 안에만 저장됩니다. 이메일을 바꾸면 다음 로그인부터 새 이메일을 씁니다.</string>
+    <string name="s21_toast_saved">프로필이 수정되었습니다.</string>
+    <string name="s21_toast_failed">프로필을 저장하지 못했습니다. 다시 시도해주세요.</string>
+
+    <!-- ===== S22 도움말·범위 ===== -->
+    <string name="s22_title">도움말 · 구현 범위</string>
+    <!-- 프로토타입 원문 "데모를 활용하는 방법을 안내합니다." -->
+    <string name="s22_subtitle">앱을 활용하는 방법을 안내합니다.</string>
+    <string name="s22_section_flow">추천 시연 흐름</string>
+    <string name="s22_step1_title">약 등록</string>
+    <string name="s22_step1_desc">이름·용량·시간·요일을 저장</string>
+    <string name="s22_step2_title">일정 확인</string>
+    <string name="s22_step2_desc">홈 또는 일정에서 등록 확인</string>
+    <string name="s22_step3_title">복용 상태 변경</string>
+    <string name="s22_step3_desc">완료/건너뜀/미기록 선택</string>
+    <string name="s22_step4_title">기록과 통계</string>
+    <string name="s22_step4_desc">변경된 횟수·비율 확인</string>
+    <string name="s22_step5_title">알림 미리보기</string>
+    <string name="s22_step5_desc">알림 카드에서 복용 상세로 이동</string>
+    <string name="s22_cd_step">%1$d단계</string>
+    <!-- 프로토타입 원문 "시연과 실서비스의 차이" + "모바일 알림은 실제 전송되지 않습니다 …": 실제 앱과 반대라 고쳤다 -->
+    <string name="s22_section_scope">이 앱의 구현 범위</string>
+    <string name="s22_scope_notice">MediCheck는 서버 없이 이 기기 안(Room 데이터베이스)에만 계정과 복약 기록을 저장합니다. 복약 알림은 정해진 시각에 Android 알림으로 실제로 울리고, 인터넷 없이도 모든 기능이 동작합니다. 가족·보호자 공유와 사진으로 약 등록은 화면 시안만 있고, 복용량 자동 추천은 제공하지 않습니다.</string>
+    <string name="s22_tech_title">개발 기술</string>
+    <!-- 프로토타입 목록에서 쓰지 않는 WorkManager만 뺐다 -->
+    <string name="s22_tech_list">Kotlin · Jetpack Compose · Room · AlarmManager · Android Studio · GitHub</string>
+    <string name="s22_section_related">관련 화면</string>
+    <string name="s22_row_errors_desc">오류·무결성 오류·빈 상태 패턴</string>
+    <string name="s22_row_safety_desc">자동 복용량 추천 제외 및 구현 경계</string>
 </resources>

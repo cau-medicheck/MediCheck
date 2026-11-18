@@ -28,6 +28,7 @@ import com.cau.medicheck.ui.components.McBottomBar
 import com.cau.medicheck.ui.components.McBottomBarHeight
 import com.cau.medicheck.ui.components.McTab
 import com.cau.medicheck.ui.components.McTopBar
+import com.cau.medicheck.ui.navigation.graph.SettingsCallbacks
 import com.cau.medicheck.ui.navigation.graph.mainGraph
 import com.cau.medicheck.ui.theme.ScreenBackground
 
@@ -42,9 +43,10 @@ import com.cau.medicheck.ui.theme.ScreenBackground
  * 머리말 제목과 강조할 탭은 "지금 보이는 화면의 주소"에서 정한다.
  *
  * @param user 로그인한 사용자. 이 사용자의 데이터만 보여 주기 위해 id를 ViewModel에 넘긴다.
+ * @param settings 설정 화면들이 계정에 하는 일(로그아웃, 프로필 저장). MediCheckApp이 AuthViewModel에 이어 준다.
  */
 @Composable
-fun MainNavHost(user: User, onLogout: () -> Unit) {
+fun MainNavHost(user: User, settings: SettingsCallbacks) {
     val nav = rememberNavController()
     val go = remember(nav) { AppNavigator(nav) }
 
@@ -93,7 +95,7 @@ fun MainNavHost(user: User, onLogout: () -> Unit) {
                 popEnterTransition = { EnterTransition.None },
                 popExitTransition = { ExitTransition.None }
             ) {
-                mainGraph(user, go, onLogout)
+                mainGraph(user, go, settings)
             }
         }
         McBottomBar(active = activeTab, onTab = { tab -> go.openTab(tab.route) })

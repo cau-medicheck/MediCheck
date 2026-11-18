@@ -194,6 +194,18 @@ class AuthRepositoryTest {
         assertEquals(AuthResult.Failure(AuthError.EMAIL_TAKEN), result)
     }
 
+    @Test
+    fun `샘플 계정은 자기 샘플 이메일을 그대로 두고 이름을 바꿀 수 있다`() = runBlocking<Unit> {
+        val sampleId = userDao.insert(
+            User(email = SampleData.EMAIL, passwordHash = "x", displayName = "사용자", createdAt = 0L, isSample = true)
+        )
+
+        val result = repository.updateProfile(sampleId, "새 이름", SampleData.EMAIL)
+
+        assertTrue(result is AuthResult.Success)
+        assertEquals("새 이름", userDao.users.single().displayName)
+    }
+
     // ---------- 샘플 계정 ----------
 
     @Test
