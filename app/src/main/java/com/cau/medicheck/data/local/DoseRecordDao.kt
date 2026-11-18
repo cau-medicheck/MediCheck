@@ -233,4 +233,29 @@ interface DoseRecordDao {
             "WHERE m.user_id = :userId)"
     )
     suspend fun deleteAllForUser(userId: Long)
+
+    /**
+     * 기록 한 줄을 넣고 새 id를 돌려준다. (S28 복원 — 이력을 새 기록 id에 이어 붙이려면 id가 필요하다)
+     * 같은 (규칙, 날짜)가 이미 있으면 오류가 난다. 복원은 그 계정의 기록을 모두 지운 뒤에 넣으므로 겹치지 않는다.
+     */
+    @Insert
+    suspend fun insert(record: DoseRecord): Long
+
+    /** 한 사용자의 복용 기록 줄 수, 삭제한 약의 기록도 포함. (S28 "복용 기록 m개") */
+    @Query(
+        "SELECT COUNT(*) FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId"
+    )
+    fun observeCountForUser(userId: Long): Flow<Int>
+
+    /** 한 사용자의 기록 줄 전부를 표 모양 그대로 읽는다. (S28 백업) */
+    @Query(
+        "SELECT r.* FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId ORDER BY r.id"
+    )
+    suspend fun findAllEntitiesForUser(userId: Long): List<DoseRecord>
 }

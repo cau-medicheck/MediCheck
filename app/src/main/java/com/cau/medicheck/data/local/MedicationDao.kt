@@ -83,4 +83,12 @@ interface MedicationDao {
      */
     @Query("DELETE FROM medications WHERE user_id = :userId")
     suspend fun deleteAllForUser(userId: Long)
+
+    /** 한 사용자의 사용 중인 약 수. 바뀔 때마다 새 값이 흘러나온다. (S28 "약 n개") */
+    @Query("SELECT COUNT(*) FROM medications WHERE user_id = :userId AND deleted_at IS NULL")
+    fun observeActiveCount(userId: Long): Flow<Int>
+
+    /** 한 사용자의 약 전부, 삭제한 약도 포함. (S28 백업 — 과거 기록이 가리키는 약까지 파일에 넣어야 한다) */
+    @Query("SELECT * FROM medications WHERE user_id = :userId ORDER BY id")
+    suspend fun findAllForUser(userId: Long): List<Medication>
 }

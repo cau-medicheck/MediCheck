@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
  * 복약 기록을 CSV 글자로 만든다. (S43 복약 기록 내보내기)
  *
  * CSV = 쉼표로 칸을 나눈 표 파일. 엑셀·구글 시트에서 열 수 있다.
- * 순수 Kotlin 코드라서 단위 테스트를 한다. 파일에 쓰는 일은 CsvFileWriter가 한다.
+ * 순수 Kotlin 코드라서 단위 테스트를 한다. 파일에 쓰는 일은 DocumentFileIo가 한다.
  *
  * 머리줄과 상태 글자는 화면 문구가 아니라 "파일의 내용"이라서 strings.xml이 아니라 여기에 상수로 둔다.
  */

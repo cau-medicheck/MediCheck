@@ -776,6 +776,8 @@ D의 요일 ∈ s.repeat_days
 - 9번 (이력): `doseRecordId`는 **null이거나** 파일의 기록 id 중 하나. **`scheduleId`는 파일의 `schedules` id 중 하나여야 한다(아니면 실패)** — 복원 3단계에서 새 규칙 id로 바꿀 때 예외가 나지 않게. `fromStatus`·`toStatus`는 PENDING/TAKEN/SKIPPED. `scheduleId`·`doseDate`·`scheduledTime`·`medicationName`이 없으면 → 연결된 기록이 있으면 그 기록에서 채우고, `doseRecordId`도 null이면 실패.
 - 8번 (날짜): 기록 날짜 **≤ 오늘 + 1일**(06의 "≤ 오늘"을 넓힘). 시간대 변경(S35)으로 생긴 "미래 날짜 줄"(⑥)이 있는 계정의 백업도 같은 기기에서 복원되게.
 - 나머지 1~7, 10은 06 명세 그대로 (10MB 상한, `format`·`version`, 참조 id, (scheduleId, date) 중복 없음, 스냅샷 이름·복용량 비어 있지 않음 등).
+- **구현하며 더한 검사 (6-4, PR #41)**: 날짜는 2000~2100년만 받는다. `pausedFrom`·`effectiveFrom`도 null이거나 날짜여야 한다(틀린 글자가 들어가면 기록 보충이 멈춘다). `statusEvents` 칸은 **없을 때만** 빈 배열이고, 있는데 배열이 아니면(null 포함) 실패다. 복원 뒤 기록 보충이 살펴볼 날 수(사용 중인 규칙마다 마지막 기록 다음 날 또는 시작일 ~ 오늘)의 합이 `BackupValidator.MAX_FILL_DAYS`(20,000)를 넘으면 실패다 — 시작일만 아주 옛날인 파일로 수백만 줄을 만들지 않게.
+- **내보내기**: 기록 보충과 표 네 개 읽기를 한 트랜잭션으로 묶는다(서로 다른 시점의 줄이 한 파일에 섞이지 않게). 파일이 10MB(읽을 때의 상한)를 넘으면 들여쓰기 없이 다시 만들고, 그래도 넘으면 내보내지 않는다. 파일 이름은 `MediCheck_backup.json`.
 - "각 기록의 마지막 이력 `to_status` = 기록 `status`" 검사는 **하지 않는다** — 맞지 않으면 실행취소가 `NOTHING`을 돌려주므로(10.3 실행취소 2단계) 해가 없다.
 
 **복원 전 검사 (결정 4)**: `accountEmail`을 `AuthValidator.normalizeEmail`로 다듬어 지금 계정 이메일과 비교한다. 다르면(또는 칸이 없으면) DB를 건드리지 않고 "다른 계정의 백업" 안내만 보인다.
@@ -784,7 +786,8 @@ D의 요일 ∈ s.repeat_days
 1. `DELETE FROM dose_status_events WHERE user_id = :userId` — **먼저 이력을 지운다.** 이력은 기록과 SET NULL로 이어져 있어, 약을 지워도 CASCADE로 지워지지 않는다(06 명세의 "CASCADE로 이력까지"는 틀림).
 2. 기록 → 규칙 → 약 순서로 그 사용자 것을 지운다(⑧ 명시적 삭제 순서 2~4)
 3. 약 넣기(새 id, `user_id` = 지금 사용자) → 규칙 넣기(약 id 바꿈) → 기록 넣기(규칙 id 바꿈, `@Insert`로 새 id를 받음) → 이력 넣기(기록 id 바꿈, null은 null, `user_id` = 지금 사용자, `schedule_id`는 새 규칙 id로 바꿈)
-4. (트랜잭션 뒤) 기록 보충 → 알림 다시 계산 → `SelectionStore.reset()`
+4. 기록 보충(백업 다음 날 ~ 오늘) — **같은 트랜잭션 안에서** 한다. 여기서 오류가 나면 1~3도 없던 일이 되어, 데이터는 바뀌었는데 실패로 안내되는 일이 없다.
+5. (트랜잭션 뒤) `SelectionStore.reset()` → 알림 다시 계산. 여기서 나는 오류는 복원 결과에 영향을 주지 않는다.
 - 다른 계정·설정·세션은 건드리지 않는다(F069).
 
 ---
@@ -882,5 +885,5 @@ D의 요일 ∈ s.repeat_days
 ## 부록 J. 열린 질문 — 2026-11-17에 모두 답함
 
 08 개정안의 열린 질문 1~9는 이 문서 맨 위 "2026-11-17 전수환 결정"으로 답했다. 남은 것:
-- `org.json:json` 테스트 의존성(S28 `BackupJsonTest`) — 6단계 시작 때 정한다.
+- `org.json:json` 테스트 의존성(S28 `BackupJsonTest`) — 넣었다(`testImplementation`, 버전 20240303. 앱에는 들어가지 않는다).
 - 새 약을 지난 시작일로 등록할 때 시작일의 지난 시각 회차를 만들지(9.3) — 지금은 만든다(지금 앱·v3와 같음).

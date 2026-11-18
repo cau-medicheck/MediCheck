@@ -2,7 +2,7 @@ package com.cau.medicheck
 
 import android.app.Application
 import android.content.Context
-import com.cau.medicheck.data.export.CsvFileWriter
+import com.cau.medicheck.data.export.DocumentFileIo
 import com.cau.medicheck.data.local.AppDatabase
 import com.cau.medicheck.data.local.AppPrefs
 import com.cau.medicheck.data.local.RoomTransactionRunner
@@ -11,6 +11,7 @@ import com.cau.medicheck.data.local.SharedPrefsAppPrefs
 import com.cau.medicheck.data.local.SharedPrefsSessionStore
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.data.repository.AuthRepository
+import com.cau.medicheck.data.repository.BackupRepository
 import com.cau.medicheck.data.system.NetworkMonitor
 import com.cau.medicheck.data.repository.DoseRecordGenerator
 import com.cau.medicheck.data.repository.DoseRepository
@@ -89,8 +90,8 @@ class AppContainer(context: Context) {
     /** 인터넷 연결 상태를 알려 주는 도구 (S38) */
     val networkMonitor: NetworkMonitor by lazy { NetworkMonitor(appContext) }
 
-    /** 사용자가 고른 파일에 CSV를 쓰는 도구 (S43) */
-    val csvFileWriter: CsvFileWriter by lazy { CsvFileWriter(appContext) }
+    /** 사용자가 고른 파일에 글자를 쓰고 읽는 도구 (S43 CSV 내보내기, S28 백업·복원) */
+    val documentFileIo: DocumentFileIo by lazy { DocumentFileIo(appContext) }
 
     // ---------- 알림 ----------
 
@@ -180,6 +181,25 @@ class AppContainer(context: Context) {
             clock = clock,
             // 약이 등록·수정·삭제되면 다음 알림 시각이 달라질 수 있으므로 다시 건다.
             onChanged = { reminderScheduler.reschedule() }
+        )
+    }
+
+    /** 백업 내보내기·복원 (S28) */
+    val backupRepository: BackupRepository by lazy {
+        BackupRepository(
+            userDao = database.userDao(),
+            medicationDao = database.medicationDao(),
+            scheduleDao = database.scheduleDao(),
+            doseRecordDao = database.doseRecordDao(),
+            statusEventDao = database.doseStatusEventDao(),
+            transaction = transactionRunner,
+            generator = doseRecordGenerator,
+            clock = clock,
+            // 복원하면 약과 회차가 통째로 바뀐다. 앞에서 고른 날짜·회차를 처음 값으로 돌리고 알람을 다시 건다.
+            onChanged = {
+                selection.reset()
+                reminderScheduler.reschedule()
+            }
         )
     }
 
