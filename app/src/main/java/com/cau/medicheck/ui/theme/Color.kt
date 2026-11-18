@@ -8,11 +8,11 @@ import androidx.compose.ui.graphics.Color
  */
 
 // ----- 바탕과 글자 -----
-val ScreenBackground = Color(0xFFF8FBFC)   // 화면 바탕
+val ScreenBackground = Color(0xFFEEF3F5)   // 화면 바탕
 val CardBackground = Color(0xFFFFFFFF)     // 카드 바탕
-val CardBorder = Color(0xFFE7EFF0)         // 카드 테두리
-val Line = Color(0xFFE4EDF0)               // 구분선
-val FieldBorder = Color(0xFFDCE7EA)        // 입력칸 테두리
+val CardBorder = Color(0xFFDDE7EA)         // 카드 테두리
+val Line = Color(0xFFDCE6E9)               // 구분선
+val FieldBorder = Color(0xFFCFDCE0)        // 입력칸 테두리
 val Navy = Color(0xFF203846)               // 기본 글자
 val Muted = Color(0xFF718692)              // 흐린 글자 (설명, 보조 정보)
 val Faint = Color(0xFF93A4AC)              // 더 흐린 글자 (머리말, 꺼진 탭)
@@ -20,11 +20,9 @@ val Faint = Color(0xFF93A4AC)              // 더 흐린 글자 (머리말, 꺼�
 // ----- 주색 (청록) -----
 val Teal = Color(0xFF128B94)
 val TealDark = Color(0xFF096E7A)
-val Mint = Color(0xFFE9F8F5)               // 옅은 청록 바탕 (아이콘 상자, 보조 버튼)
+val Mint = Color(0xFFD9F1EC)               // 옅은 청록 바탕 (아이콘 상자, 보조 버튼)
 val MintText = Color(0xFF117E86)
-val HeroStart = Color(0xFF147C93)          // 홈 큰 카드의 그라데이션 시작
-val HeroEnd = Color(0xFF31B4A2)            // 홈 큰 카드의 그라데이션 끝
-val ProgressTrack = Color(0xFFE7F0F2)      // 진행 막대의 빈 부분
+val ProgressTrack = Color(0xFFDDE7EA)      // 진행 막대의 빈 부분
 val ProgressFill = Color(0xFF32B9A6)       // 진행 막대의 채운 부분
 
 // ----- 상태 색 -----
@@ -32,20 +30,20 @@ val Amber = Color(0xFFE49A45)
 val Danger = Color(0xFFD55F5F)
 
 // ----- 배지(작은 알약 모양 표시)의 바탕/글자 -----
-val PillMintBg = Color(0xFFE9F7F4); val PillMintText = Color(0xFF168577)
+val PillMintBg = Color(0xFFD9F1EC); val PillMintText = Color(0xFF0F6F64)
 val PillOrangeBg = Color(0xFFFFF2E6); val PillOrangeText = Color(0xFFBD7F3C)
-val PillGrayBg = Color(0xFFF0F3F5); val PillGrayText = Color(0xFF81919A)
-val PillBlueBg = Color(0xFFEBF3FF); val PillBlueText = Color(0xFF3E73C5)
+val PillGrayBg = Color(0xFFE6EBEE); val PillGrayText = Color(0xFF81919A)
+val PillBlueBg = Color(0xFFDFEBFD); val PillBlueText = Color(0xFF3E73C5)
 val PillRedBg = Color(0xFFFDEEEE); val PillRedText = Color(0xFFD25E5E)
 
 // ----- 안내 상자 -----
-val NoticeBg = Color(0xFFEDF8F5); val NoticeBorder = Color(0xFFDBF1EA); val NoticeText = Color(0xFF377C77)
+val NoticeBg = Color(0xFFE3F4EF); val NoticeBorder = Color(0xFFC9E8DF); val NoticeText = Color(0xFF2C6B66)
 val WarnBg = Color(0xFFFFF5EB); val WarnBorder = Color(0xFFFCE6CC); val WarnText = Color(0xFF9B754E)
 
 // ----- 그 밖 -----
 val RedButtonBg = Color(0xFFFFF0F0); val RedButtonText = Color(0xFFC25050); val RedButtonBorder = Color(0xFFFADDDD)
 val WhiteButtonText = Color(0xFF2C6770); val WhiteButtonBorder = Color(0xFFD9E7E8)
-val TabsTrack = Color(0xFFE9F0F2)          // 탭 묶음의 바탕
+val TabsTrack = Color(0xFFDFE8EB)          // 탭 묶음의 바탕
 val SwitchOff = Color(0xFFD8E5E7)
 val ToastBackground = Color(0xFF264E55)
 
@@ -56,8 +54,8 @@ val ToastBackground = Color(0xFF264E55)
  */
 
 // ----- NEW: 앱 틀 -----
-val HeaderDivider = Color(0xFFEDF1F2)      // 머리말 아래 선
-val IconBtnBg = Color(0xFFEDF6F5)          // 머리말 ⚙ 버튼 바탕 (♧는 흰 바탕 + Line 테두리)
+val HeaderDivider = Color(0xFFE2E9EB)      // 머리말 아래 선
+val IconBtnBg = Color(0xFFDFF0EE)          // 머리말 ⚙ 버튼 바탕 (♧는 흰 바탕 + Line 테두리)
 val IconBtnText = Color(0xFF137D84)        // 머리말 버튼 글자
 val TabInactive = Color(0xFF899CA6)        // 하단 탭 (꺼짐)
 val TabActive = Color(0xFF0B8990)          // 하단 탭 (켜짐)
@@ -72,20 +70,20 @@ val AuthTitleText = Color(0xFF147F88)      // .auth-title
 val AuthSubText = Color(0xFF8299A3)        // .auth-sub
 
 // ----- NEW: 줄 -----
-val RowDivider = Color(0xFFEDF2F3)         // .medrow 선
+val RowDivider = Color(0xFFE6EDEF)         // .medrow 선
 val RowSubText = Color(0xFF8B9CA5)         // .medrow p
-val SettingDivider = Color(0xFFF0F3F3)     // .settingrow 선
+val SettingDivider = Color(0xFFE8EEEF)     // .settingrow 선
 val SettingDescText = Color(0xFF7F9099)    // .settingrow p
-val OptionDivider = Color(0xFFEDF3F4)      // optionRows 선
+val OptionDivider = Color(0xFFE6EDEF)      // optionRows 선
 
 // ----- NEW: 부품 -----
-val LightButtonBg = Color(0xFFE9F7F4)      // .btn.light 바탕·테두리 (Mint보다 한 단계 옅음)
+val LightButtonBg = Color(0xFFD6EFEA)      // .btn.light 바탕·테두리 (Mint보다 한 단계 옅음)
 val FieldText = Color(0xFF264553); val FieldFocus = Color(0xFF23A2A6)
-val AvatarBg = Color(0xFFE3F5F2); val AvatarText = Color(0xFF14998B)
+val AvatarBg = Color(0xFFD6EFEA); val AvatarText = Color(0xFF14998B)
 val SwitchOn = Color(0xFF1797A0)
 val TabsText = Color(0xFF78929B); val TabsSelectedText = Color(0xFF117D8A)
 val CircleInner = Color(0xFF168E96)
-val DateChipBorder = Color(0xFFEAF0F2); val DateChipText = Color(0xFF8799A3)
+val DateChipBorder = Color(0xFFDCE6E9); val DateChipText = Color(0xFF8799A3)
 val DayBtnBorder = Color(0xFFDCE9E9); val DayBtnText = Color(0xFF728994)
 val CalDayText = Color(0xFF5E7782); val CalDayActive = Color(0xFF138B92)
 val CalDot = Color(0xFF47B7A4); val CalWeekdayText = Color(0xFF92A2AA)
@@ -95,9 +93,6 @@ val IllustrationStart = Color(0xFFE3F6F5); val IllustrationEnd = Color(0xFFF1F8F
 val PagerDotActive = Color(0xFF1D99A2); val PagerDotInactive = Color(0xFFDCE6E9)
 
 // 홈(S04) 큰 카드 안쪽 — 흰색을 옅게 겹친 색 (v3 rgba(255,255,255,.09 / .21 / .28))
-val HeroInnerBg = Color(0x17FFFFFF)        // 완료율 상자 바탕
-val HeroInnerBorder = Color(0x36FFFFFF)    // 완료율 상자 테두리
-val HeroRingRest = Color(0x47FFFFFF)       // 완료율 원의 빈 부분
 
 // 사진 올리기 상자(S29)의 점선 테두리와 바탕 (v3 .upload)
 val DashedBorder = Color(0xFFBFD7DA)
@@ -108,4 +103,4 @@ val ChartBarMuted = Color(0xFF8DBEC6)
 val PreviewBg = Color(0xFFF0F8F7)         // S37 글자 확대 미리보기 상자
 val DangerTitle = Color(0xFFBE5959)       // S44 "삭제 전 확인" 제목
 val CountBoxBg = Color(0xFFEFF8F7)        // S45 우선순위 개수 상자
-val ReqDivider = Color(0xFFE9EFF0)        // S45 기능 줄 사이의 선
+val ReqDivider = Color(0xFFE3EAEC)        // S45 기능 줄 사이의 선

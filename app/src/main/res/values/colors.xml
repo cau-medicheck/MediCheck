@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 앱 화면 색은 Compose의 ui/theme/Color.kt에 있다. 여기에는 XML(창 바탕)에서 쓰는 색만 둔다. -->
-    <color name="screen_background">#FFF8FBFC</color>
+    <color name="screen_background">#FFEEF3F5</color>
 </resources>

@@ -160,7 +160,7 @@ fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(top = 19.dp, bottom = 11.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(top = 28.dp, bottom = 12.dp)) {
         Text(
             text = text,
             fontSize = 15.sp,
@@ -230,7 +230,7 @@ fun LinkText(
 @Composable
 fun SurfaceCard(
     modifier: Modifier = Modifier,
-    padding: Dp = 16.dp,
+    padding: Dp = 18.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
@@ -646,10 +646,14 @@ fun ListRow(
     trailing: (@Composable () -> Unit)? = null,
     showDivider: Boolean = true,
     onClick: (() -> Unit)? = null,
+    /** TalkBack이 "두 번 탭하면 …"에 넣어 읽을 말 (예: "상세 보기") */
+    onClickLabel: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
+    Column(
+        modifier = if (onClick != null) modifier.clickable(onClickLabel = onClickLabel, onClick = onClick) else modifier
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 16.dp)) {
             if (leading != null) {
                 leading()
                 Spacer(Modifier.width(10.dp))
@@ -662,6 +666,12 @@ fun ListRow(
         }
         if (showDivider) HorizontalDivider(thickness = 1.dp, color = RowDivider)
     }
+}
+
+/** 줄을 누르면 다음 화면으로 간다는 표시 "›". 장식이라 TalkBack이 읽지 않는다. */
+@Composable
+fun RowChevron() {
+    Text("›", fontSize = 18.sp, color = Faint, modifier = Modifier.clearAndSetSemantics { })
 }
 
 /** 목록 줄의 제목 글자. 약 이름이 잘리지 않도록 줄 수를 제한하지 않는다(F084). */

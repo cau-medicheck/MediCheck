@@ -1,12 +1,13 @@
 package com.cau.medicheck.ui.screens.dose
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,15 +15,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.CircleProgress
 import com.cau.medicheck.ui.components.DateChipStrip
 import com.cau.medicheck.ui.components.DoseRow
 import com.cau.medicheck.ui.components.EmptyState
@@ -35,8 +37,6 @@ import com.cau.medicheck.ui.components.NotificationOffCard
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
-import com.cau.medicheck.ui.theme.HeroInnerBg
-import com.cau.medicheck.ui.theme.HeroInnerBorder
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import java.time.LocalDate
@@ -152,7 +152,10 @@ fun S04HomeScreen(
     }
 }
 
-/** 홈 맨 위의 큰 카드: 인사말, 큰 제목, 선택한 날짜의 완료율 */
+/**
+ * 홈 맨 위의 카드: 인사말 + "몇 번 중 몇 번" 큰 숫자 + 진행 막대.
+ * 숫자는 한 번만 보여 준다(전에는 같은 완료율이 글자와 원으로 두 번 나왔다).
+ */
 @Composable
 private fun HomeHero(displayName: String, state: DayDosesUiState) {
     val rate = state.counts.completionRate   // null이면 도래한 회차가 없다 → "N/A"
@@ -160,60 +163,52 @@ private fun HomeHero(displayName: String, state: DayDosesUiState) {
     else stringResource(R.string.common_percent, rate)
 
     HeroCard {
-        Row {
-            // 긴 이름은 자르지 않고 줄을 바꾼다. 오른쪽 "MEDICHECK"와 겹치지 않게 남는 폭을 다 쓴다.
+        Text(
+            text = stringResource(R.string.s04_greeting, displayName),
+            fontSize = 13.sp,
+            color = Color.White.copy(alpha = 0.85f)
+        )
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 14.dp)) {
             Text(
-                text = stringResource(R.string.s04_greeting, displayName),
-                fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.85f),
+                text = stringResource(R.string.s04_hero_count, state.counts.taken, state.counts.due),
+                fontSize = 38.sp,
+                lineHeight = 44.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-1).sp,
+                color = Color.White,
                 modifier = Modifier.weight(1f)
             )
-            Spacer(Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.s04_brand),
-                fontSize = 10.sp,
-                color = Color.White.copy(alpha = 0.75f)
+                text = rateText,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 6.dp)
             )
         }
         Text(
-            text = stringResource(R.string.s04_hero_title),
-            fontSize = 24.sp,
-            lineHeight = 32.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = (-1).sp,
-            color = Color.White,
-            modifier = Modifier.padding(top = 6.dp, bottom = 11.dp)
+            text = stringResource(R.string.s04_rate_label),
+            fontSize = 12.sp,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.padding(top = 2.dp)
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        // 진행 막대. 숫자가 위에 글자로 있으므로 TalkBack은 읽지 않는다.
+        Box(
             modifier = Modifier
-                .padding(top = 6.dp)
+                .padding(top = 16.dp)
                 .fillMaxWidth()
-                .background(HeroInnerBg, RoundedCornerShape(14.dp))
-                .border(1.dp, HeroInnerBorder, RoundedCornerShape(14.dp))
-                .padding(14.dp)
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White.copy(alpha = 0.25f))
+                .clearAndSetSemantics { }
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.s04_rate_label),
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.87f)
-                )
-                Text(
-                    text = rateText,
-                    fontSize = 29.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                Text(
-                    text = stringResource(R.string.s04_rate_count, state.counts.taken, state.counts.due),
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.87f)
-                )
-            }
-            Spacer(Modifier.width(10.dp))
-            CircleProgress(percent = rate)
+            Box(
+                Modifier
+                    .fillMaxWidth(((rate ?: 0) / 100f).coerceIn(0f, 1f))
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White)
+            )
         }
     }
 }

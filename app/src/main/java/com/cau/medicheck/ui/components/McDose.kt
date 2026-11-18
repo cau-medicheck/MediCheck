@@ -1,18 +1,15 @@
 package com.cau.medicheck.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,11 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -45,12 +38,8 @@ import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.theme.CircleInner
 import com.cau.medicheck.ui.theme.DateChipBorder
 import com.cau.medicheck.ui.theme.DateChipText
-import com.cau.medicheck.ui.theme.HeroEnd
-import com.cau.medicheck.ui.theme.HeroRingRest
-import com.cau.medicheck.ui.theme.HeroStart
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.WarnBg
 import com.cau.medicheck.ui.theme.WarnBorder
@@ -109,48 +98,29 @@ fun DoseRow(
     showDivider: Boolean = true
 ) {
     val time = timeText(row.time)
-    val detailName = stringResource(R.string.common_cd_dose_detail, row.name, time)
     val quickName = stringResource(R.string.s04_cd_quick_take, row.name, time)
     val showQuick = row.canQuickTake && onQuickTake != null
-    // 글자를 1.5배 넘게 키워 쓰는 사람에게는 "상세 ›"를 아래로 내려 이름·배지 칸을 넓힌다(F084).
-    val detailBelow = LocalDensity.current.fontScale >= 1.5f
 
-    val detailButton: @Composable () -> Unit = {
-        McButton(
-            text = stringResource(R.string.common_detail),
-            onClick = onDetail,
-            kind = ButtonKind.LIGHT,
-            small = true,
-            // 같은 "상세 ›"가 여러 개라 TalkBack 이름에 약과 시각을 넣는다.
-            modifier = Modifier.semantics { contentDescription = detailName }
-        )
-    }
-
+    // 줄 전체를 누르면 회차 상세로 간다. 줄 안의 "복용 완료" 버튼은 따로 눌린다.
     ListRow(
         leading = {
             Avatar(if (row.display == DoseDisplayStatus.TAKEN) Glyph.DOSE_DONE else Glyph.DOSE)
         },
-        trailing = if (detailBelow) null else detailButton,
-        showDivider = showDivider
+        trailing = { RowChevron() },
+        showDivider = showDivider,
+        onClick = onDetail,
+        onClickLabel = stringResource(R.string.common_cd_open_detail)
     ) {
         RowTitle(row.name)
         RowSub(stringResource(R.string.common_dose_time_amount, time, row.dosage))
         StatusPill(row.display, Modifier.padding(top = 5.dp))
-        if (showQuick || detailBelow) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                if (showQuick) {
-                    McButton(
-                        text = stringResource(R.string.s04_btn_quick_take),
-                        onClick = { onQuickTake?.invoke() },
-                        small = true,
-                        modifier = Modifier.semantics { contentDescription = quickName }
-                    )
-                }
-                if (detailBelow) detailButton()
-            }
+        if (showQuick) {
+            McButton(
+                text = stringResource(R.string.s04_btn_quick_take),
+                onClick = { onQuickTake?.invoke() },
+                small = true,
+                modifier = Modifier.padding(top = 10.dp).semantics { contentDescription = quickName }
+            )
         }
     }
 }
@@ -196,50 +166,10 @@ fun HeroCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(19.dp))
-            // 왼쪽 위 → 오른쪽 아래로 흐르는 그라데이션
-            .background(Brush.linearGradient(listOf(HeroStart, HeroEnd)))
-            .padding(19.dp),
+            .background(Teal)   // 단색. 전에는 그라데이션이었다
+            .padding(22.dp),
         content = content
     )
-}
-
-/**
- * 완료율 원 (v3 .circle: 지름 72, 가운데 원 58).
- * 바깥 고리를 12시 방향부터 시계 방향으로 완료율만큼 흰색으로 채운다. percent가 null이면 빈 고리 + "N/A".
- * 옆에 같은 숫자가 글자로 있으므로 TalkBack은 이 원을 읽지 않는다.
- */
-@Composable
-fun CircleProgress(percent: Int?, modifier: Modifier = Modifier) {
-    // 글자를 키워 쓰면 원 안 글자가 넘치므로 원도 함께 키운다 (최대 1.6배).
-    val grow = LocalDensity.current.fontScale.coerceIn(1f, 1.6f)
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(72.dp * grow)
-            .clearAndSetSemantics { }
-    ) {
-        Canvas(Modifier.size(72.dp * grow)) {
-            drawCircle(HeroRingRest)
-            if (percent != null) {
-                drawArc(
-                    color = Color.White,
-                    startAngle = -90f,                 // 12시 방향
-                    sweepAngle = 360f * percent / 100f,
-                    useCenter = true,
-                    topLeft = Offset.Zero,
-                    size = Size(size.width, size.height)
-                )
-            }
-            drawCircle(CircleInner, radius = size.minDimension / 2f * (58f / 72f))
-        }
-        Text(
-            text = if (percent == null) stringResource(R.string.common_na)
-            else stringResource(R.string.common_percent, percent),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White
-        )
-    }
 }
 
 /**
