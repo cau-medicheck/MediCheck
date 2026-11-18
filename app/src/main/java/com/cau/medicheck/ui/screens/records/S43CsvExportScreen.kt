@@ -26,7 +26,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Navy
 
@@ -51,11 +51,7 @@ fun S43CsvExportScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s43)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenTitle(
-            title = stringResource(R.string.screen_title_s43),
-            subtitle = stringResource(R.string.s43_subtitle),
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        ScreenIntro(stringResource(R.string.s43_subtitle), Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Kicker(stringResource(R.string.s43_kicker))

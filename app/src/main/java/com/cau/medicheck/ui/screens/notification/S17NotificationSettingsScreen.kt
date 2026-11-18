@@ -1,6 +1,8 @@
 package com.cau.medicheck.ui.screens.notification
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -17,7 +19,6 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSelectField
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
-import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
 import com.cau.medicheck.ui.theme.SettingDivider
@@ -46,11 +47,7 @@ class NotificationSettingsActions(
 fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationSettingsActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s17)) {
         BackLink(stringResource(R.string.s17_back), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s17_title),
-            subtitle = stringResource(R.string.s17_subtitle),
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        Spacer(Modifier.height(16.dp))
 
         SurfaceCard(padding = 0.dp) {
             Column(Modifier.padding(horizontal = 16.dp)) {

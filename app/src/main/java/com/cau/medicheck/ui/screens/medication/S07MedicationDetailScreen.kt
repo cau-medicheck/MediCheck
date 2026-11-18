@@ -24,7 +24,6 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LabelValueRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
@@ -153,5 +152,4 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
         }
     }
 
-    Notice(stringResource(R.string.s07_notice), Modifier.padding(top = 16.dp), warn = true)
 }

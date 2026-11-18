@@ -19,9 +19,8 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
-import com.cau.medicheck.ui.components.ScreenTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.TimePickerPopup
 import com.cau.medicheck.ui.components.timeText
@@ -51,11 +50,7 @@ fun S31ActualTimeScreen(
         // 회차를 찾지 못했을 때
         if (dose == null) {
             BackLink(stringResource(R.string.common_back_previous), onBack)
-            ScreenTitle(
-                title = stringResource(R.string.s31_title),
-                subtitle = stringResource(R.string.s31_empty_subtitle),
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            ScreenIntro(stringResource(R.string.s31_empty_subtitle), Modifier.padding(vertical = 16.dp))
             SurfaceCard(padding = 0.dp) {
                 EmptyState(
                     emoji = Glyph.EMPTY_CIRCLE,
@@ -67,11 +62,7 @@ fun S31ActualTimeScreen(
         }
 
         BackLink(stringResource(R.string.s31_back), onBack)
-        ScreenTitle(
-            title = stringResource(R.string.s31_title),
-            subtitle = stringResource(R.string.s31_subtitle),
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        ScreenIntro(stringResource(R.string.s31_subtitle), Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Text(text = dose.medicationName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
@@ -91,7 +82,6 @@ fun S31ActualTimeScreen(
             )
         }
 
-        Notice(stringResource(R.string.s31_notice), Modifier.padding(top = 14.dp))
     }
 
     if (showTimePicker) {

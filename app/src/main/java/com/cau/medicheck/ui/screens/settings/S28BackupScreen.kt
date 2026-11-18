@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -33,7 +34,6 @@ import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ProvideBodyFontScale
-import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.Gap16
@@ -71,11 +71,7 @@ fun S28BackupScreen(state: BackupUiState, actions: BackupActions) {
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s28)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenTitle(
-            title = stringResource(R.string.screen_title_s28),
-            subtitle = stringResource(R.string.s28_subtitle),
-            modifier = Modifier.padding(vertical = Gap16)
-        )
+        Spacer(Modifier.height(16.dp))
 
         SurfaceCard {
             // ----- 지금 이 계정의 데이터 -----
