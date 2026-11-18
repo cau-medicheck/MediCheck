@@ -239,6 +239,7 @@
     <!-- ===== 로그인 뒤 틀: 머리말 버튼 · 하단 탭 · 여러 화면 공통 (2단계) ===== -->
     <string name="header_cd_notifications">알림</string>
     <string name="header_cd_settings">설정</string>
+    <string name="header_cd_home">홈으로 이동</string>
     <string name="tab_home">홈</string>
     <string name="tab_schedule">일정</string>
     <string name="tab_meds">내 약</string>
@@ -308,6 +309,8 @@
     <string name="s04_toast_undo">실행취소</string>
 
     <!-- ===== S05 일정/캘린더 ===== -->
+    <string name="s05_cd_prev_week">지난주</string>
+    <string name="s05_cd_next_week">다음 주</string>
     <string name="s05_week_range">%1$d월 %2$d일 – %3$d월 %4$d일</string>
     <string name="s05_cd_date_field">날짜 선택</string>
     <string name="s05_btn_today">오늘</string>

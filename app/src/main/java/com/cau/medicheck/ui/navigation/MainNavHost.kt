@@ -77,6 +77,7 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
             showActions = true,
             brand = true,   // 머리말은 어느 화면에서나 앱 로고와 이름. 화면 이름은 본문의 큰 제목(ScreenIntro)이 보여 준다
             // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
+            onHome = { go.openTab(Routes.S04) },
             onNotifications = { go.openOrReturn(Routes.S16) },
             onSettings = { go.openOrReturn(Routes.S19) }
         )

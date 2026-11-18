@@ -126,6 +126,7 @@ fun McTopBar(
     modifier: Modifier = Modifier,
     /** true면 화면 이름 대신 앱 로고와 "MediCheck"를 보인다 (홈). 화면 이름은 본문의 큰 제목이 맡는다. */
     brand: Boolean = false,
+    onHome: () -> Unit = {},
     onNotifications: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
@@ -137,21 +138,31 @@ fun McTopBar(
                 .padding(start = 19.dp, end = 19.dp, top = 12.dp, bottom = 11.dp)
         ) {
             if (brand) {
-                // 로고 그림은 장식이고, 글자 "MediCheck"가 읽힌다.
-                Image(
-                    painter = painterResource(R.drawable.logo_capsule),
-                    contentDescription = null,
-                    modifier = Modifier.size(34.dp)
-                )
-                Text(
-                    text = stringResource(R.string.app_name),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.8).sp,
-                    color = Navy,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f).padding(start = 4.dp).semantics { heading() }
-                )
+                // 로고와 앱 이름을 누르면 홈으로 간다(새 시안과 같은 동작). TalkBack: "MediCheck, 홈으로 이동"
+                val homeLabel = stringResource(R.string.header_cd_home)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button, onClickLabel = homeLabel, onClick = onHome)
+                        .padding(end = 6.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.logo_capsule),
+                        contentDescription = null,   // 장식. 옆의 글자가 읽힌다
+                        modifier = Modifier.size(34.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.8).sp,
+                        color = Navy,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 4.dp).semantics { heading() }
+                    )
+                }
+                Spacer(Modifier.weight(1f))
             } else Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
