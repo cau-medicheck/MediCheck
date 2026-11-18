@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -24,34 +23,32 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.OptionRow
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.navigation.Routes
+import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Gap22
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 
 /** 설정 허브의 한 줄: 왼쪽 기호(없을 수도 있음) + 제목 + 설명 + 누르면 갈 화면 */
-private data class HubRow(val symbol: ImageVector?, val titleRes: Int, val descRes: Int, val route: String)
+private data class HubRow(val symbol: String?, val titleRes: Int, val descRes: Int, val route: String)
 
 /** "알림 및 앱" 카드의 줄들 (v3 settings()의 첫 카드) */
 private val APP_ROWS = listOf(
     HubRow(Glyph.BELL, R.string.s19_row_noti_title, R.string.s19_row_noti_desc, Routes.S17),
     HubRow(Glyph.PERMISSION, R.string.s19_row_perm_title, R.string.s19_row_perm_desc, Routes.S18),
-    HubRow(Glyph.POLICY, R.string.s19_row_policy_title, R.string.s19_row_policy_desc, Routes.S20),
+    HubRow(Glyph.TAB_STATS, R.string.s19_row_policy_title, R.string.s19_row_policy_desc, Routes.S20),
     HubRow(Glyph.HELP, R.string.s19_row_help_title, R.string.s19_row_help_desc, Routes.S22)
 )
 
-/** "안전·편의 기능" 카드의 줄들. */
+/** "안전·편의 기능" 카드의 줄들. 마지막 줄(가족·보호자)은 프로토타입에 없던 입구라 맨 끝에 붙였다. */
 private val SAFETY_ROWS = listOf(
     HubRow(null, R.string.s19_row_a11y_title, R.string.s19_row_a11y_desc, Routes.S37),
     HubRow(null, R.string.s19_row_privacy_title, R.string.s19_row_privacy_desc, Routes.S36),
     HubRow(null, R.string.s19_row_offline_title, R.string.s19_row_offline_desc, Routes.S38),
-    HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32)
-)
-
-/** "프로젝트 정보" 카드의 줄들. 앱을 쓰는 데 필요한 설정이 아니라 과제 자료(요구사항 목록·기능 시안)라 따로 묶는다. */
-private val PROJECT_ROWS = listOf(
+    HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32),
     HubRow(null, R.string.s19_row_reqmap_title, R.string.s19_row_reqmap_desc, Routes.S45),
     HubRow(null, R.string.s19_row_family_title, R.string.s19_row_family_desc, Routes.S23)
 )
@@ -74,6 +71,7 @@ fun S19SettingsScreen(
     loggingOut: Boolean = false
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s19)) {
+        ScreenIntro(stringResource(R.string.s19_subtitle), Modifier.padding(bottom = Gap16))
 
         // ----- 프로필 카드 -----
         SurfaceCard {
@@ -108,9 +106,6 @@ fun S19SettingsScreen(
 
         SectionTitle(stringResource(R.string.s19_section_safety))
         HubCard(SAFETY_ROWS, onOpen)
-
-        SectionTitle(stringResource(R.string.s19_section_project))
-        HubCard(PROJECT_ROWS, onOpen)
 
         Spacer(Modifier.height(Gap22))
         McButton(

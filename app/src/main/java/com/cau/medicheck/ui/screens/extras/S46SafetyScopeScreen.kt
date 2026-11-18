@@ -1,7 +1,5 @@
 package com.cau.medicheck.ui.screens.extras
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,6 +16,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SettingRow
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
@@ -35,7 +34,7 @@ import com.cau.medicheck.ui.theme.Gap16
 fun S46SafetyScopeScreen(state: SafetyScopeUiState, onBack: () -> Unit, onOpenMap: () -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s46)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenIntro(stringResource(R.string.s46_desc), Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             // 프로토타입처럼 영문을 대문자로 보여 준다("WON’T"). 한글에는 영향이 없다.

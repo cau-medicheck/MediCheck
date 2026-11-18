@@ -29,6 +29,7 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Gap22
 
@@ -60,6 +61,7 @@ fun S21ProfileScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s21)) {
         BackLink(stringResource(R.string.s20_back), onBack)
+        ScreenIntro(stringResource(R.string.s21_subtitle), Modifier.padding(top = Gap16))
         Spacer(Modifier.height(Gap22))
         Avatar(Glyph.PROFILE, Modifier.align(Alignment.CenterHorizontally), size = 70.dp, fontSize = 34)
 

@@ -3,7 +3,6 @@
     <string name="app_name">MediCheck</string>
 
     <!-- ===== 앱 틀 (구현 명세 00 §7.2) ===== -->
-    <!-- 머리말 위 작은 글자. v3의 영문 장식 글자를 그대로 둔다. -->
 
     <!-- 머리말 제목 = v3 화면 이름 (V 목록의 첫 칸, 47개) -->
     <string name="screen_title_s00">시작/온보딩</string>
@@ -148,6 +147,7 @@
     <string name="reminder_test_text">복약 알림은 이렇게 표시됩니다.</string>
 
     <!-- S16 알림 센터 -->
+    <string name="s16_subtitle">복약 리마인더를 미리 확인할 수 있어요.</string>
     <string name="s16_notice_reminder_off">복약 시간 알림이 꺼져 있어 아래 알림이 울리지 않습니다. 알림 설정에서 켤 수 있어요.</string>
     <string name="s16_notice_permission_off">Android 알림 권한이 꺼져 있어 아래 알림이 울리지 않습니다. OS 권한 안내에서 확인하세요.</string>
     <string name="s16_notice_ok">아래 시각에 휴대폰 알림이 울립니다. 이미 복용 완료·건너뜀으로 기록한 회차는 알리지 않습니다.</string>
@@ -155,6 +155,8 @@
     <string name="s16_section">예약된 알림 미리보기</string>
     <string name="s16_row_title">%1$s 복약 시간</string>
     <string name="s16_row_sub">%1$s · %2$s · %3$s</string>
+    <string name="s16_open">열기 ›</string>
+    <string name="s16_cd_open">%1$s %2$s %3$s 회차 열기</string>
     <string name="s16_empty_title">예정 알림 없음</string>
     <string name="s16_empty_body">약을 등록하면 알림 미리보기가 표시돼요.</string>
     <string name="s16_empty_body_has_meds">오늘과 내일 남은 알림이 없어요.</string>
@@ -163,6 +165,7 @@
 
     <!-- S17 알림 설정 -->
     <string name="s17_back">설정</string>
+    <string name="s17_subtitle">알림 방식과 재알림 옵션을 선택하세요.</string>
     <string name="s17_reminder_title">복약 시간 알림</string>
     <string name="s17_reminder_desc">정해진 시간에 알림을 받습니다.</string>
     <string name="s17_sound_title">알림 소리</string>
@@ -170,7 +173,7 @@
     <string name="s17_vibrate_title">진동</string>
     <string name="s17_vibrate_desc">알림이 울릴 때 기기가 진동합니다.</string>
     <string name="s17_realert_title">재알림</string>
-    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다.</string>
+    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다. (추가 기능)</string>
     <string name="s17_realert_interval">재알림 간격</string>
     <string name="s17_minutes">%1$d분</string>
     <string name="s17_realert_changed">재알림 간격을 변경했어요.</string>
@@ -179,11 +182,12 @@
     <string name="s17_test_blocked">알림이 꺼져 있어 테스트 알림을 보낼 수 없어요.</string>
     <string name="s17_timezone_title">시간대 변경 정책</string>
     <string name="s17_timezone_desc">해외 이동 시 알림 해석 방식</string>
-    <string name="s17_notice">폰의 무음·방해 금지 모드와 Android 알림 설정이 이 설정보다 우선합니다. 알림에 약 이름을 보일지는 개인정보 센터에서 정합니다.</string>
+    <string name="s17_notice">설정은 이 계정에 저장되고 바로 적용됩니다. 약을 바꾸거나 폰을 다시 켜도 알림 예약은 자동으로 다시 맞춰집니다. 폰의 무음·방해 금지 모드와 Android 알림 설정이 이 설정보다 우선합니다. 알림에 약 이름을 보일지는 개인정보 센터에서 정합니다.</string>
     <string name="s17_btn_preview">알림 미리보기</string>
 
     <!-- S18 권한·OS 안내 -->
     <string name="s18_back">알림 설정</string>
+    <string name="s18_subtitle">Android에서 확인해야 할 실행 조건입니다.</string>
     <string name="s18_row1_title">알림 표시 권한</string>
     <string name="s18_row1_desc">Android 13+에서는 사용자 허용 필요</string>
     <string name="s18_row2_title">정확한 시간 알림</string>
@@ -204,6 +208,7 @@
     <string name="s18_notice">알림 권한과 배터리 사용 제한은 Android 설정에서 언제든 바꿀 수 있습니다. 꺼져 있거나 제한되면 복약 알림이 오지 않거나 늦게 올 수 있습니다.</string>
 
     <!-- S34 알림 거절/오류 안내 -->
+    <string name="s34_subtitle">권한이 없거나 제한된 경우 사용자가 해결 방법을 이해하도록 돕습니다.</string>
     <string name="s34_on_title">알림이 켜져 있어요</string>
     <string name="s34_on_body">복약 시각에 기기 알림이 전달돼요. 알림이 오지 않으면 아래 설정을 확인하세요.</string>
     <string name="s34_allow">권한 허용</string>
@@ -212,9 +217,10 @@
     <string name="s34_step1">앱 알림 허용</string>
     <string name="s34_step2">필요한 경우 정확 알림 설정 확인</string>
     <string name="s34_step3">배터리 제한·절전 설정 확인</string>
+    <string name="s34_notice">ⓘ 버튼과 번호를 누르면 Android의 해당 설정 화면이 열립니다. 설정을 바꾸고 돌아오면 상태를 다시 확인합니다.</string>
 
     <!-- S35 시간대 변경 정책 -->
-    <string name="s35_subtitle">해외로 이동했을 때 알림을 어느 시간 기준으로 울릴지 정합니다.</string>
+    <string name="s35_subtitle">해외 이동할 때 알림의 기준 시간을 어떻게 보일지 설정합니다.</string>
     <string name="s35_card_title">알림 기준 시간</string>
     <string name="s35_card_desc">자동 변경이 아니라 사용자가 정책을 이해하고 선택하는 UI입니다.</string>
     <string name="s35_local_title">기기 현지 시간 기준</string>
@@ -225,7 +231,7 @@
     <string name="s35_save">정책 저장</string>
     <string name="s35_saved">시간대 표시 정책을 저장했습니다.</string>
     <string name="s35_notice_warn">시간대 이동에 따른 실제 복용 시각 변경은 처방 지침 및 의료진 안내에 따릅니다. 앱이 복용 시각을 임의로 바꾸지 않습니다.</string>
-    <string name="s35_notice">기기 현지 시간 기준: 폰의 시간대가 바뀌면 알림도 그곳의 같은 시각(예: 08:00)에 울립니다. 등록한 시간대 기준: 폰의 시간대와 상관없이 등록한 시간대의 08:00에 울리고, 앱의 ‘오늘’과 기한 경과 판단도 그 시간대로 계산합니다.</string>
+    <string name="s35_notice">ⓘ 기기 현지 시간 기준: 폰의 시간대가 바뀌면 알림도 그곳의 같은 시각(예: 08:00)에 울립니다. 등록한 시간대 기준: 폰의 시간대와 상관없이 등록한 시간대의 08:00에 울리고, 앱의 ‘오늘’과 기한 경과 판단도 그 시간대로 계산합니다.</string>
 
     <!-- 통계 -->
     <string name="tab_stats">통계</string>
@@ -238,7 +244,8 @@
     <string name="tab_meds">내 약</string>
     <string name="tab_records">기록</string>
     <string name="common_back_previous">이전 화면</string>
-    <string name="common_cd_open_detail">상세 보기</string>
+    <string name="common_detail">상세 ›</string>
+    <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
     <string name="common_na">N/A</string>
     <string name="common_percent">%1$d%%</string>
     <string name="common_date_full">%1$d월 %2$d일 %3$s요일</string>
@@ -264,9 +271,11 @@
     <string name="s18_link_denied">알림 권한 거절 시 안내 ›</string>
 
     <!-- ===== S04 홈 대시보드 ===== -->
-    <string name="s04_greeting">안녕하세요, %1$s님</string>
-    <string name="s04_rate_label">선택한 날짜에 복용한 횟수</string>
-    <string name="s04_hero_count">%1$d / %2$d회</string>
+    <string name="s04_greeting">안녕하세요, %1$s님 👋</string>
+    <string name="s04_brand">MEDICHECK</string>
+    <string name="s04_hero_title">오늘도 잊지 않고\n건강한 하루를 🌿</string>
+    <string name="s04_rate_label">선택한 날짜 복약 완료율</string>
+    <string name="s04_rate_count">%1$d/%2$d회 복용 완료</string>
     <string name="s04_section_calendar">복약 캘린더</string>
     <string name="s04_link_schedule">일정 전체보기 ›</string>
     <string name="s04_empty_title">복용 일정이 없어요</string>
@@ -281,6 +290,7 @@
     <string name="s04_toast_undo">실행취소</string>
 
     <!-- ===== S05 일정/캘린더 ===== -->
+    <string name="s05_subtitle">시간순으로 정리된 복용 계획을 확인하세요.</string>
     <string name="s05_btn_prev">‹ 전날</string>
     <string name="s05_btn_next">다음날 ›</string>
     <string name="s05_cd_date_field">날짜 선택</string>
@@ -312,6 +322,7 @@
     <string name="s10_row_actual_desc">예정 시각과 실제 시각 구분</string>
     <string name="s10_row_history_title">상태 변경 이력</string>
     <string name="s10_row_history_desc">기록 정정 사항 확인</string>
+    <string name="s10_mark_should">Should</string>
     <string name="s10_btn_undo">마지막 변경 실행취소</string>
     <string name="s10_no_memo">등록된 복용 메모가 없습니다.</string>
     <string name="s10_empty_title">복용 회차가 없어요</string>
@@ -336,6 +347,7 @@
     <string name="s31_label">실제 복용 시각 *</string>
     <string name="s31_btn_save">시각 저장 및 복용 완료 기록</string>
     <!-- 프로토타입 원문("브라우저 내 데모 데이터만 변경합니다…")은 실제 앱에서 사실이 아니라 바꿨다 -->
+    <string name="s31_notice">ⓘ 이 기기에 저장된 복용 기록만 변경합니다. 서버나 의료 정보 서비스로 전송되지 않습니다.</string>
     <string name="s31_empty_subtitle">복용 회차를 먼저 선택해주세요.</string>
     <string name="s31_empty_title">회차가 없어요</string>
     <string name="s31_empty_body">약을 등록하면 입력할 수 있어요.</string>
@@ -353,16 +365,21 @@
     <string name="med_status_active">복용 중</string>
     <string name="med_status_paused">일시중지</string>
     <string name="med_status_ended">종료</string>
-    <string name="extra_notice_future">아직 제공하지 않는 기능의 미리보기입니다. 여기서 입력하거나 고른 내용은 저장되지 않습니다.</string>
+    <string name="mark_could">Could</string>
+    <string name="mark_must">Must</string>
+    <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
 
     <!-- ===== S06 내 약 목록 ===== -->
+    <string name="s06_subtitle">등록한 약 정보를 관리하세요.</string>
     <string name="s06_search_hint">약 이름으로 검색</string>
     <string name="s06_btn_add">＋ 추가</string>
+    <string name="s06_cd_detail">%1$s 상세</string>
     <string name="s06_empty_title">해당 약이 없어요</string>
     <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
     <string name="s06_empty_action">약 추가하기</string>
+    <string name="s06_notice">약 등록·수정·삭제는 날짜별 일정과 연결됩니다.</string>
     <!-- 샘플 계정일 때만 위 문장 뒤에 붙인다 -->
-    <string name="s06_notice_sample">샘플 계정의 예시 데이터입니다.</string>
+    <string name="s06_notice_sample">이 화면의 데이터는 시연용입니다.</string>
 
     <!-- ===== S07 약 상세 ===== -->
     <string name="s07_back">내 약 관리</string>
@@ -376,12 +393,13 @@
     <string name="s07_no_memo">없음</string>
     <string name="s07_pause_title">일시중지</string>
     <string name="s07_pause_body">재개 전까지 오늘 이후 일정을 숨겨요.</string>
-    <string name="s07_btn_edit">약 수정</string>
+    <string name="s07_btn_edit">✎ 약 수정</string>
     <string name="s07_btn_delete">삭제</string>
     <string name="s07_row_source_title">처방 출처 메모</string>
     <string name="s07_row_source_desc">의료기관·진료과</string>
     <string name="s07_row_archive_title">과거 기록 보존</string>
     <string name="s07_row_archive_desc">복용 이력 아카이브</string>
+    <string name="s07_notice">일정을 수정하면 적용 범위 선택 화면으로 이동합니다. 과거 기록은 별도 스냅샷으로 보존합니다.</string>
     <string name="s07_empty_body">약 목록에서 다시 선택해주세요.</string>
     <string name="s07_empty_action">목록 보기</string>
 
@@ -389,6 +407,7 @@
     <string name="s08_back">약 관리로 돌아가기</string>
     <string name="s08_title_new">새 약 등록</string>
     <string name="s08_title_edit">약 정보 수정</string>
+    <string name="s08_subtitle">복용 정보와 일정을 설정하세요.</string>
     <string name="s08_link_photo">사진으로 등록 (준비 중)</string>
     <string name="s08_label_name">약 이름 *</string>
     <string name="s08_hint_name">예: 비타민 C</string>
@@ -423,6 +442,7 @@
     <string name="s09_toast_deleted">약을 삭제했어요.</string>
 
     <!-- ===== S29 사진으로 약 등록 (시안) ===== -->
+    <string name="s29_subtitle">약 봉투·라벨 사진에서 정보를 추출하는 미래 기능입니다.</string>
     <string name="s29_upload_title">약 봉투 사진 추가</string>
     <string name="s29_upload_body">이미지를 선택해 업로드 과정을 구상할 수 있습니다.</string>
     <string name="s29_file_none">선택한 파일 없음</string>
@@ -434,16 +454,16 @@
     <string name="s29_toast_picked">이미지를 선택했습니다. 실제 문자 추출 기능은 없습니다.</string>
 
     <!-- ===== S32 과거 기록 보존 ===== -->
-    <string name="s32_subtitle">약을 수정하거나 삭제한 뒤에도 지난 복용 기록은 그대로 남습니다.</string>
+    <string name="s32_subtitle">약 수정·삭제 후에도 과거 회차는 별도 스냅샷으로 남습니다.</string>
     <string name="s32_count_label">보존된 과거 복용 회차</string>
     <string name="s32_count">%1$d건</string>
-    <string name="s32_badge_sample">예시 데이터</string>
+    <string name="s32_badge_sample">시연 데이터</string>
     <string name="s32_section_dates">보존된 날짜</string>
     <string name="s32_day_count">과거 회차 %1$d개</string>
     <string name="s32_empty_title">보존된 기록이 없습니다</string>
     <string name="s32_empty_body">약 복용 이력이 생성되면 표시됩니다.</string>
     <!-- 프로토타입 원문의 둘째 문장("실제 Android에서는 … 테스트해야 합니다.")은 이 앱이 실제 앱이라 사실에 맞게 바꿨다 -->
-    <string name="s32_notice">약을 수정·삭제해도 지난 날짜의 기록과 이미 응답한 기록은 그때의 약 이름·복용량·시각 그대로 남습니다.</string>
+    <string name="s32_notice">이미 기록된 과거 회차의 약 이름·복용량·예약 시각을 기준 시점별로 보존하는 설계입니다. 약을 수정·삭제해도 지난 날짜의 기록과 이미 응답한 기록은 그때의 약 이름·복용량·시각 그대로 남습니다.</string>
 
     <!-- ===== S33 일정 변경 적용 범위 ===== -->
     <string name="s33_subtitle">이전 복약 기록은 보존하고 이후 일정을 변경합니다.</string>
@@ -455,9 +475,11 @@
     <string name="s33_scope_tomorrow_desc">오늘 일정은 이전 설정 유지</string>
     <string name="s33_btn_save">적용 범위 확인 후 저장</string>
     <!-- 프로토타입 원문("브라우저 내 데모 데이터만 변경합니다…")은 실제 앱에서 사실이 아니라 바꿨다 -->
+    <string name="s33_notice">ⓘ 이 기기 안의 데이터만 변경합니다. 서버·의료 정보 서비스와 연결되지 않습니다.</string>
     <string name="s33_toast_saved">일정 변경을 저장했습니다. (과거 이력 보존)</string>
 
     <!-- ===== S40 중복 약·회차 확인 ===== -->
+    <string name="s40_subtitle">실수로 같은 약이나 같은 시간에 회차가 중복되지 않도록 확인합니다.</string>
     <string name="s40_heading">중복 가능성이 있어요</string>
     <!-- "등록하려는 {이름}과 이름이 같은 약이 N개 있어요." (이름만 굵게 그리려고 앞뒤로 나눠 두었다) -->
     <string name="s40_body_head">"등록하려는 "</string>
@@ -470,6 +492,7 @@
 
     <!-- ===== S42 처방 출처·진료과 ===== -->
     <string name="s42_subtitle">어느 병원에서 받은 약인지 개인 메모를 남길 수 있어요.</string>
+    <string name="s42_badge_optional">선택 기능</string>
     <string name="s42_label_hospital">의료기관</string>
     <string name="s42_hint_hospital">예: ○○병원</string>
     <string name="s42_label_department">진료과</string>
@@ -490,8 +513,10 @@
     <string name="stats_tab_week">주간</string>
     <string name="stats_tab_month">월간</string>
     <string name="stats_tab_pattern">누락 분석</string>
+    <string name="stats_badge_extra">추가 기능</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
+    <string name="s11_subtitle">지난 복용 내역을 날짜별로 확인하세요.</string>
     <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미기록 %3$d</string>
     <string name="s11_btn_open">기록 보기 ›</string>
     <string name="s11_notice">달력 점은 해당 날짜에 등록된 복용 일정이 있음을 뜻합니다.</string>
@@ -506,6 +531,7 @@
     <string name="s12_empty_body">해당 날짜에 예정된 복용 일정이 없습니다.</string>
 
     <!-- ===== S13 주간 통계 ===== -->
+    <string name="s13_subtitle">기록을 바탕으로 복약 습관을 확인하세요.</string>
     <string name="s13_rate_label">최근 7일 복약 완료율</string>
     <string name="s13_section_daily">요일별 완료율</string>
     <string name="s13_cd_bar">%1$s %2$s</string>
@@ -513,6 +539,7 @@
     <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 기한 경과 미기록은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
 
     <!-- ===== S14 월간 통계 ===== -->
+    <string name="s14_subtitle">한 달 단위로 복약 흐름을 확인하세요.</string>
     <string name="s14_rate_label">월간 완료율</string>
     <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미기록 %3$d회</string>
     <string name="s14_section_daily">일자별 복약 완료율</string>
@@ -521,6 +548,7 @@
     <string name="s14_cd_bar">%1$s: %2$s</string>
 
     <!-- ===== S15 건너뜀 패턴 ===== -->
+    <string name="s15_subtitle">최근 30일간 명시적으로 건너뛴 기록만 집계합니다.</string>
     <string name="s15_total_label">최근 30일 건너뜀 횟수</string>
     <string name="s15_unit">회</string>
     <string name="s15_section_periods">시간대별 분포</string>
@@ -543,6 +571,7 @@
     <string name="s43_toast_failed">파일을 저장하지 못했습니다. 다시 시도해주세요.</string>
 
     <!-- ===== S19 설정 허브 ===== -->
+    <string name="s19_subtitle">앱과 계정을 관리합니다.</string>
     <string name="s19_name">%1$s님</string>
     <string name="s19_edit">수정 ›</string>
     <string name="s19_cd_edit">프로필 수정</string>
@@ -554,10 +583,9 @@
     <string name="s19_row_policy_title">복약률 계산 정책</string>
     <string name="s19_row_policy_desc">미기록/건너뜀 기준</string>
     <!-- 프로토타입 원문 "도움말·프로토타입": 실제 앱은 프로토타입이 아니라서 S22 본문 제목과 같은 말로 바꿨다 -->
-    <string name="s19_row_help_title">도움말</string>
-    <string name="s19_row_help_desc">사용 순서와 앱 소개</string>
+    <string name="s19_row_help_title">도움말·구현 범위</string>
+    <string name="s19_row_help_desc">사용법 및 기능 범위</string>
     <string name="s19_section_safety">안전·편의 기능</string>
-    <string name="s19_section_project">프로젝트 정보</string>
     <string name="s19_row_a11y_title">접근성·글자 크기</string>
     <string name="s19_row_a11y_desc" formatted="false">200% 글꼴·높은 대비</string>
     <string name="s19_row_privacy_title">개인정보 센터</string>
@@ -568,10 +596,10 @@
     <string name="s19_row_archive_title">과거 기록 보존</string>
     <string name="s19_row_archive_desc">삭제 이후 과거 기록</string>
     <string name="s19_row_reqmap_title">전체 기능 목록</string>
-    <string name="s19_row_reqmap_desc">요구사항 107개와 화면 연결</string>
+    <string name="s19_row_reqmap_desc">107개 MoSCoW 요구사항</string>
     <!-- 프로토타입에는 S23으로 들어가는 길이 없어서 더한 줄 -->
     <string name="s19_row_family_title">가족·보호자 (준비 중)</string>
-    <string name="s19_row_family_desc">가족 프로필 기능 미리보기</string>
+    <string name="s19_row_family_desc">보호할 가족의 프로필 전환 시안</string>
 
     <!-- ===== S20 통계 계산 정책 ===== -->
     <string name="s20_back">설정</string>
@@ -588,8 +616,10 @@
     <string name="s20_formula">완료율 = 완료 횟수 ÷ 예정 시각이 된 횟수 × 100</string>
     <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 기한 경과 미기록까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
     <!-- 프로토타입 원문은 "…미확정으로 명시되어 있습니다."(주황). 지금은 정해졌으므로 바꿨다 -->
+    <string name="s20_notice">계획서 7장에서 미확정이던 ‘미복용과 명시적 건너뜀 구분’과 ‘복약률 계산 기준’을 위와 같이 정했습니다.</string>
 
     <!-- ===== S21 프로필 관리 ===== -->
+    <string name="s21_subtitle">사용자 정보를 관리하세요.</string>
     <string name="s21_label_name">표시 이름</string>
     <string name="s21_save">프로필 저장</string>
     <!-- 프로토타입 원문 "실제 사용자 인증 및 계정 정보 변경은 인증 기술을 결정한 뒤 연결해야 합니다.": 실제로 바뀌므로 고쳤다 -->
@@ -599,7 +629,8 @@
 
     <!-- ===== S22 도움말·범위 ===== -->
     <!-- 프로토타입 원문 "데모를 활용하는 방법을 안내합니다." -->
-    <string name="s22_section_flow">처음이라면 이 순서로</string>
+    <string name="s22_subtitle">앱을 활용하는 방법을 안내합니다.</string>
+    <string name="s22_section_flow">추천 시연 흐름</string>
     <string name="s22_step1_title">약 등록</string>
     <string name="s22_step1_desc">이름·용량·시간·요일을 저장</string>
     <string name="s22_step2_title">일정 확인</string>
@@ -612,24 +643,24 @@
     <string name="s22_step5_desc">알림 카드에서 복용 상세로 이동</string>
     <string name="s22_cd_step">%1$d단계</string>
     <!-- 프로토타입 원문 "시연과 실서비스의 차이" + "모바일 알림은 실제 전송되지 않습니다 …": 실제 앱과 반대라 고쳤다 -->
-    <string name="s22_section_scope">이 앱에 대해</string>
-    <string name="s22_scope_notice">MediCheck는 계정과 복약 기록을 서버 없이 이 기기 안에만 저장합니다. 복약 알림은 정해진 시각에 휴대폰 알림으로 울리고, 인터넷이 없어도 모든 기능을 쓸 수 있습니다. 가족·보호자 공유와 사진으로 약 등록은 아직 제공하지 않으며, 복용량을 추천하거나 바꿔 주지 않습니다.</string>
+    <string name="s22_section_scope">이 앱의 구현 범위</string>
+    <string name="s22_scope_notice">MediCheck는 서버 없이 이 기기 안(Room 데이터베이스)에만 계정과 복약 기록을 저장합니다. 복약 알림은 정해진 시각에 Android 알림으로 실제로 울리고, 인터넷 없이도 모든 기능이 동작합니다. 가족·보호자 공유와 사진으로 약 등록은 화면 시안만 있고, 복용량 자동 추천은 제공하지 않습니다.</string>
     <string name="s22_tech_title">개발 기술</string>
     <!-- 프로토타입 목록에서 쓰지 않는 WorkManager만 뺐다 -->
     <string name="s22_tech_list">Kotlin · Jetpack Compose · Room · AlarmManager · Android Studio · GitHub</string>
     <string name="s22_section_related">관련 화면</string>
-    <string name="s22_row_errors_desc">빈 화면·입력 오류·오프라인 안내 예시</string>
-    <string name="s22_row_safety_desc">이 앱이 하지 않는 일</string>
+    <string name="s22_row_errors_desc">오류·무결성 오류·빈 상태 패턴</string>
+    <string name="s22_row_safety_desc">자동 복용량 추천 제외 및 구현 경계</string>
 
     <!-- ===== 가족·보호자 시안 (S23~S27) — 이번 릴리스에서 만들지 않는 기능의 모양만 보여 준다. 문구는 프로토타입 그대로 ===== -->
-    <string name="common_toast_concept">아직 제공하지 않는 기능입니다.</string>
+    <string name="common_toast_concept">이번 릴리스에서 제외된 기능 시안입니다.</string>
 
     <string name="s23_desc">가족 구성원별 복약 관리를 구상하는 확장 시안입니다.</string>
     <string name="s23_me_name">나 · 기본 계정</string>
     <string name="s23_me_sub">내 복약 데이터</string>
     <string name="s23_me_badge">현재 사용자</string>
     <string name="s23_child_name">자녀 · 예시 프로필</string>
-    <string name="s23_child_sub">계정 연결은 준비 중</string>
+    <string name="s23_child_sub">권한·계정 연동 미구현</string>
     <string name="s23_child_badge">시안</string>
     <string name="s23_btn_add">＋ 가족 구성원 추가 (미지원)</string>
     <string name="s23_section_related">관련 화면</string>
@@ -692,6 +723,7 @@
     <string name="common_toast_prelogin_screen">로그아웃한 뒤에 볼 수 있는 화면입니다.</string>
 
     <!-- ===== S45 기능별 요구사항 맵 ===== -->
+    <string name="s45_desc">요구사항 107개를 화면·우선순위·구현 범위와 연결했습니다.</string>
     <string name="s45_search_hint">기능 ID / 이름으로 검색</string>
     <string name="s45_tier_all">전체 우선순위</string>
     <string name="s45_count">%1$d개 기능</string>
@@ -702,6 +734,7 @@
     <string name="s45_notice">\'구현\' 관련 요구사항(예: Room, AlarmManager, GitHub, APK)은 UI 설계만으로 충족되지 않습니다. 해당 항목은 수업 구현·테스트 증빙이 필요합니다.</string>
 
     <!-- ===== S46 안전·개발 범위 ===== -->
+    <string name="s46_desc">모든 가능한 요구사항 중 이번 릴리스에서 제외해야 하는 기능을 명시합니다.</string>
     <string name="s46_kicker">이번 릴리스의 Won’t 항목</string>
     <string name="s46_no_ui">해당 UI 없음</string>
     <!-- 첫 문장만 굵게 그리려고 HTML 조각으로 적었다. CDATA 안의 글자는 그대로 전해진다 -->
@@ -711,6 +744,7 @@
     <!-- ===== S28 데이터 백업·복원 =====
          프로토타입 문구의 '데모'·'시연'·'시안'은 실제 앱에서 사실이 아니라 뺐다. 원문은 줄마다 주석으로 남긴다. -->
     <!-- 원문: 기기 변경을 대비한 데이터 관리 UI 시안입니다. -->
+    <string name="s28_subtitle">기기 변경을 대비한 데이터 관리 기능입니다.</string>
     <!-- 원문: 현재 데모 데이터 -->
     <string name="s28_current">현재 데이터</string>
     <string name="s28_counts">약 %1$d개 · 복용 기록 %2$d개</string>
@@ -739,7 +773,7 @@
     <string name="s28_toast_restore_failed">복원하지 못했습니다. 다시 시도해주세요.</string>
 
     <!-- ===== S36 개인정보 센터 ===== -->
-    <string name="s36_subtitle">복약 내역이 다른 사람에게 보이는 범위를 정합니다.</string>
+    <string name="s36_subtitle">복약 내역이 다른 사람에게 보이는 범위를 관리합니다.</string>
     <string name="s36_hide_name_title">잠금 화면에 약 이름 숨김</string>
     <string name="s36_hide_name_desc">약 이름 대신 일반 알림 문구 표시</string>
     <string name="s36_hide_stats_title">통계 미리보기 숨김</string>
@@ -753,10 +787,12 @@
     <string name="s36_row_export_desc">CSV 파일 다운로드</string>
     <string name="s36_row_delete_title">계정·데이터 삭제</string>
     <string name="s36_row_delete_desc">데이터 처리 범위 확인</string>
+    <string name="s36_mark_extra">추가</string>
     <!-- 프로토타입 원문 "ⓘ 브라우저 내 데모 데이터만 변경합니다. …": 스위치가 실제 알림과 최근 앱 미리보기를 바꾸므로 고쳤다 -->
-    <string name="s36_notice">모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
+    <string name="s36_notice">ⓘ 모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
 
     <!-- ===== S37 접근성 설정 ===== -->
+    <string name="s37_subtitle">약 이름과 복용 상태를 누구나 쉽게 구분할 수 있도록 설정합니다.</string>
     <string name="s37_preview_title">글자 확대 미리보기</string>
     <!-- 프로토타입 원문 "Android 시스템 글꼴 확대와 함께 검증해야 해요."는 개발 메모라 실제 규칙으로 바꿨다 -->
     <string name="s37_preview_desc" formatted="false">Android 시스템 글꼴 크기에 곱해져 적용되고, 합쳐서 200%를 넘지 않아요.</string>
@@ -772,6 +808,7 @@
     <string name="s37_notice">글자 크기와 높은 대비는 모든 화면의 본문에 바로 적용되고, 이 기기의 모든 계정에 함께 적용돼요. TalkBack(화면 읽어 주기)과 기기 글꼴 크기는 Android 설정의 접근성에서 바꿀 수 있어요.</string>
 
     <!-- ===== S38 오프라인 상태 ===== -->
+    <string name="s38_subtitle">연결이 불안정해도 중요한 복약 흐름은 유지되어야 합니다.</string>
     <!-- 프로토타입은 "네트워크 상태 시뮬레이션" 스위치였다. 앱은 스위치 없이 실제 연결 상태를 보여 준다 -->
     <string name="s38_status_title">네트워크 상태</string>
     <string name="s38_status_online">연결된 상태</string>
@@ -790,6 +827,7 @@
     <string name="s38_row_verify_desc">Room DB 및 알림 동작은 Android에서 검증</string>
 
     <!-- ===== S39 빈 화면·오류 상태 ===== -->
+    <string name="s39_subtitle">정상 경로만큼 예외 상황 안내도 중요합니다.</string>
     <string name="s39_card_title">상태별 UX 패턴</string>
     <string name="s39_tab_empty">빈 상태</string>
     <string name="s39_tab_input">입력 오류</string>
@@ -803,11 +841,13 @@
     <string name="s39_offline_title">인터넷 연결 없음</string>
     <string name="s39_offline_body">저장된 일정을 계속 이용할 수 있어요.</string>
     <string name="s39_offline_action">일정 확인</string>
+    <string name="s39_notice">안내 문구에는 원인과 다음 행동을 포함하고, 오류를 색상만으로 표시하지 않도록 합니다.</string>
 
     <!-- ===== S41 앱 잠금 설정 + 잠금 화면 =====
          프로토타입은 값만 저장하는 시안이었다. 앱은 실제로 잠그므로 '시안'·'(Android 구현 필요)'·'시연 UI' 문구를 뺐다. -->
     <string name="s41_title">앱 잠금</string>
     <!-- 원문: 복약 정보 보호를 위한 추가 잠금 시안입니다. -->
+    <string name="s41_subtitle">복약 정보 보호를 위한 추가 잠금입니다.</string>
     <!-- 원문: 앱 재진입 시 인증 수단 요청 (시안) -->
     <string name="s41_switch_desc">앱 재진입 시 인증 수단 요청</string>
     <string name="s41_method_label">잠금 방식</string>
@@ -816,7 +856,7 @@
     <string name="s41_method_pin">기기 PIN/화면 잠금</string>
     <string name="s41_method_fallback">이 기기에서는 기기 PIN/화면 잠금으로 확인합니다.</string>
     <!-- 원문: ⓘ 실제 기기 기능이 아닌 시연 UI입니다. Android 네이티브 구현과 권한 검증이 필요합니다. -->
-    <string name="s41_notice">앱을 다시 열 때 기기 화면 잠금(PIN·패턴·비밀번호)이나 생체인증으로 본인을 확인합니다. 기기에 화면 잠금이 설정되어 있어야 켤 수 있습니다. 앱 잠금을 켜면 최근 앱 목록의 화면 미리보기도 가려집니다.</string>
+    <string name="s41_notice">ⓘ 앱을 다시 열 때 기기 화면 잠금(PIN·패턴·비밀번호)이나 생체인증으로 본인을 확인합니다. 기기에 화면 잠금이 설정되어 있어야 켤 수 있습니다. 앱 잠금을 켜면 최근 앱 목록의 화면 미리보기도 가려집니다.</string>
     <string name="s41_toast_no_device_lock">기기에 화면 잠금(PIN·패턴·비밀번호)을 먼저 설정해주세요.</string>
     <string name="s41_toast_not_verified">본인 확인을 마치지 않아 앱 잠금을 켜지 않았어요.</string>
     <string name="s41_toast_auto_off">기기 화면 잠금이 없어 앱 잠금을 껐어요.</string>
@@ -827,6 +867,7 @@
     <string name="lock_prompt_enable_subtitle">앱 잠금을 켜려면 본인 확인이 필요해요.</string>
 
     <!-- ===== S44 계정·데이터 삭제 ===== -->
+    <string name="s44_subtitle">삭제 대상과 복구 가능 여부를 명확하게 표시합니다.</string>
     <string name="s44_card_title">삭제 전 확인</string>
     <!-- 프로토타입 원문 "이 브라우저의 데모 데이터(…)가 초기화됩니다. … 실제 회원 탈퇴가 아닙니다.": 앱은 실제로 계정을 지우므로 고쳤다.
          삭제 범위는 지금 계정만이다 (DB_DESIGN ⑧-3) -->

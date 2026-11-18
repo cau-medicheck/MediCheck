@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseKey
@@ -17,9 +19,9 @@ import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.RowChevron
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
@@ -42,6 +44,7 @@ fun S16NotificationCenterScreen(
     onOpenPermissions: () -> Unit
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s16)) {
+        ScreenIntro(stringResource(R.string.s16_subtitle), Modifier.padding(bottom = 16.dp))
 
         // 안내 상자: 위에서부터 처음 맞는 하나
         when {
@@ -67,13 +70,21 @@ fun S16NotificationCenterScreen(
                     state.items.forEachIndexed { index, dose ->
                         val date = fullDateText(dose.date)
                         val time = timeText(dose.time)
+                        // 같은 글자("열기 ›") 버튼이 여러 개라서, TalkBack에는 어느 회차인지 넣어 읽어 준다.
+                        val spoken = stringResource(R.string.s16_cd_open, dose.medicationName, date, time)
                         ListRow(
                             // "♧"는 장식이라 TalkBack이 읽지 않게 한다.
                             leading = { Avatar(Glyph.HEADER_BELL, Modifier.clearAndSetSemantics { }) },
-                            trailing = { RowChevron() },
-                            showDivider = index != state.items.lastIndex,
-                            onClick = { onOpenDose(dose.key) },
-                            onClickLabel = stringResource(R.string.common_cd_open_detail)
+                            trailing = {
+                                McButton(
+                                    text = stringResource(R.string.s16_open),
+                                    onClick = { onOpenDose(dose.key) },
+                                    kind = ButtonKind.LIGHT,
+                                    small = true,
+                                    modifier = Modifier.semantics { contentDescription = spoken }
+                                )
+                            },
+                            showDivider = index != state.items.lastIndex
                         ) {
                             RowTitle(stringResource(R.string.s16_row_title, dose.medicationName))
                             RowSub(stringResource(R.string.s16_row_sub, date, time, dose.dosage))

@@ -1,7 +1,5 @@
 package com.cau.medicheck.ui.screens.settings
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,25 +8,25 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SegmentedTabs
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Navy
 
-/** 탭 하나에 딸린 예시: 탭 이름, 아이콘, 제목, 설명, 버튼 글자 */
+/** 탭 하나에 딸린 예시: 탭 이름, 그림 글자, 제목, 설명, 버튼 글자 */
 private data class StateExample(
     val tabRes: Int,
-    val symbol: ImageVector,
+    val symbol: String,
     val titleRes: Int,
     val bodyRes: Int,
     val actionRes: Int
@@ -66,7 +64,7 @@ fun S39ErrorStatesScreen(onBack: () -> Unit, onAddMedication: () -> Unit, onOpen
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s39)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenIntro(stringResource(R.string.s39_subtitle), Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             Text(stringResource(R.string.s39_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
@@ -86,5 +84,6 @@ fun S39ErrorStatesScreen(onBack: () -> Unit, onAddMedication: () -> Unit, onOpen
             )
         }
 
+        Notice(stringResource(R.string.s39_notice), Modifier.padding(top = Gap16))
     }
 }

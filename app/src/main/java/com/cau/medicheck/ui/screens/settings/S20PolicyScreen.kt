@@ -14,6 +14,7 @@ import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.Kicker
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SettingRow
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -88,5 +89,6 @@ fun S20PolicyScreen(onBack: () -> Unit) {
             )
         }
 
+        Notice(stringResource(R.string.s20_notice), Modifier.padding(top = Gap16))
     }
 }

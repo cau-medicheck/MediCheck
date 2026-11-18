@@ -46,7 +46,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -149,8 +148,8 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
 }
 
 /**
- * 화면 맨 위의 설명 한 줄. 화면 이름은 머리말에 있으므로, 본문은 이 화면에서 알아야 할 것만 짧게 적는다.
- * 설명이 필요 없는 화면은 이 부품을 쓰지 않는다.
+ * 화면 맨 위의 설명 한 줄. 화면 이름은 머리말에 있으므로 본문에는 큰 제목을 다시 쓰지 않는다.
+ * (로그인 전 화면과 약 등록 화면만 ScreenTitle로 큰 제목을 그린다)
  */
 @Composable
 fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
@@ -160,7 +159,7 @@ fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(top = 28.dp, bottom = 12.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(top = 19.dp, bottom = 11.dp)) {
         Text(
             text = text,
             fontSize = 15.sp,
@@ -230,7 +229,7 @@ fun LinkText(
 @Composable
 fun SurfaceCard(
     modifier: Modifier = Modifier,
-    padding: Dp = 18.dp,
+    padding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
@@ -298,12 +297,9 @@ fun Notice(text: AnnotatedString, modifier: Modifier = Modifier, warn: Boolean =
     )
 }
 
-/**
- * 둥근 네모 상자 안에 아이콘 하나를 넣은 것. 목록 줄의 왼쪽 아이콘으로 쓴다. 아이콘은 장식이라 읽지 않는다.
- * @param fontSize 아이콘 크기(sp). 글자 배율을 따라 함께 커진다
- */
+/** 둥근 네모 상자 안에 기호 하나를 넣은 것. 목록 줄의 왼쪽 아이콘으로 쓴다. 기호는 장식이라 읽지 않는다. */
 @Composable
-fun Avatar(symbol: ImageVector, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
+fun Avatar(symbol: String, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -312,22 +308,7 @@ fun Avatar(symbol: ImageVector, modifier: Modifier = Modifier, size: Dp = 43.dp,
             .background(AvatarBg)
             .clearAndSetSemantics { }
     ) {
-        McIcon(symbol, size = fontSize, tint = AvatarText)
-    }
-}
-
-/** 같은 상자에 아이콘 대신 번호("1", "2")를 넣은 것. 순서가 있는 목록에 쓴다. 읽을 이름은 부르는 쪽이 붙인다. */
-@Composable
-fun Avatar(number: String, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(size)
-            .clip(RoundedCornerShape(14.dp))
-            .background(AvatarBg)
-            .clearAndSetSemantics { }
-    ) {
-        Text(text = number, fontSize = fontSize.sp, fontWeight = FontWeight.Black, color = AvatarText)
+        GlyphText(symbol, fontSize = fontSize, fontWeight = FontWeight.Black, color = AvatarText)
     }
 }
 
@@ -351,10 +332,10 @@ fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
     }
 }
 
-/** 내용이 없을 때 보여 주는 안내: 아이콘 + 제목 + 설명 + (선택) 버튼 */
+/** 내용이 없을 때 보여 주는 안내: 그림 글자 + 제목 + 설명 + (선택) 버튼 */
 @Composable
 fun EmptyState(
-    emoji: ImageVector,
+    emoji: String,
     title: String,
     body: String,
     modifier: Modifier = Modifier,
@@ -367,7 +348,8 @@ fun EmptyState(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 30.dp)
     ) {
-        McIcon(emoji, size = 35, tint = Faint)
+        // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
+        GlyphText(emoji, fontSize = 35, modifier = Modifier.clearAndSetSemantics { })
         Spacer(Modifier.height(13.dp))
         Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
@@ -646,14 +628,10 @@ fun ListRow(
     trailing: (@Composable () -> Unit)? = null,
     showDivider: Boolean = true,
     onClick: (() -> Unit)? = null,
-    /** TalkBack이 "두 번 탭하면 …"에 넣어 읽을 말 (예: "상세 보기") */
-    onClickLabel: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(
-        modifier = if (onClick != null) modifier.clickable(onClickLabel = onClickLabel, onClick = onClick) else modifier
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 16.dp)) {
+    Column(modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
             if (leading != null) {
                 leading()
                 Spacer(Modifier.width(10.dp))
@@ -666,12 +644,6 @@ fun ListRow(
         }
         if (showDivider) HorizontalDivider(thickness = 1.dp, color = RowDivider)
     }
-}
-
-/** 줄을 누르면 다음 화면으로 간다는 표시 "›". 장식이라 TalkBack이 읽지 않는다. */
-@Composable
-fun RowChevron() {
-    Text("›", fontSize = 18.sp, color = Faint, modifier = Modifier.clearAndSetSemantics { })
 }
 
 /** 목록 줄의 제목 글자. 약 이름이 잘리지 않도록 줄 수를 제한하지 않는다(F084). */
@@ -719,10 +691,10 @@ fun LabelValueRow(label: String, value: String, showDivider: Boolean = true) {
 
 /**
  * 청록 그라데이션 둥근 상자 안의 기호. 시작·로그인 화면의 로고. (v3 .auth-logo: 67px, 글자 35px)
- * 아이콘은 뜻이 없는 장식이라 TalkBack이 읽지 않게 한다.
+ * 기호("✚", "✉")는 뜻이 없는 장식이라 TalkBack이 읽지 않게 한다.
  */
 @Composable
-fun AuthLogo(symbol: ImageVector = Glyph.LOGO, modifier: Modifier = Modifier) {
+fun AuthLogo(symbol: String = Glyph.LOGO, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -731,7 +703,7 @@ fun AuthLogo(symbol: ImageVector = Glyph.LOGO, modifier: Modifier = Modifier) {
             .background(Brush.linearGradient(listOf(AuthLogoStart, AuthLogoEnd)))
             .clearAndSetSemantics { }
     ) {
-        McIcon(symbol, size = 40, tint = Color.White)
+        Text(text = symbol, fontSize = 35.sp, color = Color.White)   // v3 .auth-logo는 굵기 지정 없음
     }
 }
 

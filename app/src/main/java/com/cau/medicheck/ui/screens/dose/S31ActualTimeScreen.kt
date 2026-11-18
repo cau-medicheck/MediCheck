@@ -19,6 +19,7 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -82,6 +83,7 @@ fun S31ActualTimeScreen(
             )
         }
 
+        Notice(stringResource(R.string.s31_notice), Modifier.padding(top = 14.dp))
     }
 
     if (showTimePicker) {

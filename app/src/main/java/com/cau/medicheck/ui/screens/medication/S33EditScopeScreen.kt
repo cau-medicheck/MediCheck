@@ -1,8 +1,8 @@
 package com.cau.medicheck.ui.screens.medication
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,6 +15,7 @@ import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RadioRow
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -79,5 +80,6 @@ fun S33EditScopeScreen(
             )
         }
 
+        Notice(stringResource(R.string.s33_notice), Modifier.padding(top = 14.dp))
     }
 }

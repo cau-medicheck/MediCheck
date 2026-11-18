@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -24,6 +25,7 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LabelValueRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
@@ -141,15 +143,18 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
             OptionRow(
                 title = stringResource(R.string.s07_row_source_title),
                 description = stringResource(R.string.s07_row_source_desc),
-                onClick = actions.onOpenSource
+                onClick = actions.onOpenSource,
+                mark = stringResource(R.string.mark_could)
             )
             OptionRow(
                 title = stringResource(R.string.s07_row_archive_title),
                 description = stringResource(R.string.s07_row_archive_desc),
                 onClick = actions.onOpenArchive,
+                mark = stringResource(R.string.mark_must),
                 showDivider = false
             )
         }
     }
 
+    Notice(stringResource(R.string.s07_notice), Modifier.padding(top = 16.dp), warn = true)
 }

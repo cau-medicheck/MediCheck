@@ -46,7 +46,6 @@ const val MAX_FONT_SCALE = 2f
  * - 단, 폰 설정 자체보다 작아지지는 않게 한다(폰에서 이미 크게 쓰는 사람의 글자를 줄이지 않기 위해).
  */
 fun effectiveFontScale(systemScale: Float, percent: Int): Float {
-    // systemScale에는 앱의 기본 배율(BASE_TYPE_SCALE)이 이미 곱해져 들어온다.
     val combined = (systemScale * percent / 100f).coerceAtMost(MAX_FONT_SCALE)
     return maxOf(systemScale, combined)
 }
@@ -94,29 +93,8 @@ fun Modifier.highContrast(on: Boolean): Modifier =
 fun ProvideBodyFontScale(content: @Composable () -> Unit) {
     val base = LocalDensity.current
     val percent = LocalA11ySettings.current.fontScalePercent
-    // 폰의 원래 배율에서 다시 계산한다. 그래서 본문 안에서 부르든, 따로 뜨는 창(메뉴·확인 창) 안에서 부르든 결과가 같다.
-    val scaled = Density(base.density, effectiveFontScale(LocalSystemFontScale.current * BASE_TYPE_SCALE, percent))
+    val scaled = Density(base.density, effectiveFontScale(base.fontScale, percent))
     CompositionLocalProvider(LocalDensity provides scaled, content = content)
-}
-
-/**
- * 앱 전체 글자의 기본 배율. v3 프로토타입의 글자(본문 11~13sp)가 작아서 한 단계 키웠다.
- * 화면마다 적힌 sp 숫자는 그대로 두고, 그리는 순간에 이 배율을 곱한다.
- */
-const val BASE_TYPE_SCALE = 1.12f
-
-/** 폰 설정의 글꼴 배율(앱이 손대기 전 값). 앱 맨 바깥에서 한 번 넣어 준다. */
-val LocalSystemFontScale = staticCompositionLocalOf { 1f }
-
-/** 앱 맨 바깥에서 한 번 부른다: 폰의 글꼴 배율을 기억해 두고, 모든 글자에 기본 배율을 곱한다. */
-@Composable
-fun ProvideAppTypeScale(content: @Composable () -> Unit) {
-    val base = LocalDensity.current
-    CompositionLocalProvider(
-        LocalSystemFontScale provides base.fontScale,
-        LocalDensity provides Density(base.density, base.fontScale * BASE_TYPE_SCALE),
-        content = content
-    )
 }
 
 /**

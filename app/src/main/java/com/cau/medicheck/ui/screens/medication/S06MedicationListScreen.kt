@@ -15,11 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.MedicationStatus
 import com.cau.medicheck.ui.components.Avatar
+import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.Glyph
@@ -29,9 +32,9 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.RowChevron
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
@@ -52,8 +55,10 @@ fun S06MedicationListScreen(
     val focusManager = LocalFocusManager.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s06)) {
+        ScreenIntro(stringResource(R.string.s06_subtitle))
+
         // [약 이름으로 검색........] [＋ 추가]
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
             FormField(
                 value = state.query,
                 onValueChange = onQueryChange,
@@ -87,8 +92,10 @@ fun S06MedicationListScreen(
             }
         }
 
-        // 샘플 계정일 때만 예시 데이터라고 알린다. 내 계정의 데이터는 예시가 아니기 때문이다.
-        if (state.isSample) Notice(stringResource(R.string.s06_notice_sample), Modifier.padding(top = 16.dp))
+        // 둘째 문장("시연용입니다")은 샘플 계정일 때만 붙인다. 내 계정의 데이터는 시연용이 아니기 때문이다.
+        val notice = stringResource(R.string.s06_notice) +
+            if (state.isSample) " " + stringResource(R.string.s06_notice_sample) else ""
+        Notice(notice, Modifier.padding(top = 16.dp))
     }
 }
 
@@ -97,12 +104,19 @@ fun S06MedicationListScreen(
 @Composable
 private fun MedicationRow(row: MedicationRowUi, onOpen: (Long) -> Unit, showDivider: Boolean) {
     val med = row.med
+    val detailName = stringResource(R.string.s06_cd_detail, med.name)
     ListRow(
         leading = { Avatar(Glyph.DOSE) },
-        trailing = { RowChevron() },
-        showDivider = showDivider,
-        onClick = { onOpen(med.id) },
-        onClickLabel = stringResource(R.string.common_cd_open_detail)
+        trailing = {
+            McButton(
+                text = stringResource(R.string.common_detail),
+                onClick = { onOpen(med.id) },
+                kind = ButtonKind.LIGHT,
+                small = true,
+                modifier = Modifier.semantics { contentDescription = detailName }
+            )
+        },
+        showDivider = showDivider
     ) {
         // 이름이 길어 배지가 옆에 안 들어가면 배지가 아래 줄로 내려간다.
         FlowRow(

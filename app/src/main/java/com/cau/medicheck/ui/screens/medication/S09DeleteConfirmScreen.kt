@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -22,12 +23,10 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
-import com.cau.medicheck.ui.theme.WarnText
 
 /**
  * S09 삭제 확인 (v3 deleteConfirm()).
@@ -56,7 +55,7 @@ fun S09DeleteConfirmScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp, vertical = 26.dp)
             ) {
-                McIcon(Glyph.WARNING, size = 40, tint = WarnText)
+                Text(text = Glyph.WARNING, fontSize = 40.sp, modifier = Modifier.clearAndSetSemantics { })
                 Text(
                     text = stringResource(R.string.s09_title),
                     fontSize = 21.sp,
