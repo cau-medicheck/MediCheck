@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
+        (application as MediCheckApplication).container.appLock.onActivityCreated()
         watchRecentsPreview()
         setContent {
             MediCheckTheme {
@@ -75,6 +77,19 @@ class MainActivity : ComponentActivity() {
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+    }
+
+    // 화면이 사라질 때·다시 보일 때를 앱 잠금(S41)에 알린다. 잠금을 켠 계정이면 나갔다 돌아올 때 잠긴다.
+    // SystemClock.elapsedRealtime(): 폰을 켠 뒤 흐른 시간. 사용자가 시계를 바꿔도 영향을 받지 않는다.
+    override fun onStop() {
+        super.onStop()
+        (application as MediCheckApplication).container.appLock
+            .onStop(SystemClock.elapsedRealtime(), isChangingConfigurations)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        (application as MediCheckApplication).container.appLock.onStart(SystemClock.elapsedRealtime())
     }
 
     /** 앱이 이미 떠 있을 때 알림을 누르면 화면을 새로 만들지 않고 여기로 알림 값이 들어온다. */

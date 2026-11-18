@@ -24,6 +24,7 @@ import com.cau.medicheck.domain.AppClock
 import com.cau.medicheck.notification.ReminderNotifier
 import com.cau.medicheck.notification.ReminderScheduler
 import com.cau.medicheck.ui.components.ToastBus
+import com.cau.medicheck.ui.lock.AppLockController
 import com.cau.medicheck.ui.navigation.DeepLinkInbox
 import com.cau.medicheck.ui.navigation.SelectionStore
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +81,14 @@ class AppContainer(context: Context) {
      * 시간대 정책(S35)이 '기기 현지 시간'이면 폰의 지금 시간대, '등록한 시간대'면 가입할 때의 시간대를 쓴다.
      */
     val clock: Clock by lazy { AppClock({ settingsRepository.current.value.zone(ZoneId.systemDefault()) }) }
+
+    /** 앱이 지금 잠겨 있는지 (S41 앱 잠금). 잠금을 켠 계정으로 로그인해 있을 때만 잠근다. */
+    val appLock: AppLockController by lazy {
+        AppLockController(
+            isEnabled = { settingsRepository.current.value.appLockEnabled },
+            isLoggedIn = { sessionStore.getLoggedInUserId() != null }
+        )
+    }
 
     /** 알림을 눌러 들어온 "이 회차를 열어 달라"는 요청을 맡아 두는 상자 */
     val deepLinks: DeepLinkInbox by lazy { DeepLinkInbox() }
@@ -151,6 +160,7 @@ class AppContainer(context: Context) {
                 if (sessionStore.getLoggedInUserId() == null) {
                     reminderNotifier.cancelAll()
                     deepLinks.clear()
+                    appLock.reset()   // 앞 사람의 잠금 상태가 다음 사람에게 남지 않게
                 }
                 // 앞 사람이 보던 날짜·회차가 다음 사람에게 남지 않게 처음 값으로.
                 selection.reset()
