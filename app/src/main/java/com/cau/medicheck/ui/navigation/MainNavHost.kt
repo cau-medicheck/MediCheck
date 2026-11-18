@@ -76,6 +76,7 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
             brand = NavRules.screenIdOf(route) == Routes.S04,   // 홈에서는 화면 이름 대신 앱 로고와 이름
             // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
             onNotifications = { go.openOrReturn(Routes.S16) },
+            onProfile = { go.openOrReturn(Routes.S21) },
             onSettings = { go.openOrReturn(Routes.S19) }
         )
         // weight(1f): 머리말과 하단 탭을 뺀 나머지 높이를 화면이 모두 차지한다.

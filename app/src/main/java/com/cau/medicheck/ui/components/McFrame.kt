@@ -26,9 +26,14 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -50,10 +55,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.navigation.Routes
+import com.cau.medicheck.ui.theme.AvatarBg
+import com.cau.medicheck.ui.theme.AvatarText
 import com.cau.medicheck.ui.theme.BodyBottom
 import com.cau.medicheck.ui.theme.BodyHorizontal
 import com.cau.medicheck.ui.theme.BodyTop
-import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeaderDivider
 import com.cau.medicheck.ui.theme.IconBtnBg
 import com.cau.medicheck.ui.theme.IconBtnText
@@ -117,6 +123,7 @@ fun McTopBar(
     /** true면 화면 이름 대신 앱 로고와 "MediCheck"를 보인다 (홈). 화면 이름은 본문의 큰 제목이 맡는다. */
     brand: Boolean = false,
     onNotifications: () -> Unit = {},
+    onProfile: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth().background(Color.White)) {
@@ -156,26 +163,41 @@ fun McTopBar(
             }
             Spacer(Modifier.width(12.dp))
             if (showActions) {
-                IconSquareButton(
-                    symbol = Glyph.HEADER_BELL,
-                    description = stringResource(R.string.header_cd_notifications),
-                    outlined = true,
-                    onClick = onNotifications
-                )
-                Spacer(Modifier.width(7.dp))
-                IconSquareButton(
-                    symbol = Glyph.HEADER_SETTINGS,
-                    description = stringResource(R.string.header_cd_settings),
-                    outlined = false,
-                    onClick = onSettings
-                )
+                // 종(알림) · 사람(프로필) · 줄 세 개(설정 메뉴). 새 시안(MediCheck4.html)의 머리말 오른쪽과 같은 구성.
+                HeaderAction(stringResource(R.string.header_cd_notifications), onNotifications) {
+                    GlyphText(Glyph.HEADER_BELL, fontSize = 22, color = Navy)
+                }
+                HeaderAction(stringResource(R.string.header_cd_profile), onProfile) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(34.dp).clip(CircleShape).background(AvatarBg)
+                    ) {
+                        Icon(Icons.Outlined.Person, contentDescription = null, tint = AvatarText, modifier = Modifier.size(20.dp))
+                    }
+                }
+                HeaderAction(stringResource(R.string.header_cd_settings), onSettings) {
+                    Icon(Icons.Filled.Menu, contentDescription = null, tint = Navy, modifier = Modifier.size(22.dp))
+                }
             } else {
                 // 버튼이 없을 때도 같은 높이의 빈 자리를 둔다 (로그인 전후의 머리말 높이를 맞춘다).
-                Spacer(Modifier.height(HeaderActionHeight))
+                Spacer(Modifier.height(44.dp))
             }
         }
         HorizontalDivider(thickness = 1.dp, color = HeaderDivider)
     }
+}
+
+/** 머리말 오른쪽의 누르는 자리 하나(44dp). 안의 그림은 장식이고 TalkBack은 description을 읽는다. */
+@Composable
+private fun HeaderAction(description: String, onClick: () -> Unit, content: @Composable () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = description; role = Role.Button }
+    ) { content() }
 }
 
 /**

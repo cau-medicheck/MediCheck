@@ -3,7 +3,9 @@ package com.cau.medicheck.ui.screens.dose
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -36,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -52,6 +55,7 @@ import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
+import com.cau.medicheck.domain.PeriodStats
 import com.cau.medicheck.domain.periodOf
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DateChipStrip
@@ -70,12 +74,15 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.Amber
+import com.cau.medicheck.ui.theme.CardBackground
+import com.cau.medicheck.ui.theme.CardBorder
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeroDeepEnd
 import com.cau.medicheck.ui.theme.HeroDeepStart
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.ProgressTrack
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.TimelineLine
 import java.time.LocalDate
@@ -103,6 +110,8 @@ class HomeActions(
 fun S04HomeScreen(
     displayName: String,
     state: DayDosesUiState,
+    /** 최근 7일 통계 (맨 아래 카드) */
+    weekStats: PeriodStats,
     showNotificationOffCard: Boolean,
     actions: HomeActions
 ) {
@@ -163,29 +172,89 @@ fun S04HomeScreen(
             DateChipStrip(today = state.today, selected = state.date, onSelect = actions.onSelectDay)
         }
 
-        SurfaceCard(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
+        WeekRateCard(weekStats, today = state.today, onOpenStats = actions.onOpenStats, modifier = Modifier.padding(top = 16.dp))
+    }
+}
+
+/**
+ * 홈 맨 아래의 "최근 7일 복약률" 카드: 큰 숫자 + 요일별 막대 일곱 개. (새 시안 MediCheck4.html)
+ * 카드를 누르면 통계 화면으로 간다. 값은 주간 통계 화면(S13)과 같은 계산(StatsCalculator.recentWeek)에서 온다.
+ *
+ * 막대: 옅은 바탕 칸 안에 그날의 완료율만큼 아래에서부터 채운다. 오늘은 진한 청록, 나머지는 옅은 청록.
+ * 계산할 회차가 없는 날(N/A)은 바탕 칸만 보인다.
+ */
+@Composable
+private fun WeekRateCard(stats: PeriodStats, today: LocalDate, onOpenStats: () -> Unit, modifier: Modifier = Modifier) {
+    val rate = stats.total.completionRate
+    val weekdays = stringArrayResource(R.array.common_weekdays)   // "일"…"토"
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(CardBackground)
+            .border(1.dp, CardBorder, shape)
+            .clickable(onClickLabel = stringResource(R.string.s04_report_action), role = Role.Button, onClick = onOpenStats)
+            .padding(18.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.s04_week_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Navy,
+                modifier = Modifier.weight(1f).semantics { heading() }
+            )
+            Text("›", fontSize = 20.sp, color = Muted, modifier = Modifier.clearAndSetSemantics { })
+        }
+        Text(
+            text = buildAnnotatedString {
+                if (rate == null) append(stringResource(R.string.common_na))
+                else {
+                    append(rate.toString())
+                    withStyle(SpanStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)) { append(" %") }
+                }
+            },
+            fontSize = 34.sp,
+            lineHeight = 40.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-1).sp,
+            color = Navy,
+            modifier = Modifier.padding(top = 10.dp, bottom = 14.dp)
+        )
+        // 막대 일곱 개. 요일별 숫자는 통계 화면에서 읽을 수 있으므로 여기서는 그림으로만 둔다.
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth().clearAndSetSemantics { }
+        ) {
+            stats.days.forEach { day ->
+                val isToday = day.date == today
+                val fraction = (day.counts.completionRate ?: 0) / 100f
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        contentAlignment = Alignment.BottomCenter,
+                        modifier = Modifier
+                            .width(26.dp)
+                            .height(58.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(ProgressTrack)
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(fraction.coerceIn(0f, 1f))
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isToday) Teal else Teal.copy(alpha = 0.32f))
+                        )
+                    }
                     Text(
-                        text = stringResource(R.string.s04_report_title),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(
-                        text = stringResource(R.string.s04_report_body),
+                        text = weekdays[day.date.dayOfWeek.value % 7],   // 월=1 … 일=7 → 배열은 일요일이 0번
                         fontSize = 11.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 5.dp)
+                        fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isToday) Teal else Muted,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
-                Spacer(Modifier.width(10.dp))
-                McButton(
-                    text = stringResource(R.string.s04_report_action),
-                    onClick = actions.onOpenStats,
-                    kind = ButtonKind.LIGHT,
-                    small = true
-                )
             }
         }
     }

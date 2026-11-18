@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import com.cau.medicheck.MediCheckApplication
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,6 +14,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.rememberNotificationsOff
@@ -33,6 +33,7 @@ import com.cau.medicheck.ui.screens.dose.S30DoseHistoryViewModel
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeScreen
 import com.cau.medicheck.ui.screens.dose.S31ActualTimeViewModel
 import com.cau.medicheck.ui.screens.dose.ScheduleActions
+import com.cau.medicheck.ui.screens.stats.WeekStatsViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -82,9 +83,14 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
         val vm: DayDosesViewModel = viewModel(factory = DayDosesViewModel.factory(user.id))
         val state by vm.uiState.collectAsStateWithLifecycle()
         RefreshOnResume(vm::refresh)
+        // 홈 맨 아래의 "최근 7일 복약률" 카드는 주간 통계 화면(S13)과 같은 ViewModel의 값을 쓴다.
+        val weekVm: WeekStatsViewModel = viewModel(factory = WeekStatsViewModel.factory(user.id))
+        val week by weekVm.uiState.collectAsStateWithLifecycle()
+        RefreshOnResume(weekVm::refresh)
         S04HomeScreen(
             displayName = user.displayName,
             state = state,
+            weekStats = week.stats,
             showNotificationOffCard = rememberNotificationsOff(),
             actions = remember(vm, go) {
                 HomeActions(
