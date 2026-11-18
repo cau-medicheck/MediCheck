@@ -155,8 +155,6 @@
     <string name="s16_section">예약된 알림 미리보기</string>
     <string name="s16_row_title">%1$s 복약 시간</string>
     <string name="s16_row_sub">%1$s · %2$s · %3$s</string>
-    <string name="s16_open">열기 ›</string>
-    <string name="s16_cd_open">%1$s %2$s %3$s 회차 열기</string>
     <string name="s16_empty_title">예정 알림 없음</string>
     <string name="s16_empty_body">약을 등록하면 알림 미리보기가 표시돼요.</string>
     <string name="s16_empty_body_has_meds">오늘과 내일 남은 알림이 없어요.</string>
@@ -240,8 +238,7 @@
     <string name="tab_meds">내 약</string>
     <string name="tab_records">기록</string>
     <string name="common_back_previous">이전 화면</string>
-    <string name="common_detail">상세 ›</string>
-    <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
+    <string name="common_cd_open_detail">상세 보기</string>
     <string name="common_na">N/A</string>
     <string name="common_percent">%1$d%%</string>
     <string name="common_date_full">%1$d월 %2$d일 %3$s요일</string>
@@ -268,10 +265,8 @@
 
     <!-- ===== S04 홈 대시보드 ===== -->
     <string name="s04_greeting">안녕하세요, %1$s님</string>
-    <string name="s04_brand">MEDICHECK</string>
-    <string name="s04_hero_title">오늘도 잊지 않고\n건강한 하루를</string>
-    <string name="s04_rate_label">선택한 날짜 복약 완료율</string>
-    <string name="s04_rate_count">%1$d/%2$d회 복용 완료</string>
+    <string name="s04_rate_label">선택한 날짜에 복용한 횟수</string>
+    <string name="s04_hero_count">%1$d / %2$d회</string>
     <string name="s04_section_calendar">복약 캘린더</string>
     <string name="s04_link_schedule">일정 전체보기 ›</string>
     <string name="s04_empty_title">복용 일정이 없어요</string>
@@ -363,7 +358,6 @@
     <!-- ===== S06 내 약 목록 ===== -->
     <string name="s06_search_hint">약 이름으로 검색</string>
     <string name="s06_btn_add">＋ 추가</string>
-    <string name="s06_cd_detail">%1$s 상세</string>
     <string name="s06_empty_title">해당 약이 없어요</string>
     <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
     <string name="s06_empty_action">약 추가하기</string>
