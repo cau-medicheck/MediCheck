@@ -198,7 +198,7 @@ fun S04HomeScreen(
  * (rows는 시각 순서로 들어온다) 둘 다 없으면 버튼 없이 안내 한 줄만 보인다.
  *
  * 바탕: 짙은 청록 위에 알약 그림(res/drawable-nodpi/home_pills.png)을 오른쪽에 깐다.
- * 그림은 사진이 아니라 빛과 그림자를 계산해 그린 것이다(만든 방법: docs/art/render_home_pills.py).
+ * 그림은 사진이 아니라 빛과 그림자를 계산해 그린 것이다(만든 방법: docs/art/render_pills.py).
  */
 @Composable
 private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, modifier: Modifier = Modifier) {

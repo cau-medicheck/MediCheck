@@ -1,23 +1,10 @@
 package com.cau.medicheck.ui.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import com.cau.medicheck.ui.theme.IconBtnBg
-import com.cau.medicheck.ui.theme.IconBtnText
-import com.cau.medicheck.ui.theme.Line
-import com.cau.medicheck.ui.theme.TabActive
-import com.cau.medicheck.ui.theme.TabInactive
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,20 +19,30 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,8 +55,13 @@ import com.cau.medicheck.ui.theme.BodyHorizontal
 import com.cau.medicheck.ui.theme.BodyTop
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeaderDivider
+import com.cau.medicheck.ui.theme.IconBtnBg
+import com.cau.medicheck.ui.theme.IconBtnText
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ScreenBackground
+import com.cau.medicheck.ui.theme.TabActive
+import com.cau.medicheck.ui.theme.TabInactive
 
 /*
  * 한 화면의 큰 틀(앱 틀). (구현 명세 00 §1.1~1.4, §5.4)
@@ -112,6 +114,8 @@ fun McTopBar(
     title: String,
     showActions: Boolean,
     modifier: Modifier = Modifier,
+    /** true면 화면 이름 대신 앱 로고와 "MediCheck"를 보인다 (홈). 화면 이름은 본문의 큰 제목이 맡는다. */
+    brand: Boolean = false,
     onNotifications: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
@@ -122,7 +126,23 @@ fun McTopBar(
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(start = 19.dp, end = 19.dp, top = 12.dp, bottom = 11.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            if (brand) {
+                // 로고 그림은 장식이고, 글자 "MediCheck"가 읽힌다.
+                Image(
+                    painter = painterResource(R.drawable.logo_capsule),
+                    contentDescription = null,
+                    modifier = Modifier.size(34.dp)
+                )
+                Text(
+                    text = stringResource(R.string.app_name),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-0.8).sp,
+                    color = Navy,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f).padding(start = 4.dp).semantics { heading() }
+                )
+            } else Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     fontSize = 17.sp,

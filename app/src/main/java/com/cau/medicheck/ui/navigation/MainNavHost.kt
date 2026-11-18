@@ -73,6 +73,7 @@ fun MainNavHost(user: User, settings: SettingsCallbacks) {
         McTopBar(
             title = stringResource(Routes.titleRes(route)),
             showActions = true,
+            brand = NavRules.screenIdOf(route) == Routes.S04,   // 홈에서는 화면 이름 대신 앱 로고와 이름
             // 이미 그 화면을 거쳐 왔으면 거기까지 되돌아가고, 아니면 새로 연다.
             onNotifications = { go.openOrReturn(Routes.S16) },
             onSettings = { go.openOrReturn(Routes.S19) }

@@ -60,16 +60,28 @@ def over(dst, src):
     rgb = (src[..., :3] * sa + dst[..., :3] * da * (1 - sa)) / np.maximum(oa, 1e-6)
     return np.concatenate([rgb, oa * 255], -1)
 
+def scene(objs, name, out, shadows=True, s1=(16,22,20,0.42), s2=(4,6,5,0.30)):
+    u = SS
+    canvas = np.zeros((H, W, 4), np.float32)
+    if shadows:
+        for obj in objs: canvas = over(canvas, shadow(obj, s1[0]*u, s1[1]*u, s1[2]*u, s1[3]))
+    for obj in objs:
+        if shadows: canvas = over(canvas, shadow(obj, s2[0]*u, s2[1]*u, s2[2]*u, s2[3]))
+        canvas = over(canvas, obj)
+    img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8)).resize((out, out), Image.LANCZOS)
+    img.save(name, optimize=True); return img
+
 u = SS
-cap = capsule(300 * u, 268 * u, 330 * u, 62 * u, -32, (250, 252, 252), (120, 214, 200))
-tab = tablet(452 * u, 448 * u, 72 * u, (248, 250, 250), -32)
-canvas = np.zeros((H, W, 4), np.float32)
-for obj in (cap, tab):
-    canvas = over(canvas, shadow(obj, 16 * u, 22 * u, 20 * u, 0.42))
-for obj in (cap, tab):
-    canvas = over(canvas, shadow(obj, 4 * u, 6 * u, 5 * u, 0.30))
-    canvas = over(canvas, obj)
-img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8), 'RGBA').resize((640, 640), Image.LANCZOS)
-img.save('art/home_pills.png', optimize=True)
-bg = Image.new('RGBA', (640, 640), (15, 111, 124, 255)); bg.alpha_composite(img); bg.convert('RGB').save('art/preview.jpg', quality=90)
-print(img.size)
+WHITE, MINT, TEAL = (250, 252, 252), (120, 214, 200), (20, 150, 158)
+# 1) 홈 카드: 캡슐 + 둥근 알약
+scene([capsule(300*u, 268*u, 330*u, 62*u, -32, WHITE, MINT), tablet(452*u, 448*u, 72*u, (248, 250, 250), -32)], 'art/home_pills.png', 640)
+# 2) 앱 아이콘의 그림: 가운데에 캡슐 하나 (흰색 + 민트), 그림자 포함. 가운데 61%(66/108) 안에 들어오게
+icon = scene([capsule(320*u, 320*u, 300*u, 66*u, -40, WHITE, MINT)], 'art/ic_launcher_foreground_img.png', 432, s1=(10,16,16,0.40), s2=(3,5,5,0.28))
+# 3) 머리말 로고: 캡슐 하나 (청록 + 민트). 흰 바탕 위에 놓이므로 그림자는 옅게
+scene([capsule(320*u, 320*u, 500*u, 112*u, -40, TEAL, MINT)], 'art/logo_capsule.png', 192, s1=(6,12,14,0.16), s2=(2,4,5,0.14))
+# 미리보기
+from PIL import ImageDraw
+pv = Image.new('RGBA', (432*2+40, 432), (255, 255, 255, 255))
+bg = Image.new('RGBA', (432, 432), (18, 139, 148, 255)); bg.alpha_composite(icon); pv.paste(bg, (0, 0))
+lg = Image.open('art/logo_capsule.png'); pv.alpha_composite(lg, (432+60, 120))
+pv.convert('RGB').save('art/preview2.jpg', quality=90)
