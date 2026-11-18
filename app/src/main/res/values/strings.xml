@@ -239,10 +239,10 @@
     <!-- ===== 로그인 뒤 틀: 머리말 버튼 · 하단 탭 · 여러 화면 공통 (2단계) ===== -->
     <string name="header_cd_notifications">알림</string>
     <string name="header_cd_settings">설정</string>
-    <string name="tab_home">복약 홈</string>
-    <string name="tab_schedule">복약 일정</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_schedule">일정</string>
     <string name="tab_meds">내 약</string>
-    <string name="tab_records">복약 기록</string>
+    <string name="tab_records">기록</string>
     <string name="common_back_previous">이전 화면</string>
     <string name="common_detail">상세 ›</string>
     <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
@@ -309,10 +309,8 @@
 
     <!-- ===== S05 일정/캘린더 ===== -->
     <string name="s05_subtitle">시간순으로 정리된 복용 계획을 확인하세요.</string>
-    <string name="s05_btn_prev">‹ 전날</string>
-    <string name="s05_btn_next">다음날 ›</string>
     <string name="s05_cd_date_field">날짜 선택</string>
-    <string name="s05_btn_today">오늘로</string>
+    <string name="s05_btn_today">오늘</string>
     <string name="s05_summary_count">%1$d / %2$d회 완료</string>
     <string name="s05_summary_detail">건너뜀 %1$d · 미기록 %2$d</string>
     <string name="s05_total">총 %1$d회</string>

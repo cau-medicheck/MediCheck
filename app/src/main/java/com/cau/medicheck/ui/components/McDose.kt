@@ -20,11 +20,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -294,6 +298,70 @@ fun DateChipStrip(
         }
     }
 }
+
+/**
+ * 옆으로 넘기며 날짜를 고르는 띠. (일정 화면)
+ *
+ * 오늘의 앞뒤 180일을 한 줄에 늘어놓고, 한 화면에 7칸이 보인다. 손가락으로 밀어 다른 주로 넘어가고 칸을 누르면 그 날을 고른다.
+ * 달력 창 등에서 더 먼 날짜를 고르면 그 날까지 띠를 늘린다. 고른 날이 바뀌면 그 칸이 가운데쯤 오도록 띠가 따라 움직인다.
+ * LazyRow = 화면에 보이는 칸만 그리는 가로 목록(칸이 수백 개여도 가볍다).
+ */
+@Composable
+fun DateScroller(
+    today: LocalDate,
+    selected: LocalDate,
+    onSelect: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val start = minOf(today.minusDays(DATE_SCROLLER_SPAN), selected.minusDays(7))
+    val end = maxOf(today.plusDays(DATE_SCROLLER_SPAN), selected.plusDays(7))
+    val count = (end.toEpochDay() - start.toEpochDay()).toInt() + 1
+    val selectedIndex = (selected.toEpochDay() - start.toEpochDay()).toInt()
+    // 고른 날이 일곱 칸 중 넷째(가운데)에 오게 한다.
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 3).coerceAtLeast(0))
+    LaunchedEffect(selectedIndex) { listState.animateScrollToItem((selectedIndex - 3).coerceAtLeast(0)) }
+
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val gap = 6.dp
+        val chipWidth = maxOf(43.dp, (maxWidth - gap * 6) / 7)
+        LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(gap), modifier = Modifier.selectableGroup()) {
+            items(count) { index ->
+                val date = start.plusDays(index.toLong())
+                val isSelected = date == selected
+                val isToday = date == today
+                val shape = RoundedCornerShape(12.dp)
+                val textColor = if (isSelected) Color.White else if (isToday) Teal else DateChipText
+                val spoken = fullDateText(date)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(chipWidth)
+                        .clip(shape)
+                        .background(if (isSelected) Teal else Color.White)
+                        // 오늘은 고르지 않았을 때도 청록 테두리로 알아볼 수 있게 한다.
+                        .border(BorderStroke(1.dp, if (isSelected || isToday) Teal else DateChipBorder), shape)
+                        .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(date) })
+                        .padding(horizontal = 4.dp, vertical = 9.dp)
+                        // 칸 안의 "화" "17" 대신 "11월 17일 화요일"로 읽게 한다.
+                        .semantics(mergeDescendants = true) { contentDescription = spoken }
+                ) {
+                    Text(text = weekdayText(date), fontSize = 11.sp, color = textColor, modifier = Modifier.clearAndSetSemantics { })
+                    Spacer(Modifier.height(5.dp))
+                    Text(
+                        text = date.dayOfMonth.toString(),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        modifier = Modifier.clearAndSetSemantics { }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 날짜 띠가 오늘 앞뒤로 늘어놓는 날 수 */
+private const val DATE_SCROLLER_SPAN = 180L
 
 // ---------------------------------------------------------------------------------------------
 // 알림 꺼짐 카드

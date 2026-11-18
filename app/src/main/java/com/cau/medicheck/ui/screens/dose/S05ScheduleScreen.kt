@@ -1,13 +1,11 @@
 package com.cau.medicheck.ui.screens.dose
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +19,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
@@ -29,11 +26,11 @@ import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DatePickerPopup
+import com.cau.medicheck.ui.components.DateScroller
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.PickerField
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.RecordSheet
@@ -87,47 +84,35 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
         ScreenIntro(stringResource(R.string.s05_subtitle))
 
-        // ‹ 전날   11월 17일 화요일   다음날 ›
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        ) {
-            McButton(stringResource(R.string.s05_btn_prev), { actions.onShiftDay(-1) }, kind = ButtonKind.WHITE, small = true)
+        // 2026년 11월                    [날짜 선택] [오늘]
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text(
-                text = fullDateText(state.date),
-                fontSize = 13.sp,
+                text = stringResource(R.string.common_month_title, state.date.year, state.date.monthValue),
+                fontSize = 15.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Navy,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 6.dp)
+                modifier = Modifier.weight(1f)
             )
-            McButton(stringResource(R.string.s05_btn_next), { actions.onShiftDay(1) }, kind = ButtonKind.WHITE, small = true)
-        }
-
-        // [2026. 11. 17.]                오늘로
-        // TalkBack 이름: "날짜 선택, 2026. 11. 17." (이름만 넣으면 고른 날짜를 읽지 않는다)
-        val dateFieldName = stringResource(R.string.s05_cd_date_field) + ", " + dottedDateText(state.date)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            PickerField(
-                text = dottedDateText(state.date),
+            // TalkBack 이름: "날짜 선택, 2026. 11. 17." (이름만 넣으면 고른 날짜를 읽지 않는다)
+            val dateFieldName = stringResource(R.string.s05_cd_date_field) + ", " + dottedDateText(state.date)
+            McButton(
+                text = stringResource(R.string.s05_cd_date_field),
                 onClick = { showDatePicker = true },
-                modifier = Modifier
-                    .widthIn(max = 180.dp)
-                    .semantics { contentDescription = dateFieldName }
+                kind = ButtonKind.WHITE,
+                small = true,
+                modifier = Modifier.semantics { contentDescription = dateFieldName }
             )
             Spacer(Modifier.width(8.dp))
             McButton(stringResource(R.string.s05_btn_today), actions.onToday, kind = ButtonKind.LIGHT, small = true)
         }
+
+        // 옆으로 넘기며 고르는 날짜 띠
+        DateScroller(
+            today = state.today,
+            selected = state.date,
+            onSelect = actions.onSelectDay,
+            modifier = Modifier.padding(top = 12.dp, bottom = 16.dp)
+        )
 
         // 요약: "1 / 2회 완료"  "건너뜀 0 · 미기록 1"   [50%]  — 도래한 회차만 센 숫자다.
         val counts = state.counts
