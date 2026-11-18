@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -288,9 +289,12 @@ fun Notice(text: AnnotatedString, modifier: Modifier = Modifier, warn: Boolean =
     )
 }
 
-/** 둥근 네모 상자 안에 기호 하나를 넣은 것. 목록 줄의 왼쪽 아이콘으로 쓴다. 기호는 장식이라 읽지 않는다. */
+/**
+ * 둥근 네모 상자 안에 아이콘 하나를 넣은 것. 목록 줄의 왼쪽 아이콘으로 쓴다. 아이콘은 장식이라 읽지 않는다.
+ * @param fontSize 아이콘 크기(sp). 글자 배율을 따라 함께 커진다
+ */
 @Composable
-fun Avatar(symbol: String, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
+fun Avatar(symbol: ImageVector, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -299,7 +303,22 @@ fun Avatar(symbol: String, modifier: Modifier = Modifier, size: Dp = 43.dp, font
             .background(AvatarBg)
             .clearAndSetSemantics { }
     ) {
-        Text(text = symbol, fontSize = fontSize.sp, fontWeight = FontWeight.Black, color = AvatarText)
+        McIcon(symbol, size = fontSize, tint = AvatarText)
+    }
+}
+
+/** 같은 상자에 아이콘 대신 번호("1", "2")를 넣은 것. 순서가 있는 목록에 쓴다. 읽을 이름은 부르는 쪽이 붙인다. */
+@Composable
+fun Avatar(number: String, modifier: Modifier = Modifier, size: Dp = 43.dp, fontSize: Int = 21) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(14.dp))
+            .background(AvatarBg)
+            .clearAndSetSemantics { }
+    ) {
+        Text(text = number, fontSize = fontSize.sp, fontWeight = FontWeight.Black, color = AvatarText)
     }
 }
 
@@ -323,10 +342,10 @@ fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
     }
 }
 
-/** 내용이 없을 때 보여 주는 안내: 그림 글자 + 제목 + 설명 + (선택) 버튼 */
+/** 내용이 없을 때 보여 주는 안내: 아이콘 + 제목 + 설명 + (선택) 버튼 */
 @Composable
 fun EmptyState(
-    emoji: String,
+    emoji: ImageVector,
     title: String,
     body: String,
     modifier: Modifier = Modifier,
@@ -339,8 +358,7 @@ fun EmptyState(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 30.dp)
     ) {
-        // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
-        Text(text = emoji, fontSize = 35.sp, modifier = Modifier.clearAndSetSemantics { })
+        McIcon(emoji, size = 35, tint = Faint)
         Spacer(Modifier.height(13.dp))
         Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
@@ -682,10 +700,10 @@ fun LabelValueRow(label: String, value: String, showDivider: Boolean = true) {
 
 /**
  * 청록 그라데이션 둥근 상자 안의 기호. 시작·로그인 화면의 로고. (v3 .auth-logo: 67px, 글자 35px)
- * 기호("✚", "✉")는 뜻이 없는 장식이라 TalkBack이 읽지 않게 한다.
+ * 아이콘은 뜻이 없는 장식이라 TalkBack이 읽지 않게 한다.
  */
 @Composable
-fun AuthLogo(symbol: String = Glyph.LOGO, modifier: Modifier = Modifier) {
+fun AuthLogo(symbol: ImageVector = Glyph.LOGO, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -694,7 +712,7 @@ fun AuthLogo(symbol: String = Glyph.LOGO, modifier: Modifier = Modifier) {
             .background(Brush.linearGradient(listOf(AuthLogoStart, AuthLogoEnd)))
             .clearAndSetSemantics { }
     ) {
-        Text(text = symbol, fontSize = 35.sp, color = Color.White)   // v3 .auth-logo는 굵기 지정 없음
+        McIcon(symbol, size = 40, tint = Color.White)
     }
 }
 

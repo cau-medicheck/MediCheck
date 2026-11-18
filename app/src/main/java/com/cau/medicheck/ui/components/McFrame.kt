@@ -1,23 +1,9 @@
 package com.cau.medicheck.ui.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import com.cau.medicheck.ui.theme.IconBtnBg
-import com.cau.medicheck.ui.theme.IconBtnText
-import com.cau.medicheck.ui.theme.Line
-import com.cau.medicheck.ui.theme.TabActive
-import com.cau.medicheck.ui.theme.TabInactive
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,20 +18,30 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,8 +54,13 @@ import com.cau.medicheck.ui.theme.BodyHorizontal
 import com.cau.medicheck.ui.theme.BodyTop
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeaderDivider
+import com.cau.medicheck.ui.theme.IconBtnBg
+import com.cau.medicheck.ui.theme.IconBtnText
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ScreenBackground
+import com.cau.medicheck.ui.theme.TabActive
+import com.cau.medicheck.ui.theme.TabInactive
 
 /*
  * 한 화면의 큰 틀(앱 틀). (구현 명세 00 §1.1~1.4, §5.4)
@@ -124,12 +125,6 @@ fun McTopBar(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.header_eyebrow),
-                    fontSize = 10.sp,
-                    color = Faint,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-                Text(
                     text = title,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
@@ -170,7 +165,7 @@ fun McTopBar(
  * @param description TalkBack이 읽는 이름 ("알림", "설정")
  */
 @Composable
-fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onClick: () -> Unit) {
+fun IconSquareButton(symbol: ImageVector, description: String, outlined: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         contentAlignment = Alignment.Center,
@@ -182,12 +177,12 @@ fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onC
             .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
     ) {
-        Text(text = symbol, fontSize = 18.sp, color = IconBtnText)
+        McIcon(symbol, size = 20, tint = IconBtnText)
     }
 }
 
 /** 하단 탭 다섯 개. 순서대로 그려진다. (v3 nav) */
-enum class McTab(val route: String, val symbol: String, @param:StringRes val labelRes: Int) {
+enum class McTab(val route: String, val symbol: ImageVector, @param:StringRes val labelRes: Int) {
     HOME(Routes.S04, Glyph.TAB_HOME, R.string.tab_home),
     SCHEDULE(Routes.S05, Glyph.TAB_SCHEDULE, R.string.tab_schedule),
     MEDS(Routes.S06, Glyph.TAB_MEDS, R.string.tab_meds),
@@ -228,15 +223,8 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
                         .weight(1f)
                         .selectable(selected = selected, role = Role.Tab, onClick = { onTab(tab) })
                 ) {
-                    // 기호는 장식이다. TalkBack은 아래 글자("홈")만 읽는다.
-                    Text(
-                        text = tab.symbol,
-                        fontSize = 20.sp,
-                        lineHeight = 22.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = color,
-                        modifier = Modifier.clearAndSetSemantics { }
-                    )
+                    // 아이콘은 장식이다. TalkBack은 아래 글자("홈")만 읽는다.
+                    McIcon(tab.symbol, size = 22, tint = color)
                     Text(
                         text = stringResource(tab.labelRes),
                         fontSize = 10.sp,

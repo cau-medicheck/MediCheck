@@ -23,10 +23,12 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.WarnText
 
 /**
  * S09 삭제 확인 (v3 deleteConfirm()).
@@ -55,7 +57,7 @@ fun S09DeleteConfirmScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp, vertical = 26.dp)
             ) {
-                Text(text = Glyph.WARNING, fontSize = 40.sp, modifier = Modifier.clearAndSetSemantics { })
+                McIcon(Glyph.WARNING, size = 40, tint = WarnText)
                 Text(
                     text = stringResource(R.string.s09_title),
                     fontSize = 21.sp,
