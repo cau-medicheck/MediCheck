@@ -15,8 +15,8 @@ val Gap16 = 16.dp
 val Gap22 = 22.dp
 
 // 본문(.phone-body{padding:18px 18px 24px})
-val BodyHorizontal = 20.dp
-val BodyTop = 20.dp
+val BodyHorizontal = 18.dp
+val BodyTop = 18.dp
 val BodyBottom = 24.dp
 
 // 토스트(.toast{bottom:77px;left:18px;right:18px})

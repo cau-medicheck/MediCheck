@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.cau.medicheck.ui.components.ProvideAppTypeScale
 
 /**
  * 앱 전체의 색 배합.
@@ -48,6 +47,6 @@ fun MediCheckTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = MediCheckColors,
         typography = Typography,
-        content = { ProvideAppTypeScale(content) }
+        content = content
     )
 }
