@@ -1,6 +1,5 @@
 package com.cau.medicheck.ui.components
 
-import com.cau.medicheck.R
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,10 +46,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.periodOf
-import com.cau.medicheck.ui.theme.Amber
 import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
@@ -64,6 +63,8 @@ import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
 import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.TimelineDotMissed
+import com.cau.medicheck.ui.theme.TimelineDotWait
 import com.cau.medicheck.ui.theme.TimelineLine
 import java.time.LocalDate
 
@@ -73,12 +74,11 @@ import java.time.LocalDate
  * 시간표의 한 줄:  08:00 ●  약 이름                [상태] ›
  *                  아침  │  1정 · 아침 식후
  *
- * 시각 오른쪽의 세로선이 줄과 줄을 이어 하루의 흐름을 보여 준다. 점은 복용 완료면 채운 청록, 아니면 빈 주황 고리.
+ * 시각 오른쪽의 세로선이 줄과 줄을 이어 하루의 흐름을 보여 준다. 점의 색은 상태 표시와 같다.
  * 줄 전체를 누르면 기록 창(RecordSheet)이 아래에서 올라온다.
  */
 @Composable
 fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () -> Unit) {
-    val done = row.display == DoseDisplayStatus.TAKEN
     val periodRes = when (periodOf(row.time)) {
         DayPeriod.MORNING -> R.string.s05_period_morning
         DayPeriod.LUNCH -> R.string.s05_period_lunch
@@ -109,8 +109,14 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
                 strokeWidth = 1.5.dp.toPx()
             )
             drawCircle(Color.White, radius = r + 1.5.dp.toPx(), center = Offset(x, dotY))   // 선을 가리는 흰 바탕
-            if (done) drawCircle(Teal, radius = r, center = Offset(x, dotY))
-            else drawCircle(Amber, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
+            // 점의 색은 오른쪽 상태 표시와 맞춘다: 복용 완료 = 채운 청록, 시간이 지난 미기록 = 주황 고리, 예정·건너뜀 = 회색 고리
+            when (row.display) {
+                DoseDisplayStatus.TAKEN -> drawCircle(Teal, radius = r, center = Offset(x, dotY))
+                DoseDisplayStatus.MISSED ->
+                    drawCircle(TimelineDotMissed, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
+                else ->
+                    drawCircle(TimelineDotWait, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
+            }
         }
         // 약 이름 + 복용량·메모
         Column(Modifier.weight(1f).padding(vertical = 13.dp)) {

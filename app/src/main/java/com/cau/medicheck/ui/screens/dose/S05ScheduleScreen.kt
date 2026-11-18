@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +27,6 @@ import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DatePickerPopup
-import com.cau.medicheck.ui.components.DateScroller
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
@@ -37,9 +37,12 @@ import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.TimelineRow
+import com.cau.medicheck.ui.components.WeekPager
 import com.cau.medicheck.ui.components.dottedDateText
 import com.cau.medicheck.ui.components.fullDateText
+import com.cau.medicheck.ui.components.mondayOf
 import com.cau.medicheck.ui.lock.LocalAppLocked
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import java.time.LocalDate
@@ -82,13 +85,19 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
-        ScreenIntro(stringResource(R.string.s05_subtitle))
+        // 큰 제목 "복약 일정" 아래에 지금 보는 달을 적는다.
+        ScreenIntro(stringResource(R.string.common_month_title, state.date.year, state.date.monthValue))
 
-        // 2026년 11월                    [날짜 선택] [오늘]
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(top = 14.dp))
+        // 11월 16일 – 11월 22일                [날짜 선택] [오늘]
+        val monday = mondayOf(state.date)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
             Text(
-                text = stringResource(R.string.common_month_title, state.date.year, state.date.monthValue),
-                fontSize = 15.sp,
+                text = stringResource(
+                    R.string.s05_week_range,
+                    monday.monthValue, monday.dayOfMonth, monday.plusDays(6).monthValue, monday.plusDays(6).dayOfMonth
+                ),
+                fontSize = 14.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Navy,
                 modifier = Modifier.weight(1f)
@@ -103,16 +112,16 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                 modifier = Modifier.semantics { contentDescription = dateFieldName }
             )
             Spacer(Modifier.width(8.dp))
-            McButton(stringResource(R.string.s05_btn_today), actions.onToday, kind = ButtonKind.LIGHT, small = true)
+            McButton(stringResource(R.string.s05_btn_today), actions.onToday, kind = ButtonKind.WHITE, small = true)
         }
-
-        // 옆으로 넘기며 고르는 날짜 띠
-        DateScroller(
+        // 한 주씩 옆으로 넘기는 날짜 띠
+        WeekPager(
             today = state.today,
             selected = state.date,
             onSelect = actions.onSelectDay,
-            modifier = Modifier.padding(top = 12.dp, bottom = 16.dp)
+            modifier = Modifier.padding(top = 10.dp, bottom = 12.dp)
         )
+        HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(bottom = 16.dp))
 
         // 요약: "1 / 2회 완료"  "건너뜀 0 · 미기록 1"   [50%]  — 도래한 회차만 센 숫자다.
         val counts = state.counts
