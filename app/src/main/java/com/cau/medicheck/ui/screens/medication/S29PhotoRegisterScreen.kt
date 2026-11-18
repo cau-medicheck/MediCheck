@@ -5,9 +5,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -23,6 +21,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +38,7 @@ import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.DashedBg
 import com.cau.medicheck.ui.theme.DashedBorder
@@ -68,7 +68,11 @@ fun S29PhotoRegisterScreen(onBack: () -> Unit) {
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s29)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s29_title),
+            subtitle = stringResource(R.string.s29_subtitle),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         SurfaceCard {
             UploadBox()

@@ -18,7 +18,7 @@ import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.ScreenIntro
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import java.time.Instant
 import java.time.ZoneId
@@ -44,7 +44,11 @@ fun S30DoseHistoryScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s30)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s30_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s30_title),
+            subtitle = stringResource(R.string.s30_subtitle),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         SurfaceCard(padding = 0.dp) {
             if (state.items.isEmpty() && !state.isLoading) {

@@ -2,8 +2,6 @@ package com.cau.medicheck.ui.screens.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +21,7 @@ import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.navigation.Routes
@@ -50,6 +49,11 @@ private val FLOW_STEPS = listOf(
 fun S22HelpScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s22)) {
         BackLink(stringResource(R.string.s20_back), onBack)
+        ScreenTitle(
+            title = stringResource(R.string.s22_title),
+            subtitle = stringResource(R.string.s22_subtitle),
+            modifier = Modifier.padding(top = Gap16)
+        )
 
         // ----- 추천 시연 흐름: 눌리지 않는 안내 줄 -----
         SectionTitle(stringResource(R.string.s22_section_flow))

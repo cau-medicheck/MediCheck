@@ -20,6 +20,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.MonthCalendarGrid
 import com.cau.medicheck.ui.components.MonthSwitcher
 import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.theme.Muted
@@ -40,7 +41,9 @@ fun S11RecordsCalendarScreen(
     onOpenDay: () -> Unit
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s11)) {
-        SurfaceCard {
+        ScreenTitle(stringResource(R.string.s11_title), stringResource(R.string.s11_subtitle))
+
+        SurfaceCard(Modifier.padding(top = 16.dp)) {
             MonthSwitcher(month = state.month, onPrev = { onShiftMonth(-1) }, onNext = { onShiftMonth(1) })
             MonthCalendarGrid(
                 month = state.month,

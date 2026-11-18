@@ -29,6 +29,7 @@ import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.DangerTitle
 import com.cau.medicheck.ui.theme.Gap16
@@ -58,7 +59,11 @@ fun S44AccountDeleteScreen(deleting: Boolean, onDelete: (String) -> Unit, onBack
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s44)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s44_title),
+            subtitle = stringResource(R.string.s44_subtitle),
+            modifier = Modifier.padding(vertical = Gap16)
+        )
 
         SurfaceCard {
             Text(

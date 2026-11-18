@@ -18,7 +18,7 @@ import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RadioRow
-import com.cau.medicheck.ui.components.ScreenIntro
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
@@ -41,7 +41,11 @@ fun S35TimezonePolicyScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s35)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s35_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s35_title),
+            subtitle = stringResource(R.string.s35_subtitle),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         SurfaceCard {
             Text(stringResource(R.string.s35_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)

@@ -34,6 +34,7 @@ import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
@@ -54,8 +55,10 @@ fun S06MedicationListScreen(
     val focusManager = LocalFocusManager.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s06)) {
+        ScreenTitle(stringResource(R.string.s06_title), stringResource(R.string.s06_subtitle))
+
         // [약 이름으로 검색........] [＋ 추가]
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
             FormField(
                 value = state.query,
                 onValueChange = onQueryChange,
@@ -89,8 +92,10 @@ fun S06MedicationListScreen(
             }
         }
 
-        // 샘플 계정일 때만 예시 데이터라고 알린다. 내 계정의 데이터는 예시가 아니기 때문이다.
-        if (state.isSample) Notice(stringResource(R.string.s06_notice_sample), Modifier.padding(top = 16.dp))
+        // 둘째 문장("시연용입니다")은 샘플 계정일 때만 붙인다. 내 계정의 데이터는 시연용이 아니기 때문이다.
+        val notice = stringResource(R.string.s06_notice) +
+            if (state.isSample) " " + stringResource(R.string.s06_notice_sample) else ""
+        Notice(notice, Modifier.padding(top = 16.dp))
     }
 }
 

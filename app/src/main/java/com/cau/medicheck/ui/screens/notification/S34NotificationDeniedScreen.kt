@@ -1,9 +1,7 @@
 package com.cau.medicheck.ui.screens.notification
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +22,9 @@ import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.DateChipText
@@ -49,7 +49,11 @@ fun S34NotificationDeniedScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s34)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s34_title),
+            subtitle = stringResource(R.string.s34_subtitle),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         SurfaceCard {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -99,6 +103,7 @@ fun S34NotificationDeniedScreen(
             }
         }
 
+        Notice(stringResource(R.string.s34_notice), Modifier.padding(top = 14.dp))
     }
 }
 

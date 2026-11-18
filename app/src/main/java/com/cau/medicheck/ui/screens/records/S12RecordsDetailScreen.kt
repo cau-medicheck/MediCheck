@@ -23,7 +23,7 @@ import com.cau.medicheck.ui.components.MetricNumber
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ProgressBar
-import com.cau.medicheck.ui.components.ScreenIntro
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
@@ -50,7 +50,11 @@ fun S12RecordsDetailScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s12)) {
         BackLink(stringResource(R.string.s12_back), onBackToCalendar)
-        ScreenIntro(fullDateText(state.date), Modifier.padding(vertical = 16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.screen_title_s12),
+            subtitle = fullDateText(state.date),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         // 기록을 읽어 오는 잠깐 동안은 "N/A · 총 0회"가 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn

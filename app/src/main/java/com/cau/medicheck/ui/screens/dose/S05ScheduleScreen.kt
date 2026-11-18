@@ -33,9 +33,10 @@ import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.PickerField
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
+import com.cau.medicheck.ui.components.PickerField
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.dottedDateText
@@ -66,6 +67,8 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     var showDatePicker by remember { mutableStateOf(false) }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
+        ScreenTitle(stringResource(R.string.s05_title), stringResource(R.string.s05_subtitle))
+
         // ‹ 전날   11월 17일 화요일   다음날 ›
         Row(
             verticalAlignment = Alignment.CenterVertically,

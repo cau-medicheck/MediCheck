@@ -21,6 +21,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
@@ -43,6 +44,11 @@ fun S16NotificationCenterScreen(
     onOpenPermissions: () -> Unit
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s16)) {
+        ScreenTitle(
+            title = stringResource(R.string.s16_title),
+            subtitle = stringResource(R.string.s16_subtitle),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         // 안내 상자: 위에서부터 처음 맞는 하나
         when {

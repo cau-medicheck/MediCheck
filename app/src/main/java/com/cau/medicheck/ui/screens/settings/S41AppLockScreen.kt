@@ -1,7 +1,5 @@
 package com.cau.medicheck.ui.screens.settings
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,8 +15,10 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSelectField
 import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
+import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.SettingDescText
 
 /**
@@ -43,7 +43,11 @@ fun S41AppLockScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s41)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s41_title),
+            subtitle = stringResource(R.string.s41_subtitle),
+            modifier = Modifier.padding(vertical = Gap16)
+        )
 
         SurfaceCard {
             ToggleRow(

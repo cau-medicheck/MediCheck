@@ -1,12 +1,11 @@
 package com.cau.medicheck.ui.screens.medication
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +24,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
+import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.Muted
@@ -49,7 +49,11 @@ fun S40DuplicateScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s40)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        Spacer(Modifier.height(16.dp))
+        ScreenTitle(
+            title = stringResource(R.string.s40_title),
+            subtitle = stringResource(R.string.s40_subtitle),
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
         SurfaceCard {
             McIcon(Glyph.WARNING, size = 33, tint = WarnText)

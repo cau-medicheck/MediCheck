@@ -78,6 +78,7 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
         BackLink(stringResource(R.string.s08_back), actions.onBackToList)
         ScreenTitle(
             title = stringResource(if (state.isNew) R.string.s08_title_new else R.string.s08_title_edit),
+            subtitle = stringResource(R.string.s08_subtitle),
             modifier = Modifier.padding(top = 16.dp)
         )
         // 사진으로 등록하는 기능은 시안(S29)만 있다. 등록할 때만 길을 열어 둔다.
