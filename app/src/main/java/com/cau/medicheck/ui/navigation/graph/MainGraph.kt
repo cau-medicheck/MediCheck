@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.cau.medicheck.MediCheckApplication
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.cau.medicheck.data.local.User
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.components.PlaceholderScreen
 import com.cau.medicheck.ui.components.rememberNotificationsOff
 import com.cau.medicheck.ui.navigation.AppNavigator
 import com.cau.medicheck.ui.navigation.NavRules
@@ -37,8 +35,12 @@ import com.cau.medicheck.ui.screens.dose.S31ActualTimeViewModel
 import com.cau.medicheck.ui.screens.dose.ScheduleActions
 import kotlinx.coroutines.launch
 
-/** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
-private val REGISTERED =
+/**
+ * 로그인 뒤 틀에 붙여 둔 화면 ID 전부 (이 파일의 5개 + 그래프 파일 다섯 개의 화면들).
+ * 화면을 하나라도 빠뜨리면 그 주소로 이동할 때 앱이 멈추므로, 단위 테스트(RegisteredScreensTest)가
+ * "S04~S46이 빠짐없이 들어 있는지"를 확인한다.
+ */
+internal val REGISTERED_SCREENS: Set<String> =
     setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS + NOTIFICATION_SCREENS +
         SETTINGS_SCREENS + EXTRAS_SCREENS
 
@@ -71,7 +73,7 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
  * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계),
  * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계), 설정 화면(S19~S22·S36~S39)은 SettingsGraph.kt (6단계).
- * 그 밖의 화면은 "준비 중" 임시 화면이다.
+ * 요구사항 맵·안전 고지·가족 시안(S23~S27·S45·S46)은 ExtrasGraph.kt (7단계). 이것으로 47개 화면이 모두 진짜 화면이다.
  */
 fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCallbacks) {
 
@@ -190,17 +192,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
     recordGraph(user, go)       // 기록·통계 화면들 (RecordGraph.kt)
     notificationGraph(go)       // 알림 화면들 (NotificationGraph.kt)
     settingsGraph(user, go, settings)   // 설정 화면들 (SettingsGraph.kt)
-    extrasGraph(go)             // 요구사항 맵·안전 고지 (ExtrasGraph.kt)
-
-    // ----- 아직 만들지 않은 화면: "준비 중" -----
-    Routes.ALL_SCREEN_IDS
-        .filter { it !in Routes.PRE_LOGIN && it !in REGISTERED }
-        .forEach { screenId ->
-            composable(screenId) {
-                val title = stringResource(Routes.titleRes(screenId))
-                PlaceholderScreen(title)
-            }
-        }
+    extrasGraph(go)             // 요구사항 맵·안전 고지·가족 시안 (ExtrasGraph.kt)
 }
 
 /** 화면이 다시 보일 때마다(앱으로 돌아왔을 때 등) 오늘까지의 기록을 채운다. */

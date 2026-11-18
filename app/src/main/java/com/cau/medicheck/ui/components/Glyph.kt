@@ -33,7 +33,6 @@ object Glyph {
     const val EMPTY_SCHEDULE = "📅"       // S05 회차 없음
     const val EMPTY_CIRCLE = "○"          // S31 회차 없음
     const val BELL_OFF = "🔕"             // 알림 꺼짐 카드
-    const val PLACEHOLDER = "🛠️"         // 임시 화면 "준비 중"
     const val NOT_FOUND = "📋"            // 약을 찾지 못함 (S07·S08)
     const val WARNING = "⚠️"              // 삭제 확인(S09) · 중복 확인(S40)
     const val UPLOAD = "▧"                // 사진 올리기 상자 (S29)
@@ -41,6 +40,10 @@ object Glyph {
     const val PROFILE = "☺\uFE0E"             // 프로필 카드
     const val PERMISSION = "♙"            // 알림 권한·OS 줄
     const val HELP = "?"                  // 도움말 줄
+
+    // 가족·보호자 시안(S23)
+    const val PERSON = "👤"               // 내 계정
+    const val CHILD = "👧"                // 자녀 예시 프로필
 
     // 빈 화면·오류 상태 예시(S39)
     const val EXAMPLE_EMPTY = "▤"         // 빈 상태

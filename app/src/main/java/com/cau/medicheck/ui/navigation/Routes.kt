@@ -30,7 +30,11 @@ object Routes {
     const val S20 = "S20"   // 통계 계산 정책
     const val S21 = "S21"   // 프로필 관리
     const val S22 = "S22"   // 도움말·범위
-    const val S23 = "S23"   // 가족 프로필 (시안, 7단계)
+    const val S23 = "S23"   // 가족 프로필 (시안)
+    const val S24 = "S24"   // 보호자 연결 동의 (시안)
+    const val S25 = "S25"   // 보호자 대시보드 (시안)
+    const val S26 = "S26"   // 자녀 복용 기록자 (시안)
+    const val S27 = "S27"   // 가족 중복 투약 경고 (시안)
     const val S28 = "S28"   // 데이터 백업·복원
     const val S36 = "S36"   // 개인정보 센터
     const val S37 = "S37"   // 접근성 설정
