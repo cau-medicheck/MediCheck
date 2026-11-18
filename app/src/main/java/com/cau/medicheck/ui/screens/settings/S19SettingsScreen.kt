@@ -44,16 +44,12 @@ private val APP_ROWS = listOf(
     HubRow(Glyph.HELP, R.string.s19_row_help_title, R.string.s19_row_help_desc, Routes.S22)
 )
 
-/** "안전·편의 기능" 카드의 줄들. */
+/** "안전·편의 기능" 카드의 줄들. 마지막 줄(가족·보호자)은 프로토타입에 없던 입구라 맨 끝에 붙였다. */
 private val SAFETY_ROWS = listOf(
     HubRow(null, R.string.s19_row_a11y_title, R.string.s19_row_a11y_desc, Routes.S37),
     HubRow(null, R.string.s19_row_privacy_title, R.string.s19_row_privacy_desc, Routes.S36),
     HubRow(null, R.string.s19_row_offline_title, R.string.s19_row_offline_desc, Routes.S38),
-    HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32)
-)
-
-/** "프로젝트 정보" 카드의 줄들. 앱을 쓰는 데 필요한 설정이 아니라 과제 자료(요구사항 목록·기능 시안)라 따로 묶는다. */
-private val PROJECT_ROWS = listOf(
+    HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32),
     HubRow(null, R.string.s19_row_reqmap_title, R.string.s19_row_reqmap_desc, Routes.S45),
     HubRow(null, R.string.s19_row_family_title, R.string.s19_row_family_desc, Routes.S23)
 )
@@ -115,9 +111,6 @@ fun S19SettingsScreen(
 
         SectionTitle(stringResource(R.string.s19_section_safety))
         HubCard(SAFETY_ROWS, onOpen)
-
-        SectionTitle(stringResource(R.string.s19_section_project))
-        HubCard(PROJECT_ROWS, onOpen)
 
         Spacer(Modifier.height(Gap22))
         McButton(

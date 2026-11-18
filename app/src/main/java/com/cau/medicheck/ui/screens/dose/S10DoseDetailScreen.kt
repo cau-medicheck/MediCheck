@@ -147,12 +147,14 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
                 title = stringResource(R.string.s10_row_actual_title),
                 description = stringResource(R.string.s10_row_actual_desc),
                 onClick = actions.onOpenActualTime,
+                mark = stringResource(R.string.s10_mark_should),
                 enabled = !state.isFuture
             )
             OptionRow(
                 title = stringResource(R.string.s10_row_history_title),
                 description = stringResource(R.string.s10_row_history_desc),
                 onClick = actions.onOpenHistory,
+                mark = stringResource(R.string.s10_mark_should),
                 showDivider = false
             )
         }

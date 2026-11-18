@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -142,12 +143,14 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
             OptionRow(
                 title = stringResource(R.string.s07_row_source_title),
                 description = stringResource(R.string.s07_row_source_desc),
-                onClick = actions.onOpenSource
+                onClick = actions.onOpenSource,
+                mark = stringResource(R.string.mark_could)
             )
             OptionRow(
                 title = stringResource(R.string.s07_row_archive_title),
                 description = stringResource(R.string.s07_row_archive_desc),
                 onClick = actions.onOpenArchive,
+                mark = stringResource(R.string.mark_must),
                 showDivider = false
             )
         }
