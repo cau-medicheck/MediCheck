@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -55,8 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.navigation.Routes
-import com.cau.medicheck.ui.theme.AvatarBg
-import com.cau.medicheck.ui.theme.AvatarText
 import com.cau.medicheck.ui.theme.BodyBottom
 import com.cau.medicheck.ui.theme.BodyHorizontal
 import com.cau.medicheck.ui.theme.BodyTop
@@ -123,7 +120,6 @@ fun McTopBar(
     /** true면 화면 이름 대신 앱 로고와 "MediCheck"를 보인다 (홈). 화면 이름은 본문의 큰 제목이 맡는다. */
     brand: Boolean = false,
     onNotifications: () -> Unit = {},
-    onProfile: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth().background(Color.White)) {
@@ -163,17 +159,9 @@ fun McTopBar(
             }
             Spacer(Modifier.width(12.dp))
             if (showActions) {
-                // 종(알림) · 사람(프로필) · 줄 세 개(설정 메뉴). 새 시안(MediCheck4.html)의 머리말 오른쪽과 같은 구성.
+                // 종(알림) · 줄 세 개(설정 메뉴). 새 시안의 머리말 오른쪽과 같은 구성. 프로필은 설정 안에서 들어간다.
                 HeaderAction(stringResource(R.string.header_cd_notifications), onNotifications) {
                     GlyphText(Glyph.HEADER_BELL, fontSize = 22, color = Navy)
-                }
-                HeaderAction(stringResource(R.string.header_cd_profile), onProfile) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(34.dp).clip(CircleShape).background(AvatarBg)
-                    ) {
-                        Icon(Icons.Outlined.Person, contentDescription = null, tint = AvatarText, modifier = Modifier.size(20.dp))
-                    }
                 }
                 HeaderAction(stringResource(R.string.header_cd_settings), onSettings) {
                     Icon(Icons.Filled.Menu, contentDescription = null, tint = Navy, modifier = Modifier.size(22.dp))
