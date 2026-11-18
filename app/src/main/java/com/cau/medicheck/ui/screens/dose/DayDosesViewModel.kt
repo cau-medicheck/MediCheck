@@ -177,11 +177,16 @@ class DayDosesViewModel(
     }
 
     companion object {
-        fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
+        /**
+         * @param forHome true면 홈 전용의 "고른 날짜"(homeSelection)를 쓴다. 일정 화면은 기록 화면과 함께 쓰는 selection을 쓴다.
+         */
+        fun factory(userId: Long, forHome: Boolean = false): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 DayDosesViewModel(
-                    userId, container.doseRepository, container.selection, container.toastBus, container.appScope,
+                    userId, container.doseRepository,
+                    if (forHome) container.homeSelection else container.selection,
+                    container.toastBus, container.appScope,
                     clock = container.clock
                 )
             }

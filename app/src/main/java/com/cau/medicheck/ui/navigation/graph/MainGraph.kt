@@ -80,7 +80,8 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
 
     // ----- S04 홈 대시보드 -----
     composable(Routes.S04) {
-        val vm: DayDosesViewModel = viewModel(factory = DayDosesViewModel.factory(user.id))
+        // forHome: 홈은 자기만의 "고른 날짜"를 쓴다(일정·기록에서 날짜를 옮겨도 홈은 그대로).
+        val vm: DayDosesViewModel = viewModel(factory = DayDosesViewModel.factory(user.id, forHome = true))
         val state by vm.uiState.collectAsStateWithLifecycle()
         RefreshOnResume(vm::refresh)
         // 홈 맨 아래의 "최근 7일 복약률" 카드는 주간 통계 화면(S13)과 같은 ViewModel의 값을 쓴다.
