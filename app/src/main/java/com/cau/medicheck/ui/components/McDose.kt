@@ -166,7 +166,6 @@ fun OptionRow(
     title: String,
     description: String,
     onClick: () -> Unit,
-    mark: String? = null,
     enabled: Boolean = true,
     showDivider: Boolean = true,
     leading: (@Composable () -> Unit)? = null
@@ -175,9 +174,8 @@ fun OptionRow(
         modifier = Modifier.alpha(if (enabled) 1f else 0.45f),
         leading = leading,
         trailing = {
-            if (mark != null) Pill(mark, PillKind.ORANGE)
             // "›"는 장식이라 TalkBack이 읽지 않게 한다.
-            else Text("›", fontSize = 16.sp, color = DateChipText, modifier = Modifier.clearAndSetSemantics { })
+            Text("›", fontSize = 16.sp, color = DateChipText, modifier = Modifier.clearAndSetSemantics { })
         },
         showDivider = showDivider,
         onClick = if (enabled) onClick else null
