@@ -14,6 +14,9 @@ import com.cau.medicheck.ui.screens.settings.S19SettingsScreen
 import com.cau.medicheck.ui.screens.settings.S20PolicyScreen
 import com.cau.medicheck.ui.screens.settings.S21ProfileScreen
 import com.cau.medicheck.ui.screens.settings.AccessibilityActions
+import com.cau.medicheck.ui.screens.settings.BackupActions
+import com.cau.medicheck.ui.screens.settings.S28BackupScreen
+import com.cau.medicheck.ui.screens.settings.S28BackupViewModel
 import com.cau.medicheck.ui.screens.settings.OfflineActions
 import com.cau.medicheck.ui.screens.settings.PrivacyActions
 import com.cau.medicheck.ui.screens.settings.S22HelpScreen
@@ -27,7 +30,7 @@ import com.cau.medicheck.ui.screens.settings.S39ErrorStatesScreen
 import com.cau.medicheck.ui.screens.settings.S44AccountDeleteScreen
 
 /** 이 파일이 붙여 둔 화면 ID */
-val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S36", "S37", "S38", "S39", "S44")
+val SETTINGS_SCREENS = setOf("S19", "S20", "S21", "S22", "S28", "S36", "S37", "S38", "S39", "S44")
 
 /**
  * 설정 화면들이 "계정"에 하는 일을 묶은 것. 로그인 상태는 AuthViewModel이 들고 있어서,
@@ -102,6 +105,25 @@ fun NavGraphBuilder.settingsGraph(user: User, go: AppNavigator, cb: SettingsCall
     // ----- S22 도움말·범위 -----
     composable(Routes.S22) {
         S22HelpScreen(onBack = { go.backTo(Routes.S19) }, onOpen = go::open)
+    }
+
+    // ----- S28 데이터 백업·복원 -----
+    composable(Routes.S28) {
+        val vm: S28BackupViewModel = viewModel(factory = S28BackupViewModel.factory(user.id))
+        val state by vm.uiState.collectAsStateWithLifecycle()
+        S28BackupScreen(
+            state = state,
+            actions = remember(vm, go) {
+                BackupActions(
+                    onBack = go::back,
+                    onExport = vm::export,
+                    onFilePicked = vm::onFilePicked,
+                    onConfirmRestore = vm::confirmRestore,
+                    onCancelRestore = vm::cancelRestore,
+                    onPickerUnavailable = vm::onPickerUnavailable
+                )
+            }
+        )
     }
 
     // ----- S36 개인정보 센터 -----

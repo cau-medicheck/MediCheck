@@ -676,6 +676,37 @@
     <string name="s22_row_errors_desc">오류·무결성 오류·빈 상태 패턴</string>
     <string name="s22_row_safety_desc">자동 복용량 추천 제외 및 구현 경계</string>
 
+    <!-- ===== S28 데이터 백업·복원 =====
+         프로토타입 문구의 '데모'·'시연'·'시안'은 실제 앱에서 사실이 아니라 뺐다. 원문은 줄마다 주석으로 남긴다. -->
+    <!-- 원문: 기기 변경을 대비한 데이터 관리 UI 시안입니다. -->
+    <string name="s28_subtitle">기기 변경을 대비한 데이터 관리 기능입니다.</string>
+    <!-- 원문: 현재 데모 데이터 -->
+    <string name="s28_current">현재 데이터</string>
+    <string name="s28_counts">약 %1$d개 · 복용 기록 %2$d개</string>
+    <string name="s28_chip_device">이 기기</string>
+    <!-- 원문: JSON 데모 백업 내보내기 -->
+    <string name="s28_export">JSON 백업 내보내기</string>
+    <!-- 원문: MediCheck_demo_backup.json -->
+    <string name="s28_export_file_name" translatable="false">MediCheck_backup.json</string>
+    <!-- 원문: 백업 불러오기 (데모) -->
+    <string name="s28_import_label">백업 불러오기</string>
+    <string name="s28_import_pick">백업 파일 선택</string>
+    <!-- 원문: 실제 제품에는 암호화, 데이터 무결성 검증, … 이 파일은 개발 시연용입니다. -->
+    <string name="s28_notice">백업 파일은 암호화되지 않으며 약 이름과 복약 기록이 그대로 들어 있습니다. 파일 보관·공유에 주의해주세요. 불러오면 이 계정의 약과 복약 기록이 파일 내용으로 바뀝니다. 다른 계정에서 만든 백업은 불러올 수 없습니다.</string>
+    <!-- 원문: 기기 내 시연 약과 복약 기록을 파일 내용으로 바꿀까요? -->
+    <string name="s28_confirm">기기 내 약과 복약 기록을 파일 내용으로 바꿀까요?</string>
+    <string name="s28_confirm_counts">파일: 약 %1$d개 · 복용 기록 %2$d개</string>
+    <string name="s28_confirm_warning">지금 이 계정의 약·복용 기록·변경 이력은 지워지고 되돌릴 수 없습니다.</string>
+    <!-- 원문: 데모 백업을 저장했습니다. -->
+    <string name="s28_toast_exported">백업 파일을 저장했습니다.</string>
+    <string name="s28_toast_export_failed">파일을 저장하지 못했습니다. 다시 시도해주세요.</string>
+    <!-- 원문: 데모 데이터를 복원했습니다. -->
+    <string name="s28_toast_restored">백업 데이터를 복원했습니다.</string>
+    <!-- 원문: 복원 실패: 데모 형식을 확인해주세요. -->
+    <string name="s28_toast_invalid">복원 실패: 백업 파일 형식을 확인해주세요.</string>
+    <string name="s28_toast_other_account">다른 계정에서 만든 백업 파일은 불러올 수 없습니다.</string>
+    <string name="s28_toast_restore_failed">복원하지 못했습니다. 다시 시도해주세요.</string>
+
     <!-- ===== S36 개인정보 센터 ===== -->
     <string name="s36_subtitle">복약 내역이 다른 사람에게 보이는 범위를 관리합니다.</string>
     <string name="s36_hide_name_title">잠금 화면에 약 이름 숨김</string>

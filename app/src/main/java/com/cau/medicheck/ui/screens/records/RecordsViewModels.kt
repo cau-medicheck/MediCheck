@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.R
-import com.cau.medicheck.data.export.CsvFileWriter
+import com.cau.medicheck.data.export.DocumentFileIo
 import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.domain.CsvExporter
 import com.cau.medicheck.domain.DoseCounts
@@ -119,13 +119,13 @@ data class CsvExportUiState(val pastDays: Int? = null, val isExporting: Boolean 
  * 복약 기록 내보내기(S43)의 ViewModel.
  *
  * 내보내기 순서: ① 오늘까지 기록 채우기 → ② 내보낼 회차 모으기 → ③ CSV 글자 만들기 → ④ 고른 파일에 쓰기.
- * 글자를 만드는 일은 CsvExporter(순수 로직), 파일에 쓰는 일은 CsvFileWriter가 한다.
+ * 글자를 만드는 일은 CsvExporter(순수 로직), 파일에 쓰는 일은 DocumentFileIo가 한다.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CsvExportViewModel(
     private val userId: Long,
     private val doseRepository: DoseRepository,
-    private val csvFileWriter: CsvFileWriter,
+    private val documentFileIo: DocumentFileIo,
     private val toastBus: ToastBus,
     private val appScope: CoroutineScope,
     private val clock: Clock = Clock.systemDefaultZone()
@@ -160,12 +160,12 @@ class CsvExportViewModel(
                 val now = LocalDateTime.now(clock)
                 val rows = CsvExporter.sorted(doseRepository.exportItems(userId))
                     .map { CsvExporter.toRow(it, now, clock.zone) }
-                csvFileWriter.write(uri, CsvExporter.build(rows))
+                documentFileIo.write(uri, CsvExporter.build(rows))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 // 기록을 모으다 오류가 나도 앱이 꺼지지 않게 하고, 저장 화면이 만들어 둔 빈 파일은 지운다.
-                csvFileWriter.discard(uri)
+                documentFileIo.discard(uri)
                 false
             } finally {
                 exporting.value = false   // 오류가 나도 버튼이 잠긴 채로 남지 않게
@@ -182,7 +182,7 @@ class CsvExportViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 CsvExportViewModel(
-                    userId, container.doseRepository, container.csvFileWriter, container.toastBus, container.appScope,
+                    userId, container.doseRepository, container.documentFileIo, container.toastBus, container.appScope,
                     clock = container.clock
                 )
             }

@@ -57,4 +57,8 @@ interface DoseStatusEventDao {
     /** 한 사용자의 이력을 모두 지운다. (샘플 계정 다시 만들기 — 명시적 삭제 순서의 첫 단계) */
     @Query("DELETE FROM dose_status_events WHERE user_id = :userId")
     suspend fun deleteAllForUser(userId: Long)
+
+    /** 여러 줄을 목록 순서대로 넣는다. (S28 복원 — 파일의 순서가 새 id의 순서가 된다) */
+    @Insert
+    suspend fun insertAll(events: List<DoseStatusEvent>)
 }

@@ -86,4 +86,11 @@ interface ScheduleDao {
             "WHERE medication_id IN (SELECT id FROM medications WHERE user_id = :userId)"
     )
     suspend fun deleteAllForUser(userId: Long)
+
+    /** 한 사용자의 규칙 전부, 삭제한 규칙도 포함. (S28 백업) */
+    @Query(
+        "SELECT * FROM schedules " +
+            "WHERE medication_id IN (SELECT id FROM medications WHERE user_id = :userId) ORDER BY id"
+    )
+    suspend fun findAllForUser(userId: Long): List<Schedule>
 }

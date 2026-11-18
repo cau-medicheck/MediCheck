@@ -53,6 +53,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
+    // org.json은 안드로이드에 들어 있지만, 폰 없이 도는 단위 테스트에서는 빈 껍데기라 쓸 수 없다.
+    // 백업 파일 읽고 쓰기(BackupJson)를 테스트하려고 테스트에만 진짜 구현을 넣는다. 앱에는 들어가지 않는다.
+    testImplementation(libs.org.json.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

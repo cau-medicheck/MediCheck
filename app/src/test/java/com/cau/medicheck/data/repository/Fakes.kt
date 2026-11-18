@@ -155,6 +155,12 @@ internal class FakeMedicationDao : MedicationDao {
     override suspend fun deleteAllForUser(userId: Long) {
         medications.update { list -> list.filterNot { it.userId == userId } }
     }
+
+    override fun observeActiveCount(userId: Long): Flow<Int> =
+        medications.map { list -> list.count { it.userId == userId && it.deletedAt == null } }
+
+    override suspend fun findAllForUser(userId: Long): List<Medication> =
+        medications.value.filter { it.userId == userId }.sortedBy { it.id }
 }
 
 /** 메모리의 목록에만 저장하는 가짜 ScheduleDao. 주인을 가려내려고 약 목록을 함께 본다. */
@@ -237,6 +243,9 @@ internal class FakeScheduleDao(private val medicationDao: FakeMedicationDao) : S
     override suspend fun deleteAllForUser(userId: Long) {
         schedules.update { list -> list.filterNot { ownerOf(it) == userId } }
     }
+
+    override suspend fun findAllForUser(userId: Long): List<Schedule> =
+        schedules.value.filter { ownerOf(it) == userId }.sortedBy { it.id }
 }
 
 /**
@@ -389,6 +398,18 @@ internal class FakeDoseRecordDao(
     override suspend fun deleteAllForUser(userId: Long) {
         records.update { list -> list.filterNot { isMine(it, userId) } }
     }
+
+    override suspend fun insert(record: DoseRecord): Long {
+        val newId = ++lastId
+        records.update { it + record.copy(id = newId) }
+        return newId
+    }
+
+    override fun observeCountForUser(userId: Long): Flow<Int> =
+        records.map { list -> list.count { isMine(it, userId) } }
+
+    override suspend fun findAllEntitiesForUser(userId: Long): List<DoseRecord> =
+        records.value.filter { isMine(it, userId) }.sortedBy { it.id }
 }
 
 /** 메모리의 목록에만 저장하는 가짜 DoseStatusEventDao. */
@@ -428,6 +449,10 @@ internal class FakeDoseStatusEventDao : DoseStatusEventDao {
 
     override suspend fun deleteAllForUser(userId: Long) {
         events.update { list -> list.filterNot { it.userId == userId } }
+    }
+
+    override suspend fun insertAll(events: List<DoseStatusEvent>) {
+        events.forEach { insert(it) }
     }
 }
 
