@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -16,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +32,7 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
+import com.cau.medicheck.ui.components.ProvideBodyFontScale
 import com.cau.medicheck.ui.components.ScreenTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.lock.LocalAppLocked
@@ -132,25 +137,40 @@ fun S28BackupScreen(state: BackupUiState, actions: BackupActions) {
     state.pending?.takeIf { !LocalAppLocked.current }?.let { pending ->
         AlertDialog(
             onDismissRequest = actions.onCancelRestore,   // 바깥을 누르거나 뒤로 가기 = 취소
-            title = { Text(stringResource(R.string.s28_confirm), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+            // 확인 창은 따로 뜨는 창이라 본문의 글자 배율이 전해지지 않는다. 글자마다 한 번 더 적용한다.
             text = {
-                Column {
-                    Text(
-                        stringResource(R.string.s28_confirm_counts, pending.medicationCount, pending.recordCount),
-                        fontSize = 13.sp
-                    )
-                    Text(
-                        stringResource(R.string.s28_confirm_warning),
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                ProvideBodyFontScale {
+                    // 글자가 커져 창보다 길어지면 안에서 밀어 볼 수 있게 한다.
+                    // 제목도 같이 밀리도록 여기에 둔다(제목이 자리를 다 차지해 경고가 안 보이는 일을 막는다).
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Text(
+                            stringResource(R.string.s28_confirm),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Navy,
+                            modifier = Modifier.padding(bottom = 12.dp).semantics { heading() }
+                        )
+                        Text(
+                            stringResource(R.string.s28_confirm_counts, pending.medicationCount, pending.recordCount),
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            stringResource(R.string.s28_confirm_warning),
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
-                TextButton(onClick = actions.onConfirmRestore) { Text(stringResource(R.string.action_ok)) }
+                TextButton(onClick = actions.onConfirmRestore) {
+                    ProvideBodyFontScale { Text(stringResource(R.string.action_ok)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = actions.onCancelRestore) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = actions.onCancelRestore) {
+                    ProvideBodyFontScale { Text(stringResource(R.string.action_cancel)) }
+                }
             }
         )
     }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
@@ -660,7 +661,8 @@ fun RowSub(text: String, modifier: Modifier = Modifier) {
 fun LabelValueRow(label: String, value: String, showDivider: Boolean = true) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
-            Text(text = label, fontSize = 11.sp, color = Muted, modifier = Modifier.width(92.dp))
+            // 이름표는 92dp가 기본이고, 글자를 크게 쓰면 180dp까지 넓어진다(낱말 중간에서 줄이 바뀌지 않게).
+            Text(text = label, fontSize = 11.sp, color = Muted, modifier = Modifier.widthIn(min = 92.dp, max = 180.dp))
             Text(
                 text = value,
                 fontSize = 12.sp,
