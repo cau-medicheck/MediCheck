@@ -129,28 +129,17 @@ fun S04HomeScreen(
     val openSheet: (DoseKey) -> Unit = { sheetKey = it }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s04)) {
-        // ----- 날짜 + 큰 제목 + [＋ 약 등록] -----
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(text = fullDateText(state.date), fontSize = 12.sp, color = Muted)
-                Text(
-                    text = stringResource(if (state.date == state.today) R.string.s04_title_today else R.string.s04_title_other),
-                    fontSize = 25.sp,
-                    lineHeight = 33.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.9).sp,
-                    color = Navy,
-                    modifier = Modifier.padding(top = 2.dp).semantics { heading() }
-                )
-            }
-            Spacer(Modifier.width(10.dp))
-            McButton(
-                text = stringResource(R.string.s04_btn_add_med),
-                onClick = actions.onAddMedication,
-                kind = ButtonKind.WHITE,
-                small = true
-            )
-        }
+        // ----- 날짜 + 큰 제목 -----
+        Text(text = fullDateText(state.date), fontSize = 12.sp, color = Muted)
+        Text(
+            text = stringResource(if (state.date == state.today) R.string.s04_title_today else R.string.s04_title_other),
+            fontSize = 25.sp,
+            lineHeight = 33.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.9).sp,
+            color = Navy,
+            modifier = Modifier.padding(top = 2.dp).semantics { heading() }
+        )
 
         NextDoseCard(state, onOpenDose = openSheet, modifier = Modifier.padding(top = 16.dp))
 
