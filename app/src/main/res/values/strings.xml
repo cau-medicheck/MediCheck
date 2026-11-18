@@ -286,7 +286,9 @@
     <string name="s04_pending_none">기록을 기다리는 복약이 없어요.</string>
     <string name="s04_btn_today">오늘</string>
     <string name="s04_rate_label">복약 완료율</string>
-    <string name="s04_rate_caption">집계 대상 %1$d회 중 %2$d회 완료</string>
+    <string name="s04_chip_missed">미기록</string>
+    <string name="s04_chip_upcoming">예정</string>
+    <string name="s04_chip_skipped">건너뜀</string>
     <string name="s04_section_calendar">복약 캘린더</string>
     <string name="s04_link_schedule">일정 보기 ›</string>
     <string name="s04_empty_title">복용 일정이 없어요</string>

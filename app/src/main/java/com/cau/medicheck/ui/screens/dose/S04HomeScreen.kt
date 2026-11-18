@@ -69,7 +69,6 @@ import com.cau.medicheck.ui.components.NotificationOffCard
 import com.cau.medicheck.ui.components.ProgressBar
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.StatusPill
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
@@ -79,6 +78,12 @@ import com.cau.medicheck.ui.theme.CardBorder
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeroDeepEnd
 import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.HomeChipDoneBg
+import com.cau.medicheck.ui.theme.HomeChipDoneText
+import com.cau.medicheck.ui.theme.HomeChipMissedBg
+import com.cau.medicheck.ui.theme.HomeChipMissedText
+import com.cau.medicheck.ui.theme.HomeChipWaitBg
+import com.cau.medicheck.ui.theme.HomeChipWaitText
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
@@ -340,7 +345,7 @@ private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, 
 }
 
 /**
- * 카드 아래쪽의 복약 완료율: 가는 선 / "복약 완료율" / 큰 숫자 "33%" / 진행 막대 / "집계 대상 3회 중 1회 완료".
+ * 카드 아래쪽의 복약 완료율: 가는 선 / "복약 완료율" / 큰 숫자 "33%" / 진행 막대.
  * (새 시안 MediCheck4.html의 홈 카드) 완료율의 분모는 예정 시각이 된 회차다 — 계산은 DoseCounts가 한다.
  */
 @Composable
@@ -389,12 +394,6 @@ private fun RateBlock(counts: DoseCounts, modifier: Modifier = Modifier) {
                     .background(Color.White)
             )
         }
-        Text(
-            text = stringResource(R.string.s04_rate_caption, counts.due, counts.taken),
-            fontSize = 11.sp,
-            color = Color.White.copy(alpha = 0.85f),
-            modifier = Modifier.padding(top = 9.dp)
-        )
     }
 }
 
@@ -562,7 +561,7 @@ private fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpe
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
             Spacer(Modifier.width(8.dp))
-            StatusPill(row.display)
+            HomeStatusChip(row.display)
             Text(
                 text = "›",
                 fontSize = 16.sp,
@@ -571,4 +570,28 @@ private fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpe
             )
         }
     }
+}
+
+/**
+ * 홈 시간표의 상태 표시. 다른 화면의 StatusPill보다 글자를 짧게, 색을 진하게 쓴다
+ * (홈은 한눈에 훑어보는 화면이라 "기한 경과 · 미기록" 대신 "미기록"만 적는다. 자세한 상태는 회차 상세에 있다).
+ */
+@Composable
+private fun HomeStatusChip(status: DoseDisplayStatus) {
+    val (textRes, background, textColor) = when (status) {
+        DoseDisplayStatus.TAKEN -> Triple(R.string.status_pill_taken, HomeChipDoneBg, HomeChipDoneText)
+        DoseDisplayStatus.SKIPPED -> Triple(R.string.s04_chip_skipped, HomeChipWaitBg, HomeChipWaitText)
+        DoseDisplayStatus.MISSED -> Triple(R.string.s04_chip_missed, HomeChipMissedBg, HomeChipMissedText)
+        DoseDisplayStatus.UPCOMING -> Triple(R.string.s04_chip_upcoming, HomeChipWaitBg, HomeChipWaitText)
+    }
+    Text(
+        text = stringResource(textRes),
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = textColor,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(background)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    )
 }
