@@ -2,6 +2,18 @@ package com.cau.medicheck.ui.navigation
 
 import java.time.LocalDate
 
+/** 요구사항 맵(S45)에서 기능 줄을 눌렀을 때 할 일 */
+sealed interface ReqTarget {
+    /** 갈 곳이 없다: 그 기능의 화면이 S45 자신뿐이거나 화면 ID가 하나도 없다 → 누를 수 없는 줄로 그린다 */
+    data object Stay : ReqTarget
+
+    /** 그 화면을 연다 */
+    data class Open(val screenId: String) : ReqTarget
+
+    /** 로그인 전 화면(S00~S03)뿐인 기능 → 이동하지 않고 안내만 띄운다 */
+    data object PreLoginOnly : ReqTarget
+}
+
 /**
  * 화면 이동 규칙 중 "계산만 하는 부분"을 모아 둔 곳. (구현 명세 00 §3.4, §7.6)
  *
@@ -44,6 +56,31 @@ object NavRules {
         "S11", "S12" -> "S11"
         "S13", "S14", "S15" -> "S13"
         else -> null
+    }
+
+    private val SCREEN_ID = Regex("S\\d\\d")
+
+    /**
+     * 요구사항 맵(S45)의 기능 줄을 눌렀을 때 어디로 갈지.
+     *
+     * 목록에서 "지금 갈 수 있는 첫 화면"을 고른다. 갈 수 없는 화면은 두 가지다.
+     *   - 로그인 전 화면(S00~S03): 로그인해 있는 동안에는 갈 수 없다
+     *   - S45 자신: 이미 이 화면이다
+     *
+     *   갈 수 있는 화면이 있음                      → 그중 첫 화면을 연다  (예: [S01, S04] → S04, [S45, S37] → S37)
+     *   로그인 전 화면뿐                            → PreLoginOnly (안내만)
+     *   S45뿐이거나 화면 ID가 없음                  → Stay
+     *
+     * @param screens 그 기능의 화면 ID 목록 (자산의 'v3화면ID' 칸). 화면 ID 꼴이 아닌 글자는 무시한다
+     */
+    fun reqTarget(screens: List<String>): ReqTarget {
+        val ids = screens.filter { SCREEN_ID.matches(it) && it in Routes.ALL_SCREEN_IDS }
+        val reachable = ids.firstOrNull { it !in Routes.PRE_LOGIN && it != Routes.S45 }
+        return when {
+            reachable != null -> ReqTarget.Open(reachable)
+            ids.isNotEmpty() && ids.all { it in Routes.PRE_LOGIN } -> ReqTarget.PreLoginOnly
+            else -> ReqTarget.Stay
+        }
     }
 
     /** 주소에 붙어 온 날짜 글자를 날짜로. 형식이 틀리면 null (앱이 멈추지 않게). */

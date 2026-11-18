@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 /** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
 private val REGISTERED =
     setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS + NOTIFICATION_SCREENS +
-        SETTINGS_SCREENS
+        SETTINGS_SCREENS + EXTRAS_SCREENS
 
 /** 회차를 가리키는 주소 인자 두 개(규칙 번호, 날짜). 둘 다 없어도 화면이 열리도록 기본값을 둔다. */
 private val doseArguments = listOf(
@@ -190,6 +190,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
     recordGraph(user, go)       // 기록·통계 화면들 (RecordGraph.kt)
     notificationGraph(go)       // 알림 화면들 (NotificationGraph.kt)
     settingsGraph(user, go, settings)   // 설정 화면들 (SettingsGraph.kt)
+    extrasGraph(go)             // 요구사항 맵·안전 고지 (ExtrasGraph.kt)
 
     // ----- 아직 만들지 않은 화면: "준비 중" -----
     Routes.ALL_SCREEN_IDS
