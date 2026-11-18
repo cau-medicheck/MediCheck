@@ -231,14 +231,17 @@ fun <T> McSelectField(
     Box(modifier) {
         PickerField(text = label(selected), onClick = { expanded = true }, trailing = "▾")
         DropdownMenu(expanded = expanded && !LocalAppLocked.current, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(label(option), fontSize = 13.sp, color = Navy) },
-                    onClick = {
-                        expanded = false
-                        onSelect(option)
-                    }
-                )
+            // 펼친 목록은 따로 뜨는 창이라 본문의 글자 배율이 전해지지 않는다. 여기서 한 번 더 적용한다.
+            ProvideBodyFontScale {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(label(option), fontSize = 13.sp, color = Navy) },
+                        onClick = {
+                            expanded = false
+                            onSelect(option)
+                        }
+                    )
+                }
             }
         }
     }
