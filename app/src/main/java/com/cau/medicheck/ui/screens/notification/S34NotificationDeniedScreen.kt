@@ -20,6 +20,7 @@ import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowTitle
@@ -29,6 +30,8 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.DateChipText
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.WarnText
 
 /**
  * S34 알림 거절/오류 안내 (v3 deniedNotice()).
@@ -54,11 +57,10 @@ fun S34NotificationDeniedScreen(
 
         SurfaceCard {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
-                Text(
-                    text = if (notificationsOn) Glyph.BELL else Glyph.BELL_OFF,
-                    fontSize = 40.sp,
-                    modifier = Modifier.clearAndSetSemantics { }
+                McIcon(
+                    icon = if (notificationsOn) Glyph.BELL else Glyph.BELL_OFF,
+                    size = 40,
+                    tint = if (notificationsOn) Teal else WarnText
                 )
                 Text(
                     text = stringResource(if (notificationsOn) R.string.s34_on_title else R.string.s34_off_title),

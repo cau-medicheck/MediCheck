@@ -19,6 +19,7 @@ import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowSub
@@ -28,6 +29,7 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.WarnText
 
 /**
  * S40 중복 약·회차 확인 (v3 duplicateScreen()).
@@ -54,7 +56,7 @@ fun S40DuplicateScreen(
         )
 
         SurfaceCard {
-            Text(text = Glyph.WARNING, fontSize = 33.sp, modifier = Modifier.clearAndSetSemantics { })
+            McIcon(Glyph.WARNING, size = 33, tint = WarnText)
             Text(
                 text = stringResource(R.string.s40_heading),
                 fontSize = 17.sp,

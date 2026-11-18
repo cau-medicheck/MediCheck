@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -30,6 +31,7 @@ import com.cau.medicheck.ui.theme.IllustrationEnd
 import com.cau.medicheck.ui.theme.IllustrationStart
 import com.cau.medicheck.ui.theme.PagerDotActive
 import com.cau.medicheck.ui.theme.PagerDotInactive
+import com.cau.medicheck.ui.theme.Teal
 
 /*
  * 여러 화면에서 쓰는 중간 크기 부품. (구현 명세 00 §5.1)
@@ -67,10 +69,10 @@ fun AuthSub(text: String, modifier: Modifier = Modifier) {
 
 /**
  * 온보딩의 그림 상자 (v3 .illustration: 높이 147px, 140도 그라데이션, 둥글기 19px, 글자 67px).
- * 그림 글자는 장식이라 TalkBack이 읽지 않는다.
+ * 아이콘은 장식이라 TalkBack이 읽지 않는다.
  */
 @Composable
-fun Illustration(symbol: String, modifier: Modifier = Modifier) {
+fun Illustration(symbol: ImageVector, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -88,7 +90,7 @@ fun Illustration(symbol: String, modifier: Modifier = Modifier) {
             )
             .clearAndSetSemantics { }
     ) {
-        Text(text = symbol, fontSize = 67.sp)
+        McIcon(symbol, size = 67, tint = Teal)
     }
 }
 

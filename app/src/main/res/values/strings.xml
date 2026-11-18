@@ -4,7 +4,6 @@
 
     <!-- ===== 앱 틀 (구현 명세 00 §7.2) ===== -->
     <!-- 머리말 위 작은 글자. v3의 영문 장식 글자를 그대로 둔다. -->
-    <string name="header_eyebrow">MEDICATION CARE</string>
 
     <!-- 머리말 제목 = v3 화면 이름 (V 목록의 첫 칸, 47개) -->
     <string name="screen_title_s00">시작/온보딩</string>
@@ -223,7 +222,7 @@
     <string name="s34_step1">앱 알림 허용</string>
     <string name="s34_step2">필요한 경우 정확 알림 설정 확인</string>
     <string name="s34_step3">배터리 제한·절전 설정 확인</string>
-    <string name="s34_notice">ⓘ 버튼과 번호를 누르면 Android의 해당 설정 화면이 열립니다. 설정을 바꾸고 돌아오면 상태를 다시 확인합니다.</string>
+    <string name="s34_notice">버튼과 번호를 누르면 Android의 해당 설정 화면이 열립니다. 설정을 바꾸고 돌아오면 상태를 다시 확인합니다.</string>
 
     <!-- S35 시간대 변경 정책 -->
     <string name="s35_title">시간대 변경 정책</string>
@@ -238,7 +237,7 @@
     <string name="s35_save">정책 저장</string>
     <string name="s35_saved">시간대 표시 정책을 저장했습니다.</string>
     <string name="s35_notice_warn">시간대 이동에 따른 실제 복용 시각 변경은 처방 지침 및 의료진 안내에 따릅니다. 앱이 복용 시각을 임의로 바꾸지 않습니다.</string>
-    <string name="s35_notice">ⓘ 기기 현지 시간 기준: 폰의 시간대가 바뀌면 알림도 그곳의 같은 시각(예: 08:00)에 울립니다. 등록한 시간대 기준: 폰의 시간대와 상관없이 등록한 시간대의 08:00에 울리고, 앱의 ‘오늘’과 기한 경과 판단도 그 시간대로 계산합니다.</string>
+    <string name="s35_notice">기기 현지 시간 기준: 폰의 시간대가 바뀌면 알림도 그곳의 같은 시각(예: 08:00)에 울립니다. 등록한 시간대 기준: 폰의 시간대와 상관없이 등록한 시간대의 08:00에 울리고, 앱의 ‘오늘’과 기한 경과 판단도 그 시간대로 계산합니다.</string>
 
     <!-- 통계 -->
     <string name="tab_stats">통계</string>
@@ -278,9 +277,9 @@
     <string name="s18_link_denied">알림 권한 거절 시 안내 ›</string>
 
     <!-- ===== S04 홈 대시보드 ===== -->
-    <string name="s04_greeting">안녕하세요, %1$s님 👋</string>
+    <string name="s04_greeting">안녕하세요, %1$s님</string>
     <string name="s04_brand">MEDICHECK</string>
-    <string name="s04_hero_title">오늘도 잊지 않고\n건강한 하루를 🌿</string>
+    <string name="s04_hero_title">오늘도 잊지 않고\n건강한 하루를</string>
     <string name="s04_rate_label">선택한 날짜 복약 완료율</string>
     <string name="s04_rate_count">%1$d/%2$d회 복용 완료</string>
     <string name="s04_section_calendar">복약 캘린더</string>
@@ -357,7 +356,7 @@
     <string name="s31_label">실제 복용 시각 *</string>
     <string name="s31_btn_save">시각 저장 및 복용 완료 기록</string>
     <!-- 프로토타입 원문("브라우저 내 데모 데이터만 변경합니다…")은 실제 앱에서 사실이 아니라 바꿨다 -->
-    <string name="s31_notice">ⓘ 이 기기에 저장된 복용 기록만 변경합니다. 서버나 의료 정보 서비스로 전송되지 않습니다.</string>
+    <string name="s31_notice">이 기기에 저장된 복용 기록만 변경합니다. 서버나 의료 정보 서비스로 전송되지 않습니다.</string>
     <string name="s31_empty_subtitle">복용 회차를 먼저 선택해주세요.</string>
     <string name="s31_empty_title">회차가 없어요</string>
     <string name="s31_empty_body">약을 등록하면 입력할 수 있어요.</string>
@@ -377,7 +376,7 @@
     <string name="med_status_ended">종료</string>
     <string name="mark_could">Could</string>
     <string name="mark_must">Must</string>
-    <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
+    <string name="extra_notice_future">이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
 
     <!-- ===== S06 내 약 목록 ===== -->
     <string name="s06_title">내 약 관리</string>
@@ -404,7 +403,7 @@
     <string name="s07_no_memo">없음</string>
     <string name="s07_pause_title">일시중지</string>
     <string name="s07_pause_body">재개 전까지 오늘 이후 일정을 숨겨요.</string>
-    <string name="s07_btn_edit">✎ 약 수정</string>
+    <string name="s07_btn_edit">약 수정</string>
     <string name="s07_btn_delete">삭제</string>
     <string name="s07_row_source_title">처방 출처 메모</string>
     <string name="s07_row_source_desc">의료기관·진료과</string>
@@ -489,7 +488,7 @@
     <string name="s33_scope_tomorrow_desc">오늘 일정은 이전 설정 유지</string>
     <string name="s33_btn_save">적용 범위 확인 후 저장</string>
     <!-- 프로토타입 원문("브라우저 내 데모 데이터만 변경합니다…")은 실제 앱에서 사실이 아니라 바꿨다 -->
-    <string name="s33_notice">ⓘ 이 기기 안의 데이터만 변경합니다. 서버·의료 정보 서비스와 연결되지 않습니다.</string>
+    <string name="s33_notice">이 기기 안의 데이터만 변경합니다. 서버·의료 정보 서비스와 연결되지 않습니다.</string>
     <string name="s33_toast_saved">일정 변경을 저장했습니다. (과거 이력 보존)</string>
 
     <!-- ===== S40 중복 약·회차 확인 ===== -->
@@ -814,7 +813,7 @@
     <string name="s36_row_delete_desc">데이터 처리 범위 확인</string>
     <string name="s36_mark_extra">추가</string>
     <!-- 프로토타입 원문 "ⓘ 브라우저 내 데모 데이터만 변경합니다. …": 스위치가 실제 알림과 최근 앱 미리보기를 바꾸므로 고쳤다 -->
-    <string name="s36_notice">ⓘ 모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
+    <string name="s36_notice">모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
 
     <!-- ===== S37 접근성 설정 ===== -->
     <string name="s37_title">접근성 및 글자 크기</string>
@@ -884,7 +883,7 @@
     <string name="s41_method_pin">기기 PIN/화면 잠금</string>
     <string name="s41_method_fallback">이 기기에서는 기기 PIN/화면 잠금으로 확인합니다.</string>
     <!-- 원문: ⓘ 실제 기기 기능이 아닌 시연 UI입니다. Android 네이티브 구현과 권한 검증이 필요합니다. -->
-    <string name="s41_notice">ⓘ 앱을 다시 열 때 기기 화면 잠금(PIN·패턴·비밀번호)이나 생체인증으로 본인을 확인합니다. 기기에 화면 잠금이 설정되어 있어야 켤 수 있습니다. 앱 잠금을 켜면 최근 앱 목록의 화면 미리보기도 가려집니다.</string>
+    <string name="s41_notice">앱을 다시 열 때 기기 화면 잠금(PIN·패턴·비밀번호)이나 생체인증으로 본인을 확인합니다. 기기에 화면 잠금이 설정되어 있어야 켤 수 있습니다. 앱 잠금을 켜면 최근 앱 목록의 화면 미리보기도 가려집니다.</string>
     <string name="s41_toast_no_device_lock">기기에 화면 잠금(PIN·패턴·비밀번호)을 먼저 설정해주세요.</string>
     <string name="s41_toast_not_verified">본인 확인을 마치지 않아 앱 잠금을 켜지 않았어요.</string>
     <string name="s41_toast_auto_off">기기 화면 잠금이 없어 앱 잠금을 껐어요.</string>

@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -33,13 +34,13 @@ import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 
 /** 설정 허브의 한 줄: 왼쪽 기호(없을 수도 있음) + 제목 + 설명 + 누르면 갈 화면 */
-private data class HubRow(val symbol: String?, val titleRes: Int, val descRes: Int, val route: String)
+private data class HubRow(val symbol: ImageVector?, val titleRes: Int, val descRes: Int, val route: String)
 
 /** "알림 및 앱" 카드의 줄들 (v3 settings()의 첫 카드) */
 private val APP_ROWS = listOf(
     HubRow(Glyph.BELL, R.string.s19_row_noti_title, R.string.s19_row_noti_desc, Routes.S17),
     HubRow(Glyph.PERMISSION, R.string.s19_row_perm_title, R.string.s19_row_perm_desc, Routes.S18),
-    HubRow(Glyph.TAB_STATS, R.string.s19_row_policy_title, R.string.s19_row_policy_desc, Routes.S20),
+    HubRow(Glyph.POLICY, R.string.s19_row_policy_title, R.string.s19_row_policy_desc, Routes.S20),
     HubRow(Glyph.HELP, R.string.s19_row_help_title, R.string.s19_row_help_desc, Routes.S22)
 )
 
