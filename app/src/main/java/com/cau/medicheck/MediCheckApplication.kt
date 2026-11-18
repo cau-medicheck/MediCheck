@@ -97,6 +97,7 @@ class AppContainer(context: Context) {
     /** 여러 화면이 함께 쓰는 선택 날짜·마지막으로 연 회차 (메모리에만 있다) */
     val selection: SelectionStore by lazy { SelectionStore(clock) }
 
+
     /** 인터넷 연결 상태를 알려 주는 도구 (S38) */
     val networkMonitor: NetworkMonitor by lazy { NetworkMonitor(appContext) }
 

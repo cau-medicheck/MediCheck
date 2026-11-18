@@ -20,11 +20,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,6 +58,8 @@ import com.cau.medicheck.ui.theme.DateChipText
 import com.cau.medicheck.ui.theme.HeroEnd
 import com.cau.medicheck.ui.theme.HeroRingRest
 import com.cau.medicheck.ui.theme.HeroStart
+import com.cau.medicheck.ui.theme.Muted
+import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.WarnBg
 import com.cau.medicheck.ui.theme.WarnBorder
@@ -72,15 +81,7 @@ import java.time.LocalTime
  *   ✓ 복용 완료(민트) / ↷ 건너뜀(주황) / ! 기한 경과 · 미기록(회색) / ○ 복용 예정(회색)
  */
 @Composable
-fun StatusPill(status: DoseDisplayStatus, modifier: Modifier = Modifier) {
-    val (textRes, kind) = when (status) {
-        DoseDisplayStatus.TAKEN -> R.string.status_pill_taken to PillKind.MINT
-        DoseDisplayStatus.SKIPPED -> R.string.status_pill_skipped to PillKind.ORANGE
-        DoseDisplayStatus.MISSED -> R.string.status_pill_overdue to PillKind.GRAY
-        DoseDisplayStatus.UPCOMING -> R.string.status_pill_upcoming to PillKind.GRAY
-    }
-    Pill(text = stringResource(textRes), kind = kind, modifier = modifier)
-}
+fun StatusPill(status: DoseDisplayStatus, modifier: Modifier = Modifier) = DoseStatusChip(status, modifier)
 
 /**
  * 회차 줄 하나를 그리는 데 필요한 값. ViewModel이 만들어서 화면에 넘긴다.
@@ -92,7 +93,9 @@ data class DoseRowUi(
     val time: LocalTime,
     val dosage: String,
     val display: DoseDisplayStatus,
-    val canQuickTake: Boolean
+    val canQuickTake: Boolean,
+    /** 복용 메모("아침 식후" 등). 없으면 "" */
+    val memo: String = ""
 )
 
 /**
@@ -300,6 +303,86 @@ fun DateChipStrip(
         }
     }
 }
+
+/**
+ * 한 주(월~일)를 한 화면에 보여 주고, 옆으로 밀면 앞뒤 주로 넘어가는 날짜 띠. (일정 화면, 시안 MediCheck1.html의 모양)
+ *
+ * - 칸에는 테두리가 없다. 요일 작은 글자 + 날짜 큰 숫자, 고른 날만 청록 바탕. 오늘은 청록 글자.
+ * - 손가락으로 밀어 다른 주로 넘어가면, 그 주의 같은 요일이 골라진다(수요일을 보고 있었으면 다음 주 수요일).
+ * - 달력 창이나 "오늘" 버튼으로 날짜가 바뀌면 그 주로 띠가 따라 움직인다.
+ * HorizontalPager = 한 장씩 옆으로 넘기는 부품. 장 번호 WEEK_PAGER_CENTER가 "오늘이 든 주"다.
+ */
+@Composable
+fun WeekPager(
+    today: LocalDate,
+    selected: LocalDate,
+    onSelect: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val thisMonday = mondayOf(today)
+    val selectedPage = WEEK_PAGER_CENTER + ((mondayOf(selected).toEpochDay() - thisMonday.toEpochDay()) / 7).toInt()
+    val pagerState = rememberPagerState(initialPage = selectedPage, pageCount = { WEEK_PAGER_CENTER * 2 + 1 })
+
+    // 바깥에서 날짜가 바뀌었으면(달력 창, 오늘 버튼, 칸 누르기) 그 주가 보이게 넘긴다.
+    LaunchedEffect(selectedPage) {
+        if (pagerState.currentPage != selectedPage) pagerState.animateScrollToPage(selectedPage)
+    }
+    // 손가락으로 넘겨 다른 주에 멈췄으면 그 주의 같은 요일을 고른다.
+    val latestSelected by rememberUpdatedState(selected)
+    val latestOnSelect by rememberUpdatedState(onSelect)
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { page ->
+            val current = latestSelected
+            val currentPage = WEEK_PAGER_CENTER + ((mondayOf(current).toEpochDay() - thisMonday.toEpochDay()) / 7).toInt()
+            if (page != currentPage) latestOnSelect(current.plusDays((page - currentPage) * 7L))
+        }
+    }
+
+    HorizontalPager(state = pagerState, modifier = modifier.fillMaxWidth()) { page ->
+        val monday = thisMonday.plusDays((page - WEEK_PAGER_CENTER) * 7L)
+        Row(Modifier.fillMaxWidth().selectableGroup()) {
+            (0L..6L).forEach { offset ->
+                val date = monday.plusDays(offset)
+                val isSelected = date == selected
+                val color = if (isSelected) Color.White else if (date == today) Teal else Navy
+                val spoken = fullDateText(date)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 2.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isSelected) Teal else Color.Transparent)
+                        .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(date) })
+                        .padding(vertical = 9.dp)
+                        // 칸 안의 "수" "18" 대신 "11월 18일 수요일"로 읽게 한다.
+                        .semantics(mergeDescendants = true) { contentDescription = spoken }
+                ) {
+                    Text(
+                        text = weekdayText(date),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color.White else if (date == today) Teal else Muted,
+                        modifier = Modifier.clearAndSetSemantics { }
+                    )
+                    Text(
+                        text = date.dayOfMonth.toString(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        modifier = Modifier.padding(top = 3.dp).clearAndSetSemantics { }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 그 날이 든 주의 월요일 */
+fun mondayOf(date: LocalDate): LocalDate = date.minusDays((date.dayOfWeek.value - 1).toLong())
+
+/** 주 넘기기의 가운데 장 번호(오늘이 든 주). 앞뒤로 이만큼의 주를 넘길 수 있다(약 10년). */
+private const val WEEK_PAGER_CENTER = 520
 
 // ---------------------------------------------------------------------------------------------
 // 알림 꺼짐 카드

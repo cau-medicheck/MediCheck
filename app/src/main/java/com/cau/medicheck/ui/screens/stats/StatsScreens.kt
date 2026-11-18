@@ -48,10 +48,10 @@ import com.cau.medicheck.ui.theme.ProgressFill
  * 여기서는 받은 값을 그리기만 한다.
  */
 
-/** 통계 화면 맨 위: 설명 한 줄 + 탭 세 개. index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 누락 분석) */
+/** 통계 화면 맨 위: 큰 제목 + 탭 세 개. index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 누락 분석) */
 @Composable
-private fun ColumnScope.StatsHeader(subtitleRes: Int, index: Int, onTab: (Int) -> Unit) {
-    ScreenIntro(stringResource(subtitleRes))
+private fun ColumnScope.StatsHeader(index: Int, onTab: (Int) -> Unit) {
+    ScreenIntro()
     SegmentedTabs(
         labels = listOf(
             stringResource(R.string.stats_tab_week),
@@ -84,7 +84,7 @@ fun S13WeekStatsScreen(state: WeekStatsUiState, onTab: (Int) -> Unit) {
     val weekdaysFull = stringArrayResource(R.array.common_weekdays_full)
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s13)) {
-        StatsHeader(R.string.s13_subtitle, index = 0, onTab = onTab)
+        StatsHeader(index = 0, onTab = onTab)
         // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn
 
@@ -145,7 +145,7 @@ fun S14MonthStatsScreen(state: MonthStatsUiState, onTab: (Int) -> Unit, onShiftM
     val total = state.stats.total
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s14)) {
-        StatsHeader(R.string.s14_subtitle, index = 1, onTab = onTab)
+        StatsHeader(index = 1, onTab = onTab)
         // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn
 
@@ -218,7 +218,7 @@ fun S15SkipPatternScreen(state: SkipPatternUiState, onTab: (Int) -> Unit) {
     val max = maxOf(1, pattern.skippedByPeriod.values.maxOrNull() ?: 0)
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s15)) {
-        StatsHeader(R.string.s15_subtitle, index = 2, onTab = onTab)
+        StatsHeader(index = 2, onTab = onTab)
         // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn
 

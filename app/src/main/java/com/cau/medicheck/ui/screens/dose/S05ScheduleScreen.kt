@@ -1,13 +1,23 @@
 package com.cau.medicheck.ui.screens.dose
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,33 +26,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
-import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.DatePickerPopup
-import com.cau.medicheck.ui.components.DoseRow
+import com.cau.medicheck.ui.components.DayRateCard
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Pill
-import com.cau.medicheck.ui.components.PillKind
-import com.cau.medicheck.ui.components.PickerField
+import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.ScreenIntro
-import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.TimelineRow
+import com.cau.medicheck.ui.components.WeekPager
 import com.cau.medicheck.ui.components.dottedDateText
 import com.cau.medicheck.ui.components.fullDateText
+import com.cau.medicheck.ui.lock.LocalAppLocked
+import com.cau.medicheck.ui.theme.FieldBorder
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
+import com.cau.medicheck.ui.theme.Teal
 import java.time.LocalDate
 
 /** 일정 화면의 버튼들이 부를 함수 묶음 */
@@ -52,6 +69,7 @@ class ScheduleActions(
     val onToday: () -> Unit,
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
+    val onQuickSkip: (DoseKey) -> Unit,
     val onAddMedication: () -> Unit
 )
 
@@ -66,77 +84,73 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     // 날짜 고르는 창이 열려 있는가
     var showDatePicker by remember { mutableStateOf(false) }
 
+    // 지금 기록 창에 띄운 회차. null이면 닫혀 있다.
+    var sheetKey by remember { mutableStateOf<DoseKey?>(null) }
+    val sheetRow = state.rows.firstOrNull { it.key == sheetKey }
+    if (sheetRow != null && !LocalAppLocked.current) {
+        RecordSheet(
+            row = sheetRow,
+            date = state.date,
+            isFuture = state.date.isAfter(state.today),
+            onDismiss = { sheetKey = null },
+            onTaken = { actions.onQuickTake(sheetRow.key); sheetKey = null },
+            onSkipped = { actions.onQuickSkip(sheetRow.key); sheetKey = null },
+            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) }
+        )
+    }
+
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
-        ScreenIntro(stringResource(R.string.s05_subtitle))
+        ScreenIntro()
 
-        // ‹ 전날   11월 17일 화요일   다음날 ›
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        ) {
-            McButton(stringResource(R.string.s05_btn_prev), { actions.onShiftDay(-1) }, kind = ButtonKind.WHITE, small = true)
-            Text(
-                text = fullDateText(state.date),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Navy,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 6.dp)
-            )
-            McButton(stringResource(R.string.s05_btn_next), { actions.onShiftDay(1) }, kind = ButtonKind.WHITE, small = true)
-        }
-
-        // [2026. 11. 17.]                오늘로
-        // TalkBack 이름: "날짜 선택, 2026. 11. 17." (이름만 넣으면 고른 날짜를 읽지 않는다)
-        val dateFieldName = stringResource(R.string.s05_cd_date_field) + ", " + dottedDateText(state.date)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            PickerField(
-                text = dottedDateText(state.date),
-                onClick = { showDatePicker = true },
-                modifier = Modifier
-                    .widthIn(max = 180.dp)
-                    .semantics { contentDescription = dateFieldName }
-            )
-            Spacer(Modifier.width(8.dp))
-            McButton(stringResource(R.string.s05_btn_today), actions.onToday, kind = ButtonKind.LIGHT, small = true)
-        }
-
-        // 요약: "1 / 2회 완료"  "건너뜀 0 · 미기록 1"   [50%]  — 도래한 회차만 센 숫자다.
-        val counts = state.counts
-        val rate = counts.completionRate
-        SurfaceCard(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.s05_summary_count, counts.taken, counts.due),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(
-                        text = stringResource(R.string.s05_summary_detail, counts.skipped, counts.missed),
-                        fontSize = 11.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-                Pill(
-                    text = if (rate == null) stringResource(R.string.common_na)
-                    else stringResource(R.string.common_percent, rate),
-                    kind = PillKind.BLUE
+        HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(top = 14.dp))
+        // ‹ 11월 18일 수요일 [달력] ›                         [오늘]
+        // 가운데 글자는 지금 고른 날짜다. 화살표는 한 주씩 넘기고, 달력 그림을 누르면 달력 창이 열린다.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f).offset(x = (-8).dp)) {
+                WeekArrow(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, stringResource(R.string.s05_cd_prev_week)) { actions.onShiftDay(-7) }
+                Text(
+                    text = fullDateText(state.date),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-0.3).sp,
+                    color = Navy
                 )
+                // 달력 그림: TalkBack 이름은 "날짜 선택, 2026. 11. 17."
+                val dateFieldName = stringResource(R.string.s05_cd_date_field) + ", " + dottedDateText(state.date)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .clickable(role = Role.Button, onClick = { showDatePicker = true })
+                        .clearAndSetSemantics { contentDescription = dateFieldName; role = Role.Button }
+                ) {
+                    Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Teal, modifier = Modifier.size(20.dp))
+                }
+                WeekArrow(Icons.AutoMirrored.Rounded.KeyboardArrowRight, stringResource(R.string.s05_cd_next_week)) { actions.onShiftDay(7) }
             }
+            val todayShape = RoundedCornerShape(8.dp)
+            Text(
+                text = stringResource(R.string.s05_btn_today),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Navy,
+                modifier = Modifier
+                    .clip(todayShape)
+                    .background(Color.White)
+                    .border(1.dp, FieldBorder, todayShape)
+                    .clickable(role = Role.Button, onClick = actions.onToday)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            )
         }
+        // 한 주씩 옆으로 넘기는 날짜 띠
+        WeekPager(
+            today = state.today,
+            selected = state.date,
+            onSelect = actions.onSelectDay,
+            modifier = Modifier.padding(top = 10.dp, bottom = 12.dp)
+        )
+        HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(bottom = 16.dp))
 
         if (state.rows.isEmpty() && !state.isLoading) {
             SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
@@ -150,24 +164,48 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
             }
         }
 
-        // 시간대 묶음: 아침 (1) / 점심 (1) / … 회차가 있는 묶음만 그린다.
-        state.rowsByPeriod.forEach { (period, rows) ->
-            SectionTitle(
-                text = stringResource(period.labelRes()),
-                suffix = stringResource(R.string.s05_period_count, rows.size)
-            )
-            SurfaceCard(padding = 0.dp) {
-                Column(Modifier.padding(horizontal = 16.dp)) {
-                    rows.forEachIndexed { index, row ->
-                        DoseRow(
+        // 그날의 회차를 카드 하나에 시간표로 그린다. 줄을 누르면 기록 창이 올라온다.
+        if (state.rows.isNotEmpty()) {
+            SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 4.dp)
+                ) {
+                    Text(
+                        text = fullDateText(state.date),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Navy,
+                        modifier = Modifier.weight(1f).semantics { heading() }
+                    )
+                    Text(text = stringResource(R.string.s05_total, state.rows.size), fontSize = 12.sp, color = Muted)
+                }
+                // 그날의 상태별 횟수(기록 탭이 보여 주던 것): "완료 1 · 건너뜀 0 · 예정 2"
+                Text(
+                    text = stringResource(
+                        R.string.s05_counts,
+                        state.progress.taken, state.progress.skipped, state.progress.pending
+                    ),
+                    fontSize = 12.sp,
+                    color = Muted,
+                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 4.dp)
+                )
+                Column(Modifier.padding(bottom = 10.dp)) {
+                    state.rows.forEachIndexed { index, row ->
+                        TimelineRow(
                             row = row,
-                            onDetail = { actions.onOpenDose(row.key) },
-                            onQuickTake = { actions.onQuickTake(row.key) },
-                            showDivider = index != rows.lastIndex
+                            isFirst = index == 0,
+                            isLast = index == state.rows.lastIndex,
+                            onOpen = { sheetKey = row.key }
                         )
                     }
                 }
             }
+        }
+
+        // 오늘과 지난 날짜: 그날의 진행률 카드(기록 탭이 보여 주던 것)를 일정 아래에 둔다. 앞날은 아직 시작 전이라 보이지 않는다.
+        if (state.rows.isNotEmpty() && !state.date.isAfter(state.today)) {
+            DayRateCard(state.progress, isToday = state.date == state.today, modifier = Modifier.padding(top = 16.dp))
         }
     }
 
@@ -190,4 +228,19 @@ private fun DayPeriod.labelRes(): Int = when (this) {
     DayPeriod.LUNCH -> R.string.s05_period_lunch
     DayPeriod.EVENING -> R.string.s05_period_evening
     DayPeriod.NIGHT -> R.string.s05_period_night
+}
+
+/** 지난주·다음 주로 넘기는 작은 화살표 버튼. 한 줄에 날짜 칸까지 넣어야 해서 32dp로 잡았다. */
+@Composable
+private fun WeekArrow(icon: ImageVector, description: String, onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = description; role = Role.Button }
+    ) {
+        Icon(icon, contentDescription = null, tint = Navy, modifier = Modifier.size(22.dp))
+    }
 }

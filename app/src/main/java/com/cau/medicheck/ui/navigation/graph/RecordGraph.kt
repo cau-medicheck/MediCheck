@@ -58,10 +58,9 @@ fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
         OnResume(vm::refresh)
         S12RecordsDetailScreen(
             state = state,
-            // 기록에 캘린더가 있으면 거기까지 돌아가고, 없으면(과거 기록 보존 등에서 바로 온 경우) 기록 탭을
-            // 누른 것처럼 간다. 그래야 캘린더에서 뒤로 갔을 때 엉뚱한 화면이 다시 나오지 않는다.
+            // 기록 캘린더를 거쳐 왔으면 거기까지, 아니면(과거 기록 보존·오프라인 화면 등에서 바로 온 경우) 일정 탭으로 간다.
             onBackToCalendar = {
-                if (go.entryOrNull(Routes.S11) != null) go.backTo(Routes.S11) else go.openTab(Routes.S11)
+                if (go.entryOrNull(Routes.S11) != null) go.backTo(Routes.S11) else go.openTab(Routes.S05)
             },
             onOpenDose = { key -> go.open(Routes.s10(key)) }
         )

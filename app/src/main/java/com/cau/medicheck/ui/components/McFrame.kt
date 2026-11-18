@@ -1,23 +1,10 @@
 package com.cau.medicheck.ui.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import com.cau.medicheck.ui.theme.IconBtnBg
-import com.cau.medicheck.ui.theme.IconBtnText
-import com.cau.medicheck.ui.theme.Line
-import com.cau.medicheck.ui.theme.TabActive
-import com.cau.medicheck.ui.theme.TabInactive
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,20 +19,39 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,10 +62,15 @@ import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.theme.BodyBottom
 import com.cau.medicheck.ui.theme.BodyHorizontal
 import com.cau.medicheck.ui.theme.BodyTop
-import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HeaderDivider
+import com.cau.medicheck.ui.theme.IconBtnBg
+import com.cau.medicheck.ui.theme.IconBtnText
+import com.cau.medicheck.ui.theme.Line
+import com.cau.medicheck.ui.theme.Mint
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ScreenBackground
+import com.cau.medicheck.ui.theme.TabActive
+import com.cau.medicheck.ui.theme.TabInactive
 
 /*
  * 한 화면의 큰 틀(앱 틀). (구현 명세 00 §1.1~1.4, §5.4)
@@ -112,6 +123,9 @@ fun McTopBar(
     title: String,
     showActions: Boolean,
     modifier: Modifier = Modifier,
+    /** true면 화면 이름 대신 앱 로고와 "MediCheck"를 보인다 (홈). 화면 이름은 본문의 큰 제목이 맡는다. */
+    brand: Boolean = false,
+    onHome: () -> Unit = {},
     onNotifications: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
@@ -122,7 +136,33 @@ fun McTopBar(
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(start = 19.dp, end = 19.dp, top = 12.dp, bottom = 11.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            if (brand) {
+                // 로고와 앱 이름을 누르면 홈으로 간다(새 시안과 같은 동작). TalkBack: "MediCheck, 홈으로 이동"
+                val homeLabel = stringResource(R.string.header_cd_home)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button, onClickLabel = homeLabel, onClick = onHome)
+                        .padding(end = 6.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.logo_capsule),
+                        contentDescription = null,   // 장식. 옆의 글자가 읽힌다
+                        modifier = Modifier.size(34.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.8).sp,
+                        color = Navy,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 4.dp).semantics { heading() }
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+            } else Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     fontSize = 17.sp,
@@ -136,26 +176,33 @@ fun McTopBar(
             }
             Spacer(Modifier.width(12.dp))
             if (showActions) {
-                IconSquareButton(
-                    symbol = Glyph.HEADER_BELL,
-                    description = stringResource(R.string.header_cd_notifications),
-                    outlined = true,
-                    onClick = onNotifications
-                )
-                Spacer(Modifier.width(7.dp))
-                IconSquareButton(
-                    symbol = Glyph.HEADER_SETTINGS,
-                    description = stringResource(R.string.header_cd_settings),
-                    outlined = false,
-                    onClick = onSettings
-                )
+                // 종(알림) · 줄 세 개(설정 메뉴). 새 시안의 머리말 오른쪽과 같은 구성. 프로필은 설정 안에서 들어간다.
+                HeaderAction(stringResource(R.string.header_cd_notifications), onNotifications) {
+                    GlyphText(Glyph.HEADER_BELL, fontSize = 22, color = Navy)
+                }
+                HeaderAction(stringResource(R.string.header_cd_settings), onSettings) {
+                    Icon(Icons.Filled.Menu, contentDescription = null, tint = Navy, modifier = Modifier.size(22.dp))
+                }
             } else {
                 // 버튼이 없을 때도 같은 높이의 빈 자리를 둔다 (로그인 전후의 머리말 높이를 맞춘다).
-                Spacer(Modifier.height(HeaderActionHeight))
+                Spacer(Modifier.height(44.dp))
             }
         }
         HorizontalDivider(thickness = 1.dp, color = HeaderDivider)
     }
+}
+
+/** 머리말 오른쪽의 누르는 자리 하나(44dp). 안의 그림은 장식이고 TalkBack은 description을 읽는다. */
+@Composable
+private fun HeaderAction(description: String, onClick: () -> Unit, content: @Composable () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = description; role = Role.Button }
+    ) { content() }
 }
 
 /**
@@ -180,20 +227,23 @@ fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onC
     }
 }
 
-/** 하단 탭 다섯 개. 순서대로 그려진다. (v3 nav) */
-enum class McTab(val route: String, val symbol: String, @param:StringRes val labelRes: Int) {
-    HOME(Routes.S04, Glyph.TAB_HOME, R.string.tab_home),
-    SCHEDULE(Routes.S05, Glyph.TAB_SCHEDULE, R.string.tab_schedule),
-    MEDS(Routes.S06, Glyph.TAB_MEDS, R.string.tab_meds),
-    RECORDS(Routes.S11, Glyph.TAB_RECORDS, R.string.tab_records),
-    STATS(Routes.S13, Glyph.TAB_STATS, R.string.tab_stats)
+/**
+ * 하단 탭 네 개. 순서대로 그려진다.
+ * v3에는 "기록" 탭이 따로 있었지만 일정과 같은 내용(그날의 복용 회차)이라 일정 탭 하나로 합쳤다.
+ * 기록 화면들(S11·S12)은 남아 있고, 열리면 일정 탭이 강조된다.
+ */
+enum class McTab(val route: String, val icon: ImageVector, @param:StringRes val labelRes: Int) {
+    HOME(Routes.S04, Icons.Outlined.Home, R.string.tab_home),
+    SCHEDULE(Routes.S05, Icons.Outlined.CalendarMonth, R.string.tab_schedule),
+    MEDS(Routes.S06, Icons.Outlined.Medication, R.string.tab_meds),
+    STATS(Routes.S13, Icons.Outlined.BarChart, R.string.tab_stats)
 }
 
 /** 하단 탭이 차지하는 높이(내비게이션 바 제외). 토스트를 이 위에 띄운다. */
 val McBottomBarHeight = 59.dp
 
 /**
- * 하단 5탭: 홈 · 일정 · 내 약 · 기록 · 통계. (v3 .bottom-nav)
+ * 하단 4탭: 홈 · 일정 · 내 약 · 통계.
  * 탭을 누르면 언제나 그 탭의 첫 화면으로 간다(이동 규칙은 AppNavigator.openTab).
  *
  * @param active 강조할 탭. 어느 탭에도 속하지 않는 화면(설정 등)이면 null
@@ -210,7 +260,7 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
             modifier = Modifier
                 // 폰의 내비게이션 바(화면 맨 아래 막대) 높이만큼 아래를 띄운다.
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
-                .padding(top = 9.dp, bottom = 12.dp)
+                .padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 8.dp)
                 .selectableGroup()
         ) {
             McTab.entries.forEach { tab ->
@@ -220,17 +270,14 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        // 고른 탭은 옅은 청록 바탕으로 한 번 더 구분한다 (새 시안의 하단 메뉴)
+                        .background(if (selected) Mint else Color.Transparent)
                         .selectable(selected = selected, role = Role.Tab, onClick = { onTab(tab) })
+                        .padding(vertical = 6.dp)
                 ) {
-                    // 기호는 장식이다. TalkBack은 아래 글자("홈")만 읽는다.
-                    Text(
-                        text = tab.symbol,
-                        fontSize = 20.sp,
-                        lineHeight = 22.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = color,
-                        modifier = Modifier.clearAndSetSemantics { }
-                    )
+                    // 아이콘은 장식이다. TalkBack은 아래 글자("복약 홈")만 읽는다.
+                    Icon(tab.icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
                     Text(
                         text = stringResource(tab.labelRes),
                         fontSize = 10.sp,

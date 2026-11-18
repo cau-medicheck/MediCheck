@@ -38,6 +38,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -147,13 +148,39 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
     }
 }
 
+/** 지금 화면의 이름. 화면 틀(MainNavHost)이 넣어 주고, ScreenIntro가 꺼내서 큰 제목으로 그린다. 없으면 null */
+val LocalScreenTitle = compositionLocalOf<String?> { null }
+
 /**
- * 화면 맨 위의 설명 한 줄. 화면 이름은 머리말에 있으므로 본문에는 큰 제목을 다시 쓰지 않는다.
- * (로그인 전 화면과 약 등록 화면만 ScreenTitle로 큰 제목을 그린다)
+ * 화면 맨 위: 큰 제목(화면 이름) + (있으면) 설명 한 줄.
+ * 머리말에는 앱 이름이 있으므로 화면 이름은 여기서 보여 준다. 이름은 화면 틀이 넣어 준 값(LocalScreenTitle)을 쓴다.
  */
 @Composable
-fun ScreenIntro(text: String, modifier: Modifier = Modifier) {
-    Text(text = text, fontSize = 12.sp, color = ParagraphText, lineHeight = 21.sp, modifier = modifier)
+fun ScreenIntro(text: String? = null, modifier: Modifier = Modifier) {
+    val title = LocalScreenTitle.current
+    Column(modifier) {
+        if (title != null) {
+            Text(
+                text = title,
+                fontSize = 23.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Navy,
+                lineHeight = 31.sp,
+                letterSpacing = (-0.9).sp,
+                modifier = Modifier.semantics { heading() }
+            )
+        }
+        // 설명은 있을 때만. 탭의 첫 화면들은 제목만 둔다.
+        if (text != null) {
+            Text(
+                text = text,
+                fontSize = 12.sp,
+                color = ParagraphText,
+                lineHeight = 21.sp,
+                modifier = Modifier.padding(top = if (title != null) 7.dp else 0.dp)
+            )
+        }
+    }
 }
 
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */

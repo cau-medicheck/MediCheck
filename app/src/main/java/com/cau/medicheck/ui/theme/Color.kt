@@ -12,6 +12,13 @@ val ScreenBackground = Color(0xFFF8FBFC)   // 화면 바탕
 val CardBackground = Color(0xFFFFFFFF)     // 카드 바탕
 val CardBorder = Color(0xFFE7EFF0)         // 카드 테두리
 val Line = Color(0xFFE4EDF0)               // 구분선
+val TimelineLine = Color(0xFFD5E2E5)       // 홈 시간표의 세로선
+// 홈 시간표의 상태 표시 (다른 화면의 배지보다 진하게)
+val HomeChipDoneBg = Color(0xFFC6EBE3); val HomeChipDoneText = Color(0xFF0A5F56)       // 복용 완료
+val HomeChipSkippedBg = Color(0xFFFFE3C2); val HomeChipSkippedText = Color(0xFF8A4B0B)   // 건너뜀 (주황)
+val TimelineDotSkipped = Color(0xFFE08A2E); val TimelineDotWait = Color(0xFFA3B1B9)       // 시간표 점: 건너뜀(주황) / 예정(회색)
+val HomeChipWaitBg = Color(0xFFE2E8EC); val HomeChipWaitText = Color(0xFF4F626D)       // 예정
+val HeroDeepStart = Color(0xFF0C5F6D); val HeroDeepEnd = Color(0xFF14808C)   // 홈 맨 위 카드의 짙은 청록 바탕
 val FieldBorder = Color(0xFFDCE7EA)        // 입력칸 테두리
 val Navy = Color(0xFF203846)               // 기본 글자
 val Muted = Color(0xFF718692)              // 흐린 글자 (설명, 보조 정보)

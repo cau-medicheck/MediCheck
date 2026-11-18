@@ -10,7 +10,7 @@
     <string name="screen_title_s02">회원가입</string>
     <string name="screen_title_s03">비밀번호 재설정</string>
     <string name="screen_title_s04">홈</string>
-    <string name="screen_title_s05">일정</string>
+    <string name="screen_title_s05">복약 일정</string>
     <string name="screen_title_s06">내 약</string>
     <string name="screen_title_s07">약 상세</string>
     <string name="screen_title_s08">약 등록·수정</string>
@@ -21,8 +21,8 @@
     <string name="screen_title_s13">복약 통계</string>
     <string name="screen_title_s14">복약 통계</string>
     <string name="screen_title_s15">복약 통계</string>
-    <string name="screen_title_s16">알림</string>
-    <string name="screen_title_s17">알림 설정</string>
+    <string name="screen_title_s16">알림 센터</string>
+    <string name="screen_title_s17">복약 알림 설정</string>
     <string name="screen_title_s18">알림 권한</string>
     <string name="screen_title_s19">설정</string>
     <string name="screen_title_s20">복약률 계산 기준</string>
@@ -41,7 +41,7 @@
     <string name="screen_title_s33">일정 변경 적용 범위</string>
     <string name="screen_title_s34">알림이 오지 않을 때</string>
     <string name="screen_title_s35">시간대 설정</string>
-    <string name="screen_title_s36">개인정보</string>
+    <string name="screen_title_s36">개인정보 센터</string>
     <string name="screen_title_s37">접근성</string>
     <string name="screen_title_s38">오프라인 사용</string>
     <string name="screen_title_s39">빈 화면·오류 예시</string>
@@ -239,10 +239,10 @@
     <!-- ===== 로그인 뒤 틀: 머리말 버튼 · 하단 탭 · 여러 화면 공통 (2단계) ===== -->
     <string name="header_cd_notifications">알림</string>
     <string name="header_cd_settings">설정</string>
+    <string name="header_cd_home">홈으로 이동</string>
     <string name="tab_home">홈</string>
     <string name="tab_schedule">일정</string>
     <string name="tab_meds">내 약</string>
-    <string name="tab_records">기록</string>
     <string name="common_back_previous">이전 화면</string>
     <string name="common_detail">상세 ›</string>
     <string name="common_cd_dose_detail">%1$s %2$s 상세</string>
@@ -271,37 +271,48 @@
     <string name="s18_link_denied">알림 권한 거절 시 안내 ›</string>
 
     <!-- ===== S04 홈 대시보드 ===== -->
-    <string name="s04_greeting">안녕하세요, %1$s님 👋</string>
-    <string name="s04_brand">MEDICHECK</string>
-    <string name="s04_hero_title">오늘도 잊지 않고\n건강한 하루를 🌿</string>
-    <string name="s04_rate_label">선택한 날짜 복약 완료율</string>
-    <string name="s04_rate_count">%1$d/%2$d회 복용 완료</string>
-    <string name="s04_section_calendar">복약 캘린더</string>
-    <string name="s04_link_schedule">일정 전체보기 ›</string>
+    <string name="s04_next_label">기록을 기다리는 복약</string>
+    <string name="s04_next_action">복용 기록하기 ›</string>
+    <string name="s04_next_all_done">오늘의 복약을\n모두 기록했어요</string>
+    <string name="s04_next_none">오늘은\n예정된 복약이 없어요</string>
+    <string name="s04_progress">복용 완료 %1$d / %2$d회</string>
+    <string name="s04_cd_open_dose">복용 기록 열기</string>
+    <string name="s04_title_today">오늘의 복약</string>
+    <string name="s04_section_schedule">하루 복약 일정</string>
+    <string name="s04_tab_all">전체</string>
+    <string name="s04_tab_pending">기록 전</string>
+    <string name="s04_pending_none">기록을 기다리는 복약이 없어요.</string>
+    <string name="s04_rate_label">오늘 복약 진행률</string>
+    <string name="s04_sheet_title">복약 기록</string>
+    <string name="s04_sheet_close">닫기</string>
+    <string name="s04_sheet_when">%1$s · 예정 %2$s</string>
+    <string name="s04_sheet_dosage">1회 복용량</string>
+    <string name="s04_sheet_memo">복용 메모</string>
+    <string name="s04_sheet_future">이날의 복약 일정이에요. 그날이 되면 기록할 수 있어요.</string>
+    <string name="s04_sheet_detail">회차 상세 보기 ›</string>
+    <string name="s04_chip_upcoming">예정</string>
+    <string name="s04_chip_skipped">건너뜀</string>
+    <string name="s04_link_schedule">일정 보기 ›</string>
     <string name="s04_empty_title">복용 일정이 없어요</string>
     <string name="s04_empty_body">약을 등록하면 이곳에서 확인할 수 있어요.</string>
     <string name="s04_empty_action">약 등록하기</string>
-    <string name="s04_btn_add_med">＋ 새 약 등록</string>
-    <string name="s04_report_title">이번 주 복약 리포트</string>
-    <string name="s04_report_body">일주일 복용 습관 확인</string>
+    <string name="s04_week_title">최근 7일 복약률</string>
     <string name="s04_report_action">통계 보기 ›</string>
     <string name="s04_btn_quick_take">✓ 복용 완료</string>
     <string name="s04_cd_quick_take">%1$s %2$s 회차를 복용 완료로 기록</string>
     <string name="s04_toast_undo">실행취소</string>
 
     <!-- ===== S05 일정/캘린더 ===== -->
-    <string name="s05_subtitle">시간순으로 정리된 복용 계획을 확인하세요.</string>
-    <string name="s05_btn_prev">‹ 전날</string>
-    <string name="s05_btn_next">다음날 ›</string>
+    <string name="s05_cd_prev_week">지난주</string>
+    <string name="s05_cd_next_week">다음 주</string>
     <string name="s05_cd_date_field">날짜 선택</string>
-    <string name="s05_btn_today">오늘로</string>
-    <string name="s05_summary_count">%1$d / %2$d회 완료</string>
-    <string name="s05_summary_detail">건너뜀 %1$d · 미기록 %2$d</string>
+    <string name="s05_btn_today">오늘</string>
+    <string name="s05_counts">완료 %1$d · 건너뜀 %2$d · 예정 %3$d</string>
+    <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>
     <string name="s05_period_evening">저녁</string>
     <string name="s05_period_night">밤</string>
-    <string name="s05_period_count">(%1$d)</string>
     <string name="s05_empty_title">이 날짜에는 복용할 약이 없어요</string>
     <string name="s05_empty_body">반복 요일과 복용 기간을 확인해주세요.</string>
     <string name="s05_empty_action">약 등록</string>
@@ -370,10 +381,8 @@
     <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
 
     <!-- ===== S06 내 약 목록 ===== -->
-    <string name="s06_subtitle">등록한 약 정보를 관리하세요.</string>
     <string name="s06_search_hint">약 이름으로 검색</string>
     <string name="s06_btn_add">＋ 추가</string>
-    <string name="s06_cd_detail">%1$s 상세</string>
     <string name="s06_empty_title">해당 약이 없어요</string>
     <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
     <string name="s06_empty_action">약 추가하기</string>
@@ -516,7 +525,6 @@
     <string name="stats_badge_extra">추가 기능</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
-    <string name="s11_subtitle">지난 복용 내역을 날짜별로 확인하세요.</string>
     <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미기록 %3$d</string>
     <string name="s11_btn_open">기록 보기 ›</string>
     <string name="s11_notice">달력 점은 해당 날짜에 등록된 복용 일정이 있음을 뜻합니다.</string>
@@ -524,14 +532,13 @@
 
     <!-- ===== S12 날짜별 기록 ===== -->
     <string name="s12_back">기록 캘린더</string>
-    <string name="s12_rate_label">복약 완료율</string>
+    <string name="s12_rate_label">복약 진행률</string>
     <string name="s12_total">총 %1$d회</string>
     <string name="s12_section_list">상세 복용 내역</string>
     <string name="s12_empty_title">기록이 없어요</string>
     <string name="s12_empty_body">해당 날짜에 예정된 복용 일정이 없습니다.</string>
 
     <!-- ===== S13 주간 통계 ===== -->
-    <string name="s13_subtitle">기록을 바탕으로 복약 습관을 확인하세요.</string>
     <string name="s13_rate_label">최근 7일 복약 완료율</string>
     <string name="s13_section_daily">요일별 완료율</string>
     <string name="s13_cd_bar">%1$s %2$s</string>
@@ -539,7 +546,6 @@
     <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 기한 경과 미기록은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
 
     <!-- ===== S14 월간 통계 ===== -->
-    <string name="s14_subtitle">한 달 단위로 복약 흐름을 확인하세요.</string>
     <string name="s14_rate_label">월간 완료율</string>
     <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미기록 %3$d회</string>
     <string name="s14_section_daily">일자별 복약 완료율</string>
@@ -548,7 +554,6 @@
     <string name="s14_cd_bar">%1$s: %2$s</string>
 
     <!-- ===== S15 건너뜀 패턴 ===== -->
-    <string name="s15_subtitle">최근 30일간 명시적으로 건너뛴 기록만 집계합니다.</string>
     <string name="s15_total_label">최근 30일 건너뜀 횟수</string>
     <string name="s15_unit">회</string>
     <string name="s15_section_periods">시간대별 분포</string>
@@ -604,7 +609,7 @@
     <!-- ===== S20 통계 계산 정책 ===== -->
     <string name="s20_back">설정</string>
     <!-- 프로토타입 원문 "팀에서 최종 확정해야 할 정책입니다.": 이미 확정해 구현했으므로 바꿨다 -->
-    <string name="s20_subtitle">홈·기록·통계 화면의 복약률은 모두 이 기준으로 계산합니다.</string>
+    <string name="s20_subtitle">통계 화면의 복약 완료율은 이 기준으로 계산합니다. 홈과 일정의 진행률은 시각과 상관없이 기록한 만큼 바로 올라갑니다.</string>
     <string name="s20_taken_desc">사용자가 실제 복용 완료를 눌렀을 때 기록</string>
     <string name="s20_skipped_desc">사용자가 이번 회차를 먹지 않았다고 명시</string>
     <string name="s20_pending_title">○ 미기록</string>

@@ -13,6 +13,7 @@ import com.cau.medicheck.data.repository.StatusChangeResult
 import com.cau.medicheck.data.repository.UndoResult
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseCounts
+import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseStatus
 import com.cau.medicheck.domain.StatsCalculator
@@ -21,6 +22,9 @@ import com.cau.medicheck.ui.components.DoseRowUi
 import com.cau.medicheck.ui.components.ToastAction
 import com.cau.medicheck.ui.components.ToastBus
 import com.cau.medicheck.ui.navigation.SelectionStore
+import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,9 +37,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Clock
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * "선택한 날짜의 회차 목록" 화면이 그릴 상태. 홈(S04)과 일정(S05)이 함께 쓴다.
@@ -43,6 +44,28 @@ import java.time.LocalDateTime
  * @param rows 그날의 회차 줄 (예정 시각 → 약 이름 순)
  * @param counts 도래한 회차만 센 횟수. 완료율은 counts.completionRate (null이면 "N/A")
  */
+/**
+ * 하루의 진행 상황: 그날의 회차를 "지금 기록된 상태"로 센다. 예정 시각이 됐는지는 보지 않는다.
+ *
+ * 홈 카드·일정의 진행률은 이 값을 쓴다. 그래서 08:00 약을 07:30에 미리 "복용 완료"로 기록해도 바로 올라간다.
+ * (통계 화면의 완료율은 그와 달리 예정 시각이 된 회차만 센다 — DoseCounts.completionRate, S20 기준)
+ *
+ * @param pending 아직 기록하지 않은 회차 (시간이 지났든 아니든)
+ * @param percent 복용 완료 ÷ 그날 전체 회차 × 100 (반올림). 회차가 없으면 null
+ */
+data class DayProgress(val taken: Int, val skipped: Int, val pending: Int) {
+    val total: Int get() = taken + skipped + pending
+    val percent: Int? get() = if (total == 0) null else Math.round(taken * 100f / total)
+
+    companion object {
+        fun of(rows: List<DoseRowUi>) = DayProgress(
+            taken = rows.count { it.display == DoseDisplayStatus.TAKEN },
+            skipped = rows.count { it.display == DoseDisplayStatus.SKIPPED },
+            pending = rows.count { it.display == DoseDisplayStatus.MISSED || it.display == DoseDisplayStatus.UPCOMING }
+        )
+    }
+}
+
 data class DayDosesUiState(
     val today: LocalDate,
     val date: LocalDate,
@@ -50,6 +73,9 @@ data class DayDosesUiState(
     val rows: List<DoseRowUi> = emptyList(),
     val counts: DoseCounts = DoseCounts()
 ) {
+    /** 하루 진행 상황 (기록한 상태 기준, 시각과 무관). 홈 카드·일정이 쓴다 */
+    val progress: DayProgress get() = DayProgress.of(rows)
+
     /** 일정 화면용: 아침 → 점심 → 저녁 → 밤 순서로 묶은 것. 회차가 없는 묶음은 빠진다. */
     val rowsByPeriod: List<Pair<DayPeriod, List<DoseRowUi>>>
         get() = DayPeriod.entries
@@ -72,7 +98,9 @@ class DayDosesViewModel(
     private val selection: SelectionStore,
     private val toastBus: ToastBus,
     private val appScope: CoroutineScope,
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock = Clock.systemDefaultZone(),
+    /** true면 고른 날짜와 상관없이 언제나 오늘을 본다 (홈). 자정이 지나면 새 오늘로 넘어간다 */
+    private val pinToToday: Boolean = false
 ) : ViewModel() {
 
     /**
@@ -89,7 +117,7 @@ class DayDosesViewModel(
      * combine: 회차 목록과 지금 시각 중 하나라도 바뀌면 화면 상태를 새로 만든다.
      */
     val uiState: StateFlow<DayDosesUiState> =
-        combine(selection.selectedDay, today) { date, today -> date to today }
+        (if (pinToToday) today.map { it to it } else combine(selection.selectedDay, today) { date, today -> date to today })
             .flatMapLatest { (date, today) ->
                 doseRepository.observeDay(userId, date, today).map { doses -> Triple(date, today, doses) }
             }
@@ -105,7 +133,10 @@ class DayDosesViewModel(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = DayDosesUiState(today = LocalDate.now(clock), date = selection.selectedDay.value)
+                initialValue = DayDosesUiState(
+                    today = LocalDate.now(clock),
+                    date = if (pinToToday) LocalDate.now(clock) else selection.selectedDay.value
+                )
             )
 
     init {
@@ -152,6 +183,19 @@ class DayDosesViewModel(
         }
     }
 
+    /** 홈의 기록 창에서 "건너뜀"을 눌렀을 때. quickTake와 같은 흐름이고 상태만 다르다. */
+    fun quickSkip(key: DoseKey) {
+        viewModelScope.launch {
+            when (doseRepository.changeStatus(userId, key, DoseStatus.SKIPPED)) {
+                StatusChangeResult.CHANGED ->
+                    toastBus.show(R.string.common_toast_marked_skipped, ToastAction(R.string.s04_toast_undo) { undo(key) })
+                StatusChangeResult.UNCHANGED -> toastBus.show(R.string.common_toast_marked_skipped)
+                StatusChangeResult.FUTURE,
+                StatusChangeResult.NOT_FOUND -> toastBus.show(R.string.common_toast_dose_not_found)
+            }
+        }
+    }
+
     /**
      * 토스트의 "실행취소". viewModelScope가 아니라 앱 전체의 작업 공간(appScope)에서 돈다.
      * 버튼을 누르기 전에 다른 탭으로 가서 이 ViewModel이 없어졌더라도 끝까지 실행되게 하려는 것이다.
@@ -164,12 +208,14 @@ class DayDosesViewModel(
     }
 
     companion object {
-        fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
+        /** @param forHome true면 홈: 고른 날짜와 상관없이 언제나 오늘을 본다(일정에서 날짜를 옮겨도 그대로). */
+        fun factory(userId: Long, forHome: Boolean = false): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 DayDosesViewModel(
                     userId, container.doseRepository, container.selection, container.toastBus, container.appScope,
-                    clock = container.clock
+                    clock = container.clock,
+                    pinToToday = forHome
                 )
             }
         }
