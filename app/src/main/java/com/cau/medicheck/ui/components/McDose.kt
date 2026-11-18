@@ -92,7 +92,9 @@ data class DoseRowUi(
     val time: LocalTime,
     val dosage: String,
     val display: DoseDisplayStatus,
-    val canQuickTake: Boolean
+    val canQuickTake: Boolean,
+    /** 복용 메모("아침 식후" 등). 없으면 "" */
+    val memo: String = ""
 )
 
 /**
