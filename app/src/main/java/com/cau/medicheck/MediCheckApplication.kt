@@ -17,6 +17,7 @@ import com.cau.medicheck.data.repository.DoseRecordGenerator
 import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.ReminderRepository
+import com.cau.medicheck.data.repository.RequirementRepository
 import com.cau.medicheck.data.repository.SampleAccountSeeder
 import com.cau.medicheck.data.repository.SettingsRepository
 import com.cau.medicheck.data.repository.UserDataEraser
@@ -193,6 +194,9 @@ class AppContainer(context: Context) {
             onChanged = { reminderScheduler.reschedule() }
         )
     }
+
+    /** 앱에 함께 들어 있는 107개 기능 목록 (S45·S46) */
+    val requirementRepository: RequirementRepository by lazy { RequirementRepository(appContext) }
 
     /** 백업 내보내기·복원 (S28) */
     val backupRepository: BackupRepository by lazy {

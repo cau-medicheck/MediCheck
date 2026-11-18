@@ -676,6 +676,35 @@
     <string name="s22_row_errors_desc">오류·무결성 오류·빈 상태 패턴</string>
     <string name="s22_row_safety_desc">자동 복용량 추천 제외 및 구현 경계</string>
 
+    <!-- ===== 107개 기능 목록 (S45·S46 공통) ===== -->
+    <string name="moscow_must">Must</string>
+    <string name="moscow_should">Should</string>
+    <string name="moscow_could">Could</string>
+    <string name="moscow_wont">Won’t</string>
+    <string name="req_load_failed">기능 목록을 불러오지 못했습니다.</string>
+    <string name="common_toast_prelogin_screen">로그아웃한 뒤에 볼 수 있는 화면입니다.</string>
+
+    <!-- ===== S45 기능별 요구사항 맵 ===== -->
+    <string name="s45_title">전체 기능 추적성</string>
+    <string name="s45_desc">요구사항 107개를 화면·우선순위·구현 범위와 연결했습니다.</string>
+    <string name="s45_search_hint">기능 ID / 이름으로 검색</string>
+    <string name="s45_tier_all">전체 우선순위</string>
+    <string name="s45_count">%1$d개 기능</string>
+    <string name="s45_row_title">%1$s · %2$s</string>
+    <string name="s45_row_sub">%1$s · %2$s</string>
+    <string name="s45_non_ui">비UI 요구사항</string>
+    <string name="s45_empty">검색 결과가 없어요.</string>
+    <string name="s45_notice">\'구현\' 관련 요구사항(예: Room, AlarmManager, GitHub, APK)은 UI 설계만으로 충족되지 않습니다. 해당 항목은 수업 구현·테스트 증빙이 필요합니다.</string>
+
+    <!-- ===== S46 안전·개발 범위 ===== -->
+    <string name="s46_title">서비스 범위 및 안전 고지</string>
+    <string name="s46_desc">모든 가능한 요구사항 중 이번 릴리스에서 제외해야 하는 기능을 명시합니다.</string>
+    <string name="s46_kicker">이번 릴리스의 Won’t 항목</string>
+    <string name="s46_no_ui">해당 UI 없음</string>
+    <!-- 첫 문장만 굵게 그리려고 HTML 조각으로 적었다. CDATA 안의 글자는 그대로 전해진다 -->
+    <string name="s46_notice"><![CDATA[<b>자동 복용량 추천·변경 기능은 제공하지 않습니다.</b><br>이 앱은 사용자가 받은 처방 정보를 기록하고 상기시키는 도구이며, 복용량과 시간에 대한 의학적 판단은 하지 않습니다.]]></string>
+    <string name="s46_btn_map">전체 요구사항 보기</string>
+
     <!-- ===== S28 데이터 백업·복원 =====
          프로토타입 문구의 '데모'·'시연'·'시안'은 실제 앱에서 사실이 아니라 뺐다. 원문은 줄마다 주석으로 남긴다. -->
     <!-- 원문: 기기 변경을 대비한 데이터 관리 UI 시안입니다. -->

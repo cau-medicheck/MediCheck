@@ -1,5 +1,7 @@
 package com.cau.medicheck.ui.navigation
 
+import java.io.File
+import com.cau.medicheck.domain.RequirementCsv
 import com.cau.medicheck.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -77,5 +79,51 @@ class NavRulesTest {
         assertEquals(null, NavRules.parseDateOrNull("abc"))
         assertEquals(null, NavRules.parseDateOrNull(""))
         assertEquals(null, NavRules.parseDateOrNull(null))
+    }
+
+    // ---------- 요구사항 맵(S45)의 기능 줄 → 갈 곳 ----------
+
+    @Test
+    fun `첫 화면이 S04 이후면 그 화면을 연다`() {
+        assertEquals(ReqTarget.Open("S07"), NavRules.reqTarget(listOf("S07", "S10", "S12", "S32")))
+        assertEquals(ReqTarget.Open("S46"), NavRules.reqTarget(listOf("S46")))
+        assertEquals(ReqTarget.Open("S23"), NavRules.reqTarget(listOf("S23")))
+    }
+
+    @Test
+    fun `S45 자신뿐이면 갈 곳이 없고 뒤에 다른 화면이 있으면 그 화면을 연다`() {
+        assertEquals(ReqTarget.Stay, NavRules.reqTarget(listOf("S45")))
+        assertEquals(ReqTarget.Open("S37"), NavRules.reqTarget(listOf("S45", "S37")))
+        assertEquals(ReqTarget.Open("S38"), NavRules.reqTarget(listOf("S45", "S38")))
+    }
+
+    @Test
+    fun `첫 화면이 로그인 전 화면이면 그 뒤의 첫 화면을 연다`() {
+        assertEquals(ReqTarget.Open("S04"), NavRules.reqTarget(listOf("S01", "S04")))
+        assertEquals(ReqTarget.Open("S08"), NavRules.reqTarget(listOf("S02", "S08", "S39")))
+        assertEquals(ReqTarget.Open("S06"), NavRules.reqTarget(listOf("S01", "S06", "S11")))
+    }
+
+    @Test
+    fun `로그인 전 화면뿐이면 안내만 띄운다`() {
+        listOf(listOf("S02"), listOf("S01"), listOf("S01", "S02"), listOf("S03"), listOf("S00")).forEach {
+            assertEquals(ReqTarget.PreLoginOnly, NavRules.reqTarget(it))
+        }
+    }
+
+    @Test
+    fun `화면 ID가 없거나 화면 ID 꼴이 아니면 갈 곳이 없다`() {
+        assertEquals(ReqTarget.Stay, NavRules.reqTarget(emptyList()))
+        assertEquals(ReqTarget.Stay, NavRules.reqTarget(listOf("공통", "S99", "해당 없음")))
+    }
+
+    @Test
+    fun `자산의 107줄 중 97줄은 화면을 열고 6줄은 안내 4줄은 갈 곳이 없다`() {
+        val all = RequirementCsv.parse(File("src/main/assets/requirements_107.csv").readText(Charsets.UTF_8))
+        val targets = all.map { NavRules.reqTarget(it.screens) }
+
+        assertEquals(97, targets.count { it is ReqTarget.Open })
+        assertEquals(6, targets.count { it == ReqTarget.PreLoginOnly })
+        assertEquals(4, targets.count { it == ReqTarget.Stay })
     }
 }

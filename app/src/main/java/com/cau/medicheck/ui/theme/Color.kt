@@ -107,3 +107,5 @@ val DashedBg = Color(0xFFF5FBFB)
 val ChartBarMuted = Color(0xFF8DBEC6)
 val PreviewBg = Color(0xFFF0F8F7)         // S37 글자 확대 미리보기 상자
 val DangerTitle = Color(0xFFBE5959)       // S44 "삭제 전 확인" 제목
+val CountBoxBg = Color(0xFFEFF8F7)        // S45 우선순위 개수 상자
+val ReqDivider = Color(0xFFE9EFF0)        // S45 기능 줄 사이의 선
