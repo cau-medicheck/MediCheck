@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
+import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.periodOf
 import com.cau.medicheck.ui.theme.CardBackground
@@ -264,5 +265,42 @@ fun RecordSheet(
                 )
             }
         }
+    }
+}
+
+/**
+ * 하루의 복용률 카드: "복약 완료율 33%"  [총 3회] / 진행 막대 / 완료 · 건너뜀 · 미기록 횟수.
+ * 날짜별 기록(S12)과, 일정(S05)에서 지난 날짜를 볼 때 함께 쓴다.
+ * 분모(총 n회)는 예정 시각이 된 회차만 센다 — 계산은 DoseCounts가 한다.
+ */
+@Composable
+fun DayRateCard(counts: DoseCounts, modifier: Modifier = Modifier) {
+    val rate = counts.completionRate
+    SurfaceCard(modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.s12_rate_label), fontSize = 11.sp, color = Muted)
+                MetricNumber(
+                    text = if (rate == null) stringResource(R.string.common_na)
+                    else stringResource(R.string.common_percent, rate),
+                    fontSize = 30
+                )
+            }
+            Pill(stringResource(R.string.s12_total, counts.due), PillKind.BLUE)
+        }
+        // 계산할 것이 없으면(N/A) 빈 막대. 큰 숫자와 같은 정보라 TalkBack은 읽지 않는다.
+        ProgressBar(
+            fraction = (rate ?: 0) / 100f,
+            modifier = Modifier
+                .padding(top = 10.dp, bottom = 16.dp)
+                .clearAndSetSemantics { }
+        )
+        CountTriple(
+            listOf(
+                stringResource(R.string.common_count_taken) to counts.taken,
+                stringResource(R.string.common_count_skipped) to counts.skipped,
+                stringResource(R.string.common_count_missed) to counts.missed
+            )
+        )
     }
 }

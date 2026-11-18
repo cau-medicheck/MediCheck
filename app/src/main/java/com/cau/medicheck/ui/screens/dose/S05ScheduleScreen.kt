@@ -43,6 +43,7 @@ import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.components.DatePickerPopup
+import com.cau.medicheck.ui.components.DayRateCard
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
@@ -200,6 +201,12 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     }
                 }
             }
+        }
+
+        // 지난 날짜를 보고 있을 때만: 그날의 복용률 카드(기록 탭이 보여 주던 것)를 일정 아래에 둔다.
+        // 오늘과 앞날은 아직 진행 중이거나 시작 전이라 보이지 않는다.
+        if (state.rows.isNotEmpty() && state.date.isBefore(state.today)) {
+            DayRateCard(state.counts, Modifier.padding(top = 16.dp))
         }
     }
 
