@@ -45,7 +45,8 @@ import kotlinx.coroutines.launch
 
 /** 이 파일이 진짜 화면(또는 임시로 연결한 예전 화면)을 붙여 둔 화면 ID. 나머지는 "준비 중" 임시 화면이 된다. */
 private val REGISTERED =
-    setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS + NOTIFICATION_SCREENS
+    setOf("S04", "S05", "S10", "S30", "S31") + MEDICATION_SCREENS + RECORD_SCREENS + NOTIFICATION_SCREENS +
+        SETTINGS_SCREENS
 
 /** 회차를 가리키는 주소 인자 두 개(규칙 번호, 날짜). 둘 다 없어도 화면이 열리도록 기본값을 둔다. */
 private val doseArguments = listOf(
@@ -75,10 +76,10 @@ private fun NavBackStackEntry.doseArgs(): Pair<Boolean, DoseKey?> {
  *
  * 이 파일: S04 홈 · S05 일정 · S10 회차 상세 · S30 변경 이력 · S31 실제 복용 시각 (2단계).
  * 내 약 쪽 화면(S06~S09 등)은 MedicationGraph.kt (3단계), 기록·통계 화면(S11~S15·S43)은 RecordGraph.kt (4단계),
- * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계).
+ * 알림 화면(S16~S18·S34·S35)은 NotificationGraph.kt (5단계), 설정 화면(S19~S22)은 SettingsGraph.kt (6단계).
  * 그 밖의 화면은 "준비 중" 임시 화면이다.
  */
-fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit) {
+fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCallbacks) {
 
     // ----- S04 홈 대시보드 -----
     composable(Routes.S04) {
@@ -194,6 +195,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
     medicationGraph(user, go)   // 내 약 쪽 화면들 (MedicationGraph.kt)
     recordGraph(user, go)       // 기록·통계 화면들 (RecordGraph.kt)
     notificationGraph(go)       // 알림 화면들 (NotificationGraph.kt)
+    settingsGraph(user, go, settings)   // 설정 화면들 (SettingsGraph.kt)
 
     // ----- 아직 만들지 않은 화면: "준비 중" -----
     Routes.ALL_SCREEN_IDS
@@ -201,10 +203,10 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, onLogout: () -> Unit
         .forEach { screenId ->
             composable(screenId) {
                 val title = stringResource(Routes.titleRes(screenId))
-                // 설정 허브(S19)는 6단계에서 만든다. 그때까지 로그아웃할 곳과, 개인정보 센터(S36, 6단계)에서
-                // 들어가게 될 "복약 기록 내보내기"(S43)로 가는 길이 필요해 임시 버튼 두 개를 둔다.
-                if (screenId == Routes.S19) {
-                    PlaceholderScreen(title, actionLabel = stringResource(R.string.action_logout), onAction = onLogout) {
+                // 개인정보 센터(S36)는 다음 작업(6-2)에서 만든다. 그때까지 거기서 들어가게 될
+                // "복약 기록 내보내기"(S43)로 가는 길이 끊기지 않게 임시 버튼을 둔다.
+                if (screenId == Routes.S36) {
+                    PlaceholderScreen(title) {
                         McButton(
                             text = stringResource(R.string.screen_title_s43),
                             onClick = { go.open(Routes.S43) },

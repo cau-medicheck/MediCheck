@@ -159,6 +159,7 @@ fun DoseRow(
  * 누르면 다른 화면으로 가는 줄: 제목 + 설명 + 오른쪽 표시. (v3 optionRows)
  * @param mark 오른쪽에 붙일 배지 글자 (예: "Should"). 없으면 "›"
  * @param enabled false면 흐리게 그리고 눌리지 않는다
+ * @param leading 왼쪽에 붙일 아이콘 상자 (설정 허브의 줄). 없으면 글자만
  */
 @Composable
 fun OptionRow(
@@ -167,10 +168,12 @@ fun OptionRow(
     onClick: () -> Unit,
     mark: String? = null,
     enabled: Boolean = true,
-    showDivider: Boolean = true
+    showDivider: Boolean = true,
+    leading: (@Composable () -> Unit)? = null
 ) {
     ListRow(
         modifier = Modifier.alpha(if (enabled) 1f else 0.45f),
+        leading = leading,
         trailing = {
             if (mark != null) Pill(mark, PillKind.ORANGE)
             // "›"는 장식이라 TalkBack이 읽지 않게 한다.

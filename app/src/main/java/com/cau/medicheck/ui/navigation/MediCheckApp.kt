@@ -32,6 +32,7 @@ import com.cau.medicheck.ui.components.LocalToastBus
 import com.cau.medicheck.ui.components.McToastHost
 import com.cau.medicheck.ui.components.TOAST_DURATION_MS
 import com.cau.medicheck.ui.components.toastBottomOffset
+import com.cau.medicheck.ui.navigation.graph.SettingsCallbacks
 import com.cau.medicheck.ui.screens.auth.AuthViewModel
 import com.cau.medicheck.ui.theme.PreLoginFrameBottom
 import com.cau.medicheck.ui.theme.ScreenBackground
@@ -95,7 +96,17 @@ fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewMode
                 // key(user.id): 다른 계정으로 로그인하면 안쪽 화면들을 처음부터 새로 만든다.
                 // (앞 계정의 화면 상태가 남아 있지 않게 하기 위해서다.)
                 else -> key(user.id) {
-                    MainNavHost(user = user, onLogout = authViewModel::logout)
+                    // remember: 값이 바뀔 때만 새 묶음을 만든다. 매번 새로 만들면 토스트가 뜰 때마다
+                    // 안쪽 화면 주소 목록(NavHost의 그래프)까지 다시 지어진다.
+                    val settings = remember(authViewModel, state.isLoggingOut, state.isLoading) {
+                        SettingsCallbacks(
+                            onLogout = authViewModel::logout,
+                            loggingOut = state.isLoggingOut,
+                            onUpdateProfile = authViewModel::updateProfile,
+                            profileSaving = state.isLoading
+                        )
+                    }
+                    MainNavHost(user = user, settings = settings)
                 }
             }
 
