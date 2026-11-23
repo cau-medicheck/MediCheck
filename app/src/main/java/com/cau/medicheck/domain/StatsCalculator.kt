@@ -48,7 +48,7 @@ data class PeriodStats(val days: List<DayStats>) {
 
 /**
  * 건너뜀 패턴(S15).
- * @param skippedByPeriod 시간대(아침·점심·저녁·밤)마다 건너뛴 횟수. 네 시간대가 모두 들어 있다.
+ * @param skippedByPeriod 시간대(새벽·아침·점심·저녁·밤)마다 건너뛴 횟수. 다섯 시간대가 모두 들어 있다.
  * @param overdueUnrecorded 같은 기간의 "기한 경과 · 미기록" 횟수. 건너뜀과 따로 센다.
  */
 data class SkipPattern(val skippedByPeriod: Map<DayPeriod, Int>, val overdueUnrecorded: Int) {

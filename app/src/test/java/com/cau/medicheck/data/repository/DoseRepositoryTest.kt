@@ -422,6 +422,51 @@ class DoseRepositoryTest {
         assertEquals(listOf("PENDING", "SKIPPED"), doseRecordDao.records.value.sortedBy { it.scheduleId }.map { it.status })
     }
 
+    // ---------- 여러 회차 한 번에 (홈 맨 위 카드) ----------
+
+    @Test
+    fun `여러 회차를 한 번에 복용 완료로 바꾸고 바뀐 것만 돌려준다`() = runBlocking<Unit> {
+        insertMedication(time = "08:00")
+        insertMedication(time = "08:00", name = "비타민")
+        insertMedication(time = "08:00", name = "유산균")
+        repository.refresh(me)
+        repository.changeStatus(me, DoseKey(3, today), DoseStatus.TAKEN)   // 이미 먹은 약
+
+        val changed = repository.changeStatuses(me, listOf(DoseKey(1, today), DoseKey(2, today), DoseKey(3, today)), DoseStatus.TAKEN)
+
+        assertEquals(listOf(DoseKey(1, today), DoseKey(2, today)), changed)
+        assertEquals(listOf("TAKEN", "TAKEN", "TAKEN"), doseRecordDao.records.value.sortedBy { it.scheduleId }.map { it.status })
+        assertEquals(3, eventDao.events.value.size)   // 따로 기록 1줄 + 한 번에 2줄
+    }
+
+    @Test
+    fun `한 번에 바꾼 것을 한 번에 되돌리면 그 회차들만 돌아간다`() = runBlocking<Unit> {
+        insertMedication(time = "08:00")
+        insertMedication(time = "08:00", name = "비타민")
+        insertMedication(time = "08:00", name = "유산균")
+        repository.refresh(me)
+        repository.changeStatus(me, DoseKey(3, today), DoseStatus.TAKEN)
+        val changed = repository.changeStatuses(me, listOf(DoseKey(1, today), DoseKey(2, today), DoseKey(3, today)), DoseStatus.TAKEN)
+
+        val undone = repository.undoLastAll(me, changed)
+
+        assertEquals(2, undone)
+        assertEquals(listOf("PENDING", "PENDING", "TAKEN"), doseRecordDao.records.value.sortedBy { it.scheduleId }.map { it.status })
+    }
+
+    @Test
+    fun `다른 사람의 회차는 한 번에 바꾸기에서도 빠진다`() = runBlocking<Unit> {
+        insertMedication(userId = me)
+        insertMedication(userId = someoneElse)
+        repository.refresh(me)
+        repository.refresh(someoneElse)
+
+        val changed = repository.changeStatuses(me, listOf(DoseKey(1, today), DoseKey(2, today)), DoseStatus.TAKEN)
+
+        assertEquals(listOf(DoseKey(1, today)), changed)
+        assertEquals("PENDING", doseRecordDao.records.value.single { it.scheduleId == 2L }.status)
+    }
+
     @Test
     fun `삭제한 약의 지난 기록도 상태를 고칠 수 있다`() = runBlocking<Unit> {
         val medicationId = insertMedication(startDate = today.minusDays(1))

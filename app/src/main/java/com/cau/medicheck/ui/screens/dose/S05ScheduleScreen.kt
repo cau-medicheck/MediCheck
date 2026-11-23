@@ -48,7 +48,6 @@ import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.RecordSheet
-import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.TimelineRow
 import com.cau.medicheck.ui.components.WeekPager
@@ -100,9 +99,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
     }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s05)) {
-        ScreenIntro()
-
-        HorizontalDivider(thickness = 1.dp, color = Line, modifier = Modifier.padding(top = 14.dp))
+        // 탭 화면이라 큰 제목은 두지 않는다(하단 탭 이름이 같은 말이다). 화면 이름은 paneTitle로 TalkBack에 알린다.
         // ‹ 11월 18일 수요일 [달력] ›                         [오늘]
         // 가운데 글자는 지금 고른 날짜다. 화살표는 한 주씩 넘기고, 달력 그림을 누르면 달력 창이 열린다.
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
@@ -180,11 +177,11 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     )
                     Text(text = stringResource(R.string.s05_total, state.rows.size), fontSize = 12.sp, color = Muted)
                 }
-                // 그날의 상태별 횟수(기록 탭이 보여 주던 것): "완료 1 · 건너뜀 0 · 예정 2"
+                // 그날의 상태별 횟수(기록 탭이 보여 주던 것): "완료 1 · 건너뜀 0 · 미복용 1 · 예정 2"
                 Text(
                     text = stringResource(
                         R.string.s05_counts,
-                        state.progress.taken, state.progress.skipped, state.progress.pending
+                        state.progress.taken, state.progress.skipped, state.progress.missed, state.progress.upcoming
                     ),
                     fontSize = 12.sp,
                     color = Muted,
@@ -224,6 +221,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
 
 /** 시간대 → 구역 제목 문구 */
 private fun DayPeriod.labelRes(): Int = when (this) {
+    DayPeriod.DAWN -> R.string.s05_period_dawn
     DayPeriod.MORNING -> R.string.s05_period_morning
     DayPeriod.LUNCH -> R.string.s05_period_lunch
     DayPeriod.EVENING -> R.string.s05_period_evening

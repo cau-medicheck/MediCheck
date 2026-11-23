@@ -25,8 +25,10 @@ import com.cau.medicheck.ui.navigation.SelectionStore
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -50,10 +53,13 @@ import kotlinx.coroutines.launch
  * 홈 카드·일정의 진행률은 이 값을 쓴다. 그래서 08:00 약을 07:30에 미리 "복용 완료"로 기록해도 바로 올라간다.
  * (통계 화면의 완료율은 그와 달리 예정 시각이 된 회차만 센다 — DoseCounts.completionRate, S20 기준)
  *
- * @param pending 아직 기록하지 않은 회차 (시간이 지났든 아니든)
+ * @param missed 기록하지 않았고 예정 시각이 지난 회차 (미복용)
+ * @param upcoming 기록하지 않았고 아직 예정 시각 전인 회차 (예정)
  * @param percent 복용 완료 ÷ 그날 전체 회차 × 100 (반올림). 회차가 없으면 null
  */
-data class DayProgress(val taken: Int, val skipped: Int, val pending: Int) {
+data class DayProgress(val taken: Int, val skipped: Int, val missed: Int, val upcoming: Int) {
+    /** 아직 기록하지 않은 회차 (미복용 + 예정) */
+    val pending: Int get() = missed + upcoming
     val total: Int get() = taken + skipped + pending
     val percent: Int? get() = if (total == 0) null else Math.round(taken * 100f / total)
 
@@ -61,7 +67,8 @@ data class DayProgress(val taken: Int, val skipped: Int, val pending: Int) {
         fun of(rows: List<DoseRowUi>) = DayProgress(
             taken = rows.count { it.display == DoseDisplayStatus.TAKEN },
             skipped = rows.count { it.display == DoseDisplayStatus.SKIPPED },
-            pending = rows.count { it.display == DoseDisplayStatus.MISSED || it.display == DoseDisplayStatus.UPCOMING }
+            missed = rows.count { it.display == DoseDisplayStatus.MISSED },
+            upcoming = rows.count { it.display == DoseDisplayStatus.UPCOMING }
         )
     }
 }
@@ -71,7 +78,13 @@ data class DayDosesUiState(
     val date: LocalDate,
     val isLoading: Boolean = true,
     val rows: List<DoseRowUi> = emptyList(),
-    val counts: DoseCounts = DoseCounts()
+    val counts: DoseCounts = DoseCounts(),
+    /** 지금 시각 (30초마다 바뀐다). 홈 카드가 "40분 뒤"와 처음 보일 시각을 계산하는 데 쓴다 */
+    val now: LocalDateTime = LocalDateTime.of(today, LocalTime.MIN),
+    /** 홈 맨 위 카드의 "N개 모두 복용 완료"로 기록한 회차. 다시 누르면 이 회차들만 해제한다 */
+    val takenByButton: Set<DoseKey> = emptySet(),
+    /** 내일 첫 복약 시각과 그 시각의 약 개수 (홈에서만 채운다. 없으면 null) */
+    val tomorrowFirst: Pair<LocalTime, Int>? = null
 ) {
     /** 하루 진행 상황 (기록한 상태 기준, 시각과 무관). 홈 카드·일정이 쓴다 */
     val progress: DayProgress get() = DayProgress.of(rows)
@@ -113,6 +126,23 @@ class DayDosesViewModel(
     private val today = now.map { it.toLocalDate() }.distinctUntilChanged()
 
     /**
+     * 홈 맨 위 카드의 "N개 모두 복용 완료"로 기록한 회차들.
+     * 버튼을 다시 누르면 이 회차들만 기록 전으로 돌린다(그 전에 따로 기록한 약은 그대로 — 2026-11-23 결정).
+     * 앱을 켜 둔 동안만 기억한다(ViewModel이 사라지면 잊는다).
+     */
+    private val takenByButton = MutableStateFlow<Set<DoseKey>>(emptySet())
+
+    /** 내일 첫 복약(시각, 개수). 홈에서만 구독한다. 오늘 약을 모두 기록했을 때 카드에 보인다 */
+    private val tomorrowFirst: Flow<Pair<LocalTime, Int>?> =
+        if (!pinToToday) flowOf(null)
+        else today.flatMapLatest { today ->
+            doseRepository.observeDay(userId, today.plusDays(1), today).map { doses ->
+                val first = doses.minOfOrNull { it.time } ?: return@map null
+                first to doses.count { it.time == first }
+            }
+        }
+
+    /**
      * flatMapLatest: 날짜(또는 오늘)가 바뀌면 앞 날짜의 구독을 끊고 새 날짜의 회차를 구독한다.
      * combine: 회차 목록과 지금 시각 중 하나라도 바뀌면 화면 상태를 새로 만든다.
      */
@@ -127,9 +157,12 @@ class DayDosesViewModel(
                     date = date,
                     isLoading = false,
                     rows = doses.map { it.toRowUi(now, today) },
-                    counts = StatsCalculator.count(doses, now)
+                    counts = StatsCalculator.count(doses, now),
+                    now = now
                 )
             }
+            .combine(takenByButton) { state, byButton -> state.copy(takenByButton = byButton) }
+            .combine(tomorrowFirst) { state, first -> state.copy(tomorrowFirst = first) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -172,6 +205,7 @@ class DayDosesViewModel(
      * 성공하면 토스트에 "실행취소" 버튼을 5초 동안 붙인다.
      */
     fun quickTake(key: DoseKey) {
+        forgetButton(listOf(key))
         viewModelScope.launch {
             when (doseRepository.changeStatus(userId, key, DoseStatus.TAKEN)) {
                 StatusChangeResult.CHANGED ->
@@ -185,6 +219,7 @@ class DayDosesViewModel(
 
     /** 홈의 기록 창에서 "건너뜀"을 눌렀을 때. quickTake와 같은 흐름이고 상태만 다르다. */
     fun quickSkip(key: DoseKey) {
+        forgetButton(listOf(key))
         viewModelScope.launch {
             when (doseRepository.changeStatus(userId, key, DoseStatus.SKIPPED)) {
                 StatusChangeResult.CHANGED ->
@@ -193,6 +228,79 @@ class DayDosesViewModel(
                 StatusChangeResult.FUTURE,
                 StatusChangeResult.NOT_FOUND -> toastBus.show(R.string.common_toast_dose_not_found)
             }
+        }
+    }
+
+    /** 기록 창의 "기록 전으로". 기록한 상태를 지우고 미기록으로 돌린다. */
+    fun quickPending(key: DoseKey) {
+        forgetButton(listOf(key))
+        viewModelScope.launch {
+            when (doseRepository.changeStatus(userId, key, DoseStatus.PENDING)) {
+                StatusChangeResult.CHANGED ->
+                    toastBus.show(R.string.common_toast_marked_pending, ToastAction(R.string.s04_toast_undo) { undo(key) })
+                StatusChangeResult.UNCHANGED -> toastBus.show(R.string.common_toast_marked_pending)
+                StatusChangeResult.FUTURE,
+                StatusChangeResult.NOT_FOUND -> toastBus.show(R.string.common_toast_dose_not_found)
+            }
+        }
+    }
+
+    // ---------- 홈 맨 위 카드 (시각 묶음) ----------
+
+    /**
+     * 카드의 약 이름·동그라미를 눌렀을 때: 복용 완료면 기록 전으로, 아니면 복용 완료로.
+     * 하나씩 바꾼 약은 "버튼으로 기록한 약"에서 뺀다(버튼을 다시 눌러도 이 약은 해제되지 않게).
+     */
+    fun toggleTaken(row: DoseRowUi) {
+        if (row.display == DoseDisplayStatus.TAKEN) quickPending(row.key) else quickTake(row.key)
+    }
+
+    /**
+     * "N개 모두 복용 완료": 묶음에서 아직 기록 안 한 회차를 한 번에 복용 완료로. 바뀐 회차를 기억해 둔다.
+     * 실행취소는 이번에 바꾼 회차만 한 번에 되돌린다.
+     */
+    fun takeAll(keys: List<DoseKey>) {
+        viewModelScope.launch {
+            val changed = doseRepository.changeStatuses(userId, keys, DoseStatus.TAKEN)
+            if (changed.isEmpty()) return@launch
+            takenByButton.value = takenByButton.value + changed
+            toastBus.show(
+                R.string.s04_toast_taken_n,
+                ToastAction(R.string.s04_toast_undo) { undoAll(changed, rememberAsButton = false) },
+                changed.size
+            )
+        }
+    }
+
+    /** "모두 복용함 · 다시 누르면 해제": 버튼으로 기록한 회차만 기록 전으로 돌린다. */
+    fun releaseAll(keys: List<DoseKey>) {
+        val mine = keys.filter { it in takenByButton.value }
+        if (mine.isEmpty()) return
+        forgetButton(mine)
+        viewModelScope.launch {
+            val changed = doseRepository.changeStatuses(userId, mine, DoseStatus.PENDING)
+            if (changed.isEmpty()) return@launch
+            toastBus.show(
+                R.string.s04_toast_released_n,
+                ToastAction(R.string.s04_toast_undo) { undoAll(changed, rememberAsButton = true) },
+                changed.size
+            )
+        }
+    }
+
+    private fun forgetButton(keys: List<DoseKey>) {
+        takenByButton.value = takenByButton.value - keys.toSet()
+    }
+
+    /**
+     * 한 번에 바꾼 것의 "실행취소". undo와 같은 이유로 appScope에서 돈다.
+     * @param rememberAsButton true면 되돌린 뒤 다시 "버튼으로 기록한 약"으로 기억한다(해제를 취소한 경우)
+     */
+    private fun undoAll(keys: List<DoseKey>, rememberAsButton: Boolean) {
+        if (rememberAsButton) takenByButton.value = takenByButton.value + keys else forgetButton(keys)
+        appScope.launch {
+            val undone = doseRepository.undoLastAll(userId, keys)
+            toastBus.show(if (undone > 0) R.string.s10_toast_undo_done else R.string.s10_toast_undo_none)
         }
     }
 

@@ -34,7 +34,6 @@ import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.RowSub
 import com.cau.medicheck.ui.components.RowTitle
-import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
@@ -56,10 +55,9 @@ fun S06MedicationListScreen(
     val focusManager = LocalFocusManager.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s06)) {
-        ScreenIntro()
-
+        // 탭 화면이라 큰 제목은 두지 않는다(하단 탭 이름이 같은 말이다).
         // [약 이름으로 검색........] [＋ 추가]
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             FormField(
                 value = state.query,
                 onValueChange = onQueryChange,

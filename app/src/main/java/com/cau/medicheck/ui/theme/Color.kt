@@ -15,10 +15,15 @@ val Line = Color(0xFFE4EDF0)               // 구분선
 val TimelineLine = Color(0xFFD5E2E5)       // 홈 시간표의 세로선
 // 홈 시간표의 상태 표시 (다른 화면의 배지보다 진하게)
 val HomeChipDoneBg = Color(0xFFC6EBE3); val HomeChipDoneText = Color(0xFF0A5F56)       // 복용 완료
-val HomeChipSkippedBg = Color(0xFFFFE3C2); val HomeChipSkippedText = Color(0xFF8A4B0B)   // 건너뜀 (주황)
-val TimelineDotSkipped = Color(0xFFE08A2E); val TimelineDotWait = Color(0xFFA3B1B9)       // 시간표 점: 건너뜀(주황) / 예정(회색)
+// 미복용(시각이 지났는데 기록 안 함)이 주황이라, 건너뜀(일부러 안 먹음)은 파랑으로 구분한다 (2026-11-23)
+val HomeChipMissedBg = Color(0xFFFFE3C2); val HomeChipMissedText = Color(0xFF8A4B0B)     // 미복용 (주황)
+val HomeChipSkippedBg = Color(0xFFDDE8FA); val HomeChipSkippedText = Color(0xFF2F5FA8)   // 건너뜀 (파랑)
+val TimelineDotMissed = Color(0xFFE08A2E); val TimelineDotSkipped = Color(0xFF3E73C5)    // 시간표 점: 미복용(주황) / 건너뜀(파랑)
+val TimelineDotWait = Color(0xFFA3B1B9)                                                   // 시간표 점: 예정(회색)
 val HomeChipWaitBg = Color(0xFFE2E8EC); val HomeChipWaitText = Color(0xFF4F626D)       // 예정
+val TimelineGroupBg = Color(0xFFF3F8F9); val TimelineGroupDivider = Color(0xFFE3ECEE)   // 홈 시간표: 같은 시각 약 묶음 상자 / 상자 안 구분선
 val HeroDeepStart = Color(0xFF0C5F6D); val HeroDeepEnd = Color(0xFF14808C)   // 홈 맨 위 카드의 짙은 청록 바탕
+val HeroPastStart = Color(0xFF2E5560); val HeroPastEnd = Color(0xFF3E6E78)   // 홈 맨 위 카드: 지난 시각으로 넘겼을 때(조금 어둡게)
 val FieldBorder = Color(0xFFDCE7EA)        // 입력칸 테두리
 val Navy = Color(0xFF203846)               // 기본 글자
 val Muted = Color(0xFF718692)              // 흐린 글자 (설명, 보조 정보)

@@ -255,7 +255,7 @@
     <string name="common_dose_time_amount">%1$s · %2$s</string>
     <string name="status_pill_taken">✓ 복용 완료</string>
     <string name="status_pill_skipped">↷ 건너뜀</string>
-    <string name="status_pill_overdue">! 기한 경과 · 미기록</string>
+    <string name="status_pill_overdue">미복용</string>
     <string name="status_pill_upcoming">○ 복용 예정</string>
     <string name="common_status_word_taken">복용 완료</string>
     <string name="common_status_word_skipped">건너뜀</string>
@@ -271,13 +271,10 @@
     <string name="s18_link_denied">알림 권한 거절 시 안내 ›</string>
 
     <!-- ===== S04 홈 대시보드 ===== -->
-    <string name="s04_next_label">기록을 기다리는 복약</string>
-    <string name="s04_next_action">복용 기록하기 ›</string>
     <string name="s04_next_all_done">오늘의 복약을\n모두 기록했어요</string>
     <string name="s04_next_none">오늘은\n예정된 복약이 없어요</string>
     <string name="s04_progress">복용 완료 %1$d / %2$d회</string>
     <string name="s04_cd_open_dose">복용 기록 열기</string>
-    <string name="s04_title_today">오늘의 복약</string>
     <string name="s04_section_schedule">하루 복약 일정</string>
     <string name="s04_tab_all">전체</string>
     <string name="s04_tab_pending">기록 전</string>
@@ -292,6 +289,7 @@
     <string name="s04_sheet_detail">회차 상세 보기 ›</string>
     <string name="s04_chip_upcoming">예정</string>
     <string name="s04_chip_skipped">건너뜀</string>
+    <string name="s04_chip_missed">미복용</string>
     <string name="s04_link_schedule">일정 보기 ›</string>
     <string name="s04_empty_title">복용 일정이 없어요</string>
     <string name="s04_empty_body">약을 등록하면 이곳에서 확인할 수 있어요.</string>
@@ -301,18 +299,43 @@
     <string name="s04_btn_quick_take">✓ 복용 완료</string>
     <string name="s04_cd_quick_take">%1$s %2$s 회차를 복용 완료로 기록</string>
     <string name="s04_toast_undo">실행취소</string>
+    <!-- 홈 맨 위 카드: 시각 묶음 (2026-11-23) -->
+    <string name="s04_slot_now">지금 먹을 약</string>
+    <string name="s04_slot_next">다음 먹을 약</string>
+    <string name="s04_slot_past">지난 복약</string>
+    <string name="s04_slot_later">나중 복약</string>
+    <string name="s04_slot_in">%1$s 뒤</string>
+    <string name="s04_slot_left">%1$d개 남음</string>
+    <string name="s04_dur_hm">%1$d시간 %2$d분</string>
+    <string name="s04_dur_h">%1$d시간</string>
+    <string name="s04_dur_m">%1$d분</string>
+    <string name="s04_btn_take_all">✓ %1$d개 모두 복용 완료</string>
+    <string name="s04_btn_take_one">✓ 복용 완료</string>
+    <string name="s04_btn_release">✓ 모두 복용함</string>
+    <string name="s04_btn_release_sub">다시 누르면 %1$d개 해제</string>
+    <string name="s04_btn_all_recorded">모두 기록했어요</string>
+    <string name="s04_btn_all_recorded_sub">고치려면 약을 누르세요</string>
+    <string name="s04_back_now">지금으로 ›</string>
+    <string name="s04_missed_bar">%1$s에 미복용 %2$d개</string>
+    <string name="s04_cd_prev_slot">이전 시간대</string>
+    <string name="s04_cd_next_slot">다음 시간대</string>
+    <string name="s04_tomorrow_first">내일 첫 복약 · %1$s (%2$d개)</string>
+    <string name="s04_toast_taken_n">%1$d개를 복용 완료로 기록했어요.</string>
+    <string name="s04_toast_released_n">방금 기록한 %1$d개를 기록 전으로 되돌렸어요.</string>
+    <string name="s04_sheet_to_pending">기록 전으로</string>
 
     <!-- ===== S05 일정/캘린더 ===== -->
     <string name="s05_cd_prev_week">지난주</string>
     <string name="s05_cd_next_week">다음 주</string>
     <string name="s05_cd_date_field">날짜 선택</string>
     <string name="s05_btn_today">오늘</string>
-    <string name="s05_counts">완료 %1$d · 건너뜀 %2$d · 예정 %3$d</string>
+    <string name="s05_counts">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d · 예정 %4$d</string>
     <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>
     <string name="s05_period_evening">저녁</string>
     <string name="s05_period_night">밤</string>
+    <string name="s05_period_dawn">새벽</string>
     <string name="s05_empty_title">이 날짜에는 복용할 약이 없어요</string>
     <string name="s05_empty_body">반복 요일과 복용 기간을 확인해주세요.</string>
     <string name="s05_empty_action">약 등록</string>
@@ -518,14 +541,14 @@
     <string name="common_cd_next_month">다음 달</string>
     <string name="common_count_taken">완료</string>
     <string name="common_count_skipped">건너뜀</string>
-    <string name="common_count_missed">미기록</string>
+    <string name="common_count_missed">미복용</string>
     <string name="stats_tab_week">주간</string>
     <string name="stats_tab_month">월간</string>
     <string name="stats_tab_pattern">누락 분석</string>
     <string name="stats_badge_extra">추가 기능</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
-    <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미기록 %3$d</string>
+    <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d</string>
     <string name="s11_btn_open">기록 보기 ›</string>
     <string name="s11_notice">달력 점은 해당 날짜에 등록된 복용 일정이 있음을 뜻합니다.</string>
     <string name="s11_cd_day_with_dose">%1$s, 복용 일정 있음</string>
@@ -543,11 +566,11 @@
     <string name="s13_section_daily">요일별 완료율</string>
     <string name="s13_cd_bar">%1$s %2$s</string>
     <!-- 프로토타입 원문("…전체 예정 복용 중 완료한 비율입니다. 이는 임시 산식입니다.")은 실제 계산과 달라 실제 계산대로 썼다 -->
-    <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 기한 경과 미기록은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
+    <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 미복용은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
 
     <!-- ===== S14 월간 통계 ===== -->
     <string name="s14_rate_label">월간 완료율</string>
-    <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미기록 %3$d회</string>
+    <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미복용 %3$d회</string>
     <string name="s14_section_daily">일자별 복약 완료율</string>
     <string name="s14_first_day">1일</string>
     <string name="s14_last_day">%1$d일</string>
@@ -558,7 +581,7 @@
     <string name="s15_unit">회</string>
     <string name="s15_section_periods">시간대별 분포</string>
     <string name="s15_count">%1$d회</string>
-    <string name="s15_notice">기한이 지난 미기록은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+    <string name="s15_notice">미복용은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
 
     <!-- ===== S43 복약 기록 내보내기 ===== -->
     <string name="s43_subtitle">주간·월간 기록을 CSV 파일로 저장합니다.</string>
@@ -614,12 +637,12 @@
     <string name="s20_skipped_desc">사용자가 이번 회차를 먹지 않았다고 명시</string>
     <string name="s20_pending_title">○ 미기록</string>
     <string name="s20_pending_desc">아직 완료/건너뜀을 선택하지 않은 상태</string>
-    <string name="s20_pending_display">예정 시각 전에는 ‘○ 복용 예정’, 예정 시각이 지나면 ‘! 기한 경과 · 미기록’으로 표시합니다.</string>
+    <string name="s20_pending_display">예정 시각 전에는 ‘예정’, 예정 시각이 지나면 ‘미복용’으로 표시합니다.</string>
     <!-- 프로토타입 원문 "현재 데모 산식" -->
     <string name="s20_kicker">현재 산식</string>
     <!-- 프로토타입 원문 "완료율 = 완료 횟수 ÷ 예정 횟수 × 100": 실제 계산(StatsCalculator)과 같게 고쳤다 -->
     <string name="s20_formula">완료율 = 완료 횟수 ÷ 예정 시각이 된 횟수 × 100</string>
-    <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 기한 경과 미기록까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+    <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 미복용까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
     <!-- 프로토타입 원문은 "…미확정으로 명시되어 있습니다."(주황). 지금은 정해졌으므로 바꿨다 -->
     <string name="s20_notice">계획서 7장에서 미확정이던 ‘미복용과 명시적 건너뜀 구분’과 ‘복약률 계산 기준’을 위와 같이 정했습니다.</string>
 

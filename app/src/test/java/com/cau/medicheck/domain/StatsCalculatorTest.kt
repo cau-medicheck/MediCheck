@@ -220,7 +220,8 @@ class StatsCalculatorTest {
     fun `건너뜀은 예정 시각의 시간대로 나눈다`() {
         val yesterday = today.minusDays(1)
         val doses = listOf(
-            doseOn(yesterday, 0, 0, DoseStatus.SKIPPED), doseOn(yesterday, 10, 59, DoseStatus.SKIPPED),   // 아침
+            doseOn(yesterday, 0, 0, DoseStatus.SKIPPED),                                                  // 새벽
+            doseOn(yesterday, 5, 0, DoseStatus.SKIPPED), doseOn(yesterday, 10, 59, DoseStatus.SKIPPED),   // 아침
             doseOn(yesterday, 11, 0, DoseStatus.SKIPPED), doseOn(yesterday, 15, 59, DoseStatus.SKIPPED),  // 점심
             doseOn(yesterday, 16, 0, DoseStatus.SKIPPED), doseOn(yesterday, 20, 59, DoseStatus.SKIPPED),  // 저녁
             doseOn(yesterday, 21, 0, DoseStatus.SKIPPED)                                                  // 밤
@@ -229,7 +230,7 @@ class StatsCalculatorTest {
         val pattern = StatsCalculator.skipPattern(doses, today, now)
 
         assertEquals(
-            mapOf(DayPeriod.MORNING to 2, DayPeriod.LUNCH to 2, DayPeriod.EVENING to 2, DayPeriod.NIGHT to 1),
+            mapOf(DayPeriod.DAWN to 1, DayPeriod.MORNING to 2, DayPeriod.LUNCH to 2, DayPeriod.EVENING to 2, DayPeriod.NIGHT to 1),
             pattern.skippedByPeriod
         )
     }

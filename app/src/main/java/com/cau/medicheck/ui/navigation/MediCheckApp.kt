@@ -155,7 +155,7 @@ fun MediCheckApp(authViewModel: AuthViewModel = viewModel(factory = AuthViewMode
             val ime = with(density) { WindowInsets.ime.getBottom(this).toDp() }
             val shown = toast
             McToastHost(
-                text = shown?.let { stringResource(it.text) },
+                text = shown?.let { stringResource(it.text, *it.args.toTypedArray()) },
                 bottomOffset = toastBottomOffset(navBar + PreLoginFrameBottom, ime),
                 modifier = Modifier.align(Alignment.BottomCenter),
                 actionLabel = shown?.action?.let { stringResource(it.label) },

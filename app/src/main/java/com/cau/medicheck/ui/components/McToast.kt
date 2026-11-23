@@ -52,18 +52,19 @@ class ToastBus {
     /**
      * @param id strings.xml의 문구 번호 (R.string.…)
      * @param action 토스트 오른쪽에 붙일 버튼 하나. 홈·일정의 "✓ 복용 완료" 뒤 "실행취소"에만 쓴다.
+     * @param args 문구 안의 %1$d 같은 자리에 넣을 값 (예: "2개를 복용 완료로 기록했어요"의 2)
      */
-    fun show(@StringRes id: Int, action: ToastAction? = null) {
+    fun show(@StringRes id: Int, action: ToastAction? = null, vararg args: Any) {
         // tryEmit: 기다리지 않고 바로 넣는다 (suspend가 아니라 어디서나 부를 수 있다)
-        _messages.tryEmit(ToastMessage(id, action))
+        _messages.tryEmit(ToastMessage(id, action, args.toList()))
     }
 }
 
 /** 토스트에 붙는 버튼 하나: 글자와 눌렀을 때 할 일 */
 class ToastAction(@param:StringRes val label: Int, val run: () -> Unit)
 
-/** 토스트 한 장: 문구와 (있으면) 버튼 */
-class ToastMessage(@param:StringRes val text: Int, val action: ToastAction? = null)
+/** 토스트 한 장: 문구와 (있으면) 버튼, 문구에 넣을 값 */
+class ToastMessage(@param:StringRes val text: Int, val action: ToastAction? = null, val args: List<Any> = emptyList())
 
 /**
  * 화면 부품(Composable)에서 토스트를 바로 띄울 때 쓰는 통로. MediCheckApp이 맨 위에서 넣어 준다.

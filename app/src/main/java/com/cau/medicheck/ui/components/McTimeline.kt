@@ -55,6 +55,8 @@ import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.Faint
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
 import com.cau.medicheck.ui.theme.HomeChipDoneText
+import com.cau.medicheck.ui.theme.HomeChipMissedBg
+import com.cau.medicheck.ui.theme.HomeChipMissedText
 import com.cau.medicheck.ui.theme.HomeChipSkippedBg
 import com.cau.medicheck.ui.theme.HomeChipSkippedText
 import com.cau.medicheck.ui.theme.HomeChipWaitBg
@@ -64,10 +66,14 @@ import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
 import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.TimelineDotMissed
 import com.cau.medicheck.ui.theme.TimelineDotSkipped
 import com.cau.medicheck.ui.theme.TimelineDotWait
+import com.cau.medicheck.ui.theme.TimelineGroupBg
+import com.cau.medicheck.ui.theme.TimelineGroupDivider
 import com.cau.medicheck.ui.theme.TimelineLine
 import java.time.LocalDate
+import java.time.LocalTime
 
 // 홈·일정·기록 화면이 함께 쓰는 시간표 부품: 시간표 한 줄, 상태 표시, 아래에서 올라오는 복약 기록 창.
 
@@ -80,12 +86,6 @@ import java.time.LocalDate
  */
 @Composable
 fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () -> Unit) {
-    val periodRes = when (periodOf(row.time)) {
-        DayPeriod.MORNING -> R.string.s05_period_morning
-        DayPeriod.LUNCH -> R.string.s05_period_lunch
-        DayPeriod.EVENING -> R.string.s05_period_evening
-        DayPeriod.NIGHT -> R.string.s05_period_night
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,64 +93,160 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
             .height(IntrinsicSize.Min)   // 세로선이 줄의 높이만큼 그려지도록
             .padding(horizontal = 18.dp)
     ) {
-        // 시각 + 시간대
-        // 폭을 "시각 글자(15sp) 크기의 3.7배"로 고정한다. 줄마다 폭이 같아야 세로선이 한 줄로 이어지고,
-        // 글자를 키워 써도(접근성 200%) "08:00"이 잘리지 않는다.
-        // (56.sp처럼 큰 sp 값을 바로 dp로 바꾸면 안 된다 — Android 14부터 큰 글자는 덜 커지게 계산해서 폭이 모자란다)
-        val timeWidth = with(LocalDensity.current) { 15.sp.toDp() * 3.7f }
-        Column(Modifier.width(timeWidth).padding(vertical = 13.dp)) {
-            Text(text = timeText(row.time), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy, maxLines = 1, softWrap = false)
-            Text(text = stringResource(periodRes), fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 3.dp))
-        }
-        // 세로선 + 점
-        Canvas(Modifier.padding(horizontal = 9.dp).width(12.dp).fillMaxHeight().clearAndSetSemantics { }) {
-            val x = size.width / 2
-            val dotY = 13.dp.toPx() + 15.sp.toPx() * 0.6f   // 위 여백 + 시각 글자 높이의 절반쯤 (글자를 키우면 점도 따라 내려간다)
-            val r = 4.dp.toPx()
-            drawLine(
-                color = TimelineLine,
-                start = Offset(x, if (isFirst) dotY else 0f),
-                end = Offset(x, if (isLast) dotY else size.height),
-                strokeWidth = 1.5.dp.toPx()
-            )
-            drawCircle(Color.White, radius = r + 1.5.dp.toPx(), center = Offset(x, dotY))   // 선을 가리는 흰 바탕
-            // 점의 색은 오른쪽 상태 표시와 맞춘다: 복용 완료 = 채운 청록, 건너뜀 = 주황 고리, 예정 = 회색 고리
-            when (row.display) {
-                DoseDisplayStatus.TAKEN -> drawCircle(Teal, radius = r, center = Offset(x, dotY))
-                DoseDisplayStatus.SKIPPED ->
-                    drawCircle(TimelineDotSkipped, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
-                else ->
-                    drawCircle(TimelineDotWait, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
-            }
-        }
+        TimelineTime(row.time)
+        TimelineRail(row.display, isFirst, isLast)
         // 약 이름 + 복용량·메모
         Column(Modifier.weight(1f).padding(vertical = 13.dp)) {
             RowTitle(row.name)
-            RowSub(if (row.memo.isBlank()) row.dosage else row.dosage + " · " + row.memo)
+            RowSub(doseSubText(row))
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
             Spacer(Modifier.width(8.dp))
-            DoseStatusChip(row.display)
-            Text(
-                text = "›",
-                fontSize = 16.sp,
-                color = Faint,
-                modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics { }
-            )
+            DoseStatusTail(row.display)
         }
     }
 }
 
 /**
- * 회차의 상태 표시: 복용 완료(진한 청록) / 건너뜀(주황) / 예정(회색, 아직 기록하지 않은 회차). 앱의 모든 화면이 함께 쓴다.
+ * 같은 시각의 약들을 한 묶음으로 보여 준다. (홈 "하루 복약 일정" 카드, 2026-11-23 시안 C-0)
+ *
+ *   08:00 ●  ┌ Lutein              [예정] › ┐
+ *   아침  │  │ Probiotics          [예정] › │   ← 옅은 상자 하나에 담는다
+ *         │  └ Vitamin D       [복용 완료] › ┘
+ *   12:30 ○  ┌ Omega-3             [예정] › ┐
+ *
+ * 시각과 점은 묶음에 하나만 그린다. 약이 하나뿐이어도 같은 모양(상자 안에 한 줄)이다.
+ * 약 줄마다 따로 눌러서 그 회차의 기록 창을 연다.
+ *
+ * @param rows 시각이 모두 같은 회차들 (화면에 보일 순서대로)
+ */
+@Composable
+fun TimelineGroup(rows: List<DoseRowUi>, isFirst: Boolean, isLast: Boolean, onOpen: (DoseRowUi) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .padding(horizontal = 18.dp)
+    ) {
+        TimelineTime(rows.first().time)
+        TimelineRail(groupDisplay(rows), isFirst, isLast)
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(vertical = 6.dp)
+                .clip(RoundedCornerShape(12.dp))   // 누를 때 물결도 상자 모서리 안에서만
+                .background(TimelineGroupBg)
+        ) {
+            rows.forEachIndexed { index, row ->
+                if (index > 0) {
+                    HorizontalDivider(thickness = 1.dp, color = TimelineGroupDivider, modifier = Modifier.padding(horizontal = 10.dp))
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClickLabel = stringResource(R.string.s04_cd_open_dose), role = Role.Button) { onOpen(row) }
+                        .padding(horizontal = 10.dp, vertical = 9.dp)
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        RowTitle(row.name)
+                        RowSub(doseSubText(row))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    DoseStatusTail(row.display)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 묶음 점의 색을 정할 상태. 먼저 걸리는 것으로 정한다.
+ * 미복용이 하나라도 있으면 "미복용"(주황) → 예정이 있으면 "예정"(회색) → 모두 복용 완료면 "복용 완료"(청록)
+ * → 그 밖(모두 기록했고 건너뜀이 섞임)은 "건너뜀"(파랑).
+ */
+private fun groupDisplay(rows: List<DoseRowUi>): DoseDisplayStatus = when {
+    rows.any { it.display == DoseDisplayStatus.MISSED } -> DoseDisplayStatus.MISSED
+    rows.any { it.display == DoseDisplayStatus.UPCOMING } -> DoseDisplayStatus.UPCOMING
+    rows.all { it.display == DoseDisplayStatus.TAKEN } -> DoseDisplayStatus.TAKEN
+    else -> DoseDisplayStatus.SKIPPED
+}
+
+/** "1정 · 아침 식후" — 메모가 없으면 복용량만 */
+private fun doseSubText(row: DoseRowUi): String =
+    if (row.memo.isBlank()) row.dosage else row.dosage + " · " + row.memo
+
+/**
+ * 시각 + 시간대 칸.
+ * 폭을 "시각 글자(15sp) 크기의 3.7배"로 고정한다. 줄마다 폭이 같아야 세로선이 한 줄로 이어지고,
+ * 글자를 키워 써도(접근성 200%) "08:00"이 잘리지 않는다.
+ * (56.sp처럼 큰 sp 값을 바로 dp로 바꾸면 안 된다 — Android 14부터 큰 글자는 덜 커지게 계산해서 폭이 모자란다)
+ */
+@Composable
+private fun TimelineTime(time: LocalTime) {
+    val periodRes = when (periodOf(time)) {
+        DayPeriod.DAWN -> R.string.s05_period_dawn
+        DayPeriod.MORNING -> R.string.s05_period_morning
+        DayPeriod.LUNCH -> R.string.s05_period_lunch
+        DayPeriod.EVENING -> R.string.s05_period_evening
+        DayPeriod.NIGHT -> R.string.s05_period_night
+    }
+    val timeWidth = with(LocalDensity.current) { 15.sp.toDp() * 3.7f }
+    Column(Modifier.width(timeWidth).padding(vertical = 13.dp)) {
+        Text(text = timeText(time), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy, maxLines = 1, softWrap = false)
+        Text(text = stringResource(periodRes), fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 3.dp))
+    }
+}
+
+/** 세로선 + 점. 맨 위 줄은 점에서 시작하고, 맨 아래 줄은 점에서 끝난다. */
+@Composable
+private fun TimelineRail(display: DoseDisplayStatus, isFirst: Boolean, isLast: Boolean) {
+    Canvas(Modifier.padding(horizontal = 9.dp).width(12.dp).fillMaxHeight().clearAndSetSemantics { }) {
+        val x = size.width / 2
+        val dotY = 13.dp.toPx() + 15.sp.toPx() * 0.6f   // 위 여백 + 시각 글자 높이의 절반쯤 (글자를 키우면 점도 따라 내려간다)
+        val r = 4.dp.toPx()
+        drawLine(
+            color = TimelineLine,
+            start = Offset(x, if (isFirst) dotY else 0f),
+            end = Offset(x, if (isLast) dotY else size.height),
+            strokeWidth = 1.5.dp.toPx()
+        )
+        drawCircle(Color.White, radius = r + 1.5.dp.toPx(), center = Offset(x, dotY))   // 선을 가리는 흰 바탕
+        // 점의 색은 오른쪽 상태 표시와 맞춘다: 복용 완료 = 채운 청록, 미복용 = 주황 고리, 건너뜀 = 파랑 고리, 예정 = 회색 고리
+        val ring = when (display) {
+            DoseDisplayStatus.TAKEN -> null
+            DoseDisplayStatus.MISSED -> TimelineDotMissed
+            DoseDisplayStatus.SKIPPED -> TimelineDotSkipped
+            DoseDisplayStatus.UPCOMING -> TimelineDotWait
+        }
+        if (ring == null) drawCircle(Teal, radius = r, center = Offset(x, dotY))
+        else drawCircle(ring, radius = r - 0.75.dp.toPx(), center = Offset(x, dotY), style = Stroke(1.5.dp.toPx()))
+    }
+}
+
+/** 줄 오른쪽 끝: [상태] › */
+@Composable
+private fun DoseStatusTail(display: DoseDisplayStatus) {
+    DoseStatusChip(display)
+    Text(
+        text = "›",
+        fontSize = 16.sp,
+        color = Faint,
+        modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics { }
+    )
+}
+
+/**
+ * 회차의 상태 표시: 복용 완료(진한 청록) / 건너뜀(파랑) / 미복용(주황, 시각이 지났는데 기록 안 함) / 예정(회색, 아직 시각 전).
+ * 앱의 모든 화면이 함께 쓴다.
  */
 @Composable
 fun DoseStatusChip(status: DoseDisplayStatus, modifier: Modifier = Modifier) {
     val (textRes, background, textColor) = when (status) {
         DoseDisplayStatus.TAKEN -> Triple(R.string.status_pill_taken, HomeChipDoneBg, HomeChipDoneText)
         DoseDisplayStatus.SKIPPED -> Triple(R.string.s04_chip_skipped, HomeChipSkippedBg, HomeChipSkippedText)
-        // 시간이 지났든 아니든, 아직 기록하지 않은 회차는 모두 "예정"으로 적는다.
-        DoseDisplayStatus.MISSED,
+        // 아직 기록하지 않은 회차: 시각이 지났으면 미복용(주황), 아직이면 예정(회색). (2026-11-23 결정)
+        DoseDisplayStatus.MISSED -> Triple(R.string.s04_chip_missed, HomeChipMissedBg, HomeChipMissedText)
         DoseDisplayStatus.UPCOMING -> Triple(R.string.s04_chip_upcoming, HomeChipWaitBg, HomeChipWaitText)
     }
     Text(
@@ -181,7 +277,9 @@ fun RecordSheet(
     onDismiss: () -> Unit,
     onTaken: () -> Unit,
     onSkipped: () -> Unit,
-    onOpenDetail: () -> Unit
+    onOpenDetail: () -> Unit,
+    /** "기록 전으로" (이미 기록한 회차를 미기록으로). null이면 버튼을 그리지 않는다 */
+    onPending: (() -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -261,6 +359,16 @@ fun RecordSheet(
                             modifier = Modifier.weight(1f)
                         )
                     }
+                    // 이미 기록한 회차면 "기록 전으로"도 보인다 (잘못 누른 기록을 지우는 길)
+                    val recorded = row.display == DoseDisplayStatus.TAKEN || row.display == DoseDisplayStatus.SKIPPED
+                    if (onPending != null && recorded) {
+                        McButton(
+                            text = stringResource(R.string.s04_sheet_to_pending),
+                            onClick = onPending,
+                            kind = ButtonKind.LIGHT,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        )
+                    }
                 }
                 LinkText(
                     text = stringResource(R.string.s04_sheet_detail),
@@ -301,12 +409,13 @@ fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Mo
                 .padding(top = 10.dp, bottom = 16.dp)
                 .clearAndSetSemantics { }
         )
-        CountTriple(
-            listOf(
-                stringResource(R.string.common_count_taken) to progress.taken,
-                stringResource(R.string.common_count_skipped) to progress.skipped,
-                stringResource(if (isToday) R.string.s04_chip_upcoming else R.string.common_count_missed) to progress.pending
-            )
-        )
+        // 오늘은 미복용과 예정을 따로, 지난 날은 예정이 없으므로 미복용까지만
+        val counts = buildList {
+            add(stringResource(R.string.common_count_taken) to progress.taken)
+            add(stringResource(R.string.common_count_skipped) to progress.skipped)
+            add(stringResource(R.string.common_count_missed) to progress.missed)
+            if (isToday) add(stringResource(R.string.s04_chip_upcoming) to progress.upcoming)
+        }
+        CountTriple(counts)
     }
 }
