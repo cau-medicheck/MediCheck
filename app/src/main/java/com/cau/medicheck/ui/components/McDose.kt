@@ -78,7 +78,7 @@ import java.time.LocalTime
 
 /**
  * 복용 상태 배지. 기호와 글자가 함께 있어서 색을 못 봐도 구분된다(F087).
- *   ✓ 복용 완료(민트) / ↷ 건너뜀(주황) / ! 기한 경과 · 미기록(회색) / ○ 복용 예정(회색)
+ *   복용 완료(청록) / 건너뜀(파랑) / 미복용(주황) / 예정(회색)
  */
 @Composable
 fun StatusPill(status: DoseDisplayStatus, modifier: Modifier = Modifier) = DoseStatusChip(status, modifier)

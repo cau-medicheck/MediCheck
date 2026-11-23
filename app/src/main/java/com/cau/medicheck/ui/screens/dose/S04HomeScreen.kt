@@ -1,7 +1,5 @@
 package com.cau.medicheck.ui.screens.dose
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,9 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -32,17 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -56,24 +46,18 @@ import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.PeriodStats
-import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LinkText
-import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.NotificationOffCard
 import com.cau.medicheck.ui.components.ProgressBar
 import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.SurfaceCard
-import com.cau.medicheck.ui.components.TimelineRow
-import com.cau.medicheck.ui.components.fullDateText
-import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.TimelineGroup
 import com.cau.medicheck.ui.lock.LocalAppLocked
 import com.cau.medicheck.ui.theme.CardBackground
 import com.cau.medicheck.ui.theme.CardBorder
-import com.cau.medicheck.ui.theme.HeroDeepEnd
-import com.cau.medicheck.ui.theme.HeroDeepStart
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
@@ -87,6 +71,9 @@ class HomeActions(
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
     val onQuickSkip: (DoseKey) -> Unit,
+    val onQuickPending: (DoseKey) -> Unit,
+    /** 맨 위 카드: 약 이름·동그라미 / "N개 모두 복용 완료" / 다시 눌러 해제 */
+    val slotCard: SlotCardActions,
     val onAddMedication: () -> Unit,
     val onOpenStats: () -> Unit,
     val onOpenNotificationHelp: () -> Unit
@@ -95,8 +82,8 @@ class HomeActions(
 /**
  * S04 홈 대시보드 (v3 home()).
  *
- * 위에서 아래로: 큰 카드(인사 + 선택한 날짜의 완료율) → (알림이 꺼져 있으면) 안내 카드
- * → 날짜 줄(오늘 앞뒤 3일) → 그날의 회차 목록 → "＋ 새 약 등록" → 이번 주 리포트 카드.
+ * 위에서 아래로: 맨 위 카드(날짜 + 지금 먹을 약 묶음, 옆으로 넘겨 다른 시각) → (알림이 꺼져 있으면) 안내 카드
+ * → 하루 복약 일정(같은 시각은 한 상자) → 최근 7일 복약률.
  *
  * @param showNotificationOffCard 폰의 알림이 꺼져 있는가 (판정은 MainGraph가 한다)
  */
@@ -120,26 +107,16 @@ fun S04HomeScreen(
             onDismiss = { sheetKey = null },
             onTaken = { actions.onQuickTake(sheetRow.key); sheetKey = null },
             onSkipped = { actions.onQuickSkip(sheetRow.key); sheetKey = null },
-            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) }
+            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) },
+            onPending = { actions.onQuickPending(sheetRow.key); sheetKey = null }
         )
     }
     val openSheet: (DoseKey) -> Unit = { sheetKey = it }
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s04)) {
-        // ----- 날짜 + 큰 제목 -----
-        // 홈은 언제나 오늘의 복약만 보여 준다(날짜를 옮겨 보는 것은 일정 탭에서 한다).
-        Text(text = fullDateText(state.date), fontSize = 12.sp, color = Muted)
-        Text(
-            text = stringResource(R.string.s04_title_today),
-            fontSize = 25.sp,
-            lineHeight = 33.sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = (-0.9).sp,
-            color = Navy,
-            modifier = Modifier.padding(top = 2.dp).semantics { heading() }
-        )
-
-        NextDoseCard(state, onOpenDose = openSheet, modifier = Modifier.padding(top = 16.dp))
+        // ----- 맨 위 카드: 날짜 + 지금 먹을 약 묶음 -----
+        // 홈은 언제나 오늘의 복약만 보여 준다(날짜를 옮겨 보는 것은 일정 탭에서 한다). 큰 제목은 두지 않고 날짜는 카드 안에 적는다.
+        SlotHeroCard(state, actions.slotCard)
 
         if (showNotificationOffCard) {
             NotificationOffCard(onClick = actions.onOpenNotificationHelp, modifier = Modifier.padding(top = 16.dp))
@@ -239,150 +216,6 @@ private fun WeekRateCard(stats: PeriodStats, today: LocalDate, onOpenStats: () -
 }
 
 /**
- * 홈 맨 위의 카드: 지금 기록을 기다리는 약 하나와 "복용 기록하기" 버튼. (새 시안 MediCheck.html의 홈 맨 위 카드)
- *
- * 고르는 순서: 시간이 지났는데 기록이 없는 회차 중 가장 이른 것 → 없으면 아직 시간이 안 된 회차 중 가장 이른 것.
- * (rows는 시각 순서로 들어온다) 둘 다 없으면 버튼 없이 안내 한 줄만 보인다.
- *
- * 바탕: 짙은 청록 위에 알약 그림(res/drawable-nodpi/home_pills.png)을 오른쪽에 깐다.
- * 그림은 사진이 아니라 빛과 그림자를 계산해 그린 것이다(만든 방법: docs/art/render_pills.py).
- */
-@Composable
-private fun NextDoseCard(state: DayDosesUiState, onOpenDose: (DoseKey) -> Unit, modifier: Modifier = Modifier) {
-    val next = state.rows.firstOrNull { it.display == DoseDisplayStatus.MISSED }
-        ?: state.rows.firstOrNull { it.display == DoseDisplayStatus.UPCOMING }
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
-    ) {
-        // 그림은 오른쪽 위에 둔다. 장식이라 TalkBack이 읽지 않는다(contentDescription = null).
-        Image(
-            painter = painterResource(R.drawable.home_pills),
-            contentDescription = null,
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = 16.dp, y = 8.dp).size(196.dp)
-        )
-        Column(Modifier.padding(horizontal = 20.dp, vertical = 22.dp)) {
-            if (next == null) {
-                // 회차가 하나도 없는 날과, 모두 기록한 날을 나눠 말한다.
-                Text(
-                    text = stringResource(if (state.rows.isEmpty()) R.string.s04_next_none else R.string.s04_next_all_done),
-                    fontSize = 19.sp,
-                    lineHeight = 27.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                RateBlock(state.progress, Modifier.padding(top = 18.dp))
-                return@Column
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ClockMark()
-                Text(
-                    text = stringResource(R.string.s04_next_label),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.88f),
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
-            Text(
-                text = next.name,
-                fontSize = 27.sp,
-                lineHeight = 35.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-1).sp,
-                color = Color.White,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            // "12:30 · 1캡슐 · 점심 식후" — 시각만 굵게
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) { append(timeText(next.time)) }
-                    append("  ·  " + next.dosage)
-                    if (next.memo.isNotBlank()) append("  ·  " + next.memo)
-                },
-                fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.88f),
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-            )
-            McButton(
-                text = stringResource(R.string.s04_next_action),
-                onClick = { onOpenDose(next.key) },
-                kind = ButtonKind.WHITE
-            )
-            RateBlock(state.progress, Modifier.padding(top = 20.dp))
-        }
-    }
-}
-
-/**
- * 카드 아래쪽의 오늘 진행률: 가는 선 / "오늘 복약 진행률" / 큰 숫자 "33%" / 진행 막대. (새 시안 MediCheck4.html의 홈 카드)
- * 복용 완료를 누르면 시각과 상관없이 바로 올라간다(DayProgress).
- */
-@Composable
-private fun RateBlock(progress: DayProgress, modifier: Modifier = Modifier) {
-    val rate = progress.percent   // 오늘 기록한 만큼 바로 올라간다. null이면 오늘 회차가 없다
-    Column(modifier) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.18f)))
-        Text(
-            text = stringResource(R.string.s04_rate_label),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.88f),
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        // "33" 크게 + "%" 작게. TalkBack에는 "33퍼센트"로 한 번에 읽히도록 한 Text에 넣는다.
-        Text(
-            text = buildAnnotatedString {
-                if (rate == null) append(stringResource(R.string.common_na))
-                else {
-                    append(rate.toString())
-                    withStyle(SpanStyle(fontSize = 17.sp, fontWeight = FontWeight.Bold)) { append(" %") }
-                }
-            },
-            fontSize = 36.sp,
-            lineHeight = 42.sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = (-1).sp,
-            color = Color.White,
-            modifier = Modifier.padding(top = 2.dp)
-        )
-        // 진행 막대. 숫자가 위에 글자로 있으므로 TalkBack은 읽지 않는다.
-        Box(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .width(150.dp)
-                .height(5.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color.White.copy(alpha = 0.22f))
-                .clearAndSetSemantics { }
-        ) {
-            Box(
-                Modifier
-                    .fillMaxWidth(((rate ?: 0) / 100f).coerceIn(0f, 1f))
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Color.White)
-            )
-        }
-    }
-}
-
-/** 작은 시계 그림(동그라미 + 바늘 둘). 장식이라 TalkBack이 읽지 않는다. */
-@Composable
-private fun ClockMark() {
-    Canvas(Modifier.size(14.dp).clearAndSetSemantics { }) {
-        val stroke = size.minDimension * 0.11f
-        val c = Offset(size.width / 2, size.height / 2)
-        drawCircle(Color.White, radius = size.minDimension / 2 - stroke / 2, style = Stroke(stroke))
-        drawLine(Color.White, c, Offset(c.x, size.height * 0.26f), strokeWidth = stroke, cap = StrokeCap.Round)
-        drawLine(Color.White, c, Offset(size.width * 0.68f, c.y), strokeWidth = stroke, cap = StrokeCap.Round)
-    }
-}
-
-/**
  * "하루 복약 일정" 카드의 안쪽: 제목 + [일정 보기 ›] / 진행 상황 / [전체 | 기록 전] / 시간표.
  * 탭은 이 화면 안에서만 쓰는 보기 설정이라 ViewModel에 두지 않는다(화면을 돌려도 남도록 rememberSaveable).
  */
@@ -449,13 +282,15 @@ private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions, onOpenDos
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 22.dp)
             )
         } else {
+            // 같은 시각의 약들은 한 묶음으로 (rows는 이미 시각 순서라 이웃한 것끼리만 묶으면 된다)
+            val groups = groupBySameTime(rows)
             Column(Modifier.padding(top = 6.dp, bottom = 10.dp)) {
-                rows.forEachIndexed { index, row ->
-                    TimelineRow(
-                        row = row,
+                groups.forEachIndexed { index, group ->
+                    TimelineGroup(
+                        rows = group,
                         isFirst = index == 0,
-                        isLast = index == rows.lastIndex,
-                        onOpen = { onOpenDose(row.key) }
+                        isLast = index == groups.lastIndex,
+                        onOpen = { row -> onOpenDose(row.key) }
                     )
                 }
             }

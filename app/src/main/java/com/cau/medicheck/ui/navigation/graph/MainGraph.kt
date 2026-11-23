@@ -24,6 +24,7 @@ import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.screens.dose.DayDosesViewModel
 import com.cau.medicheck.ui.screens.dose.DoseDetailActions
 import com.cau.medicheck.ui.screens.dose.HomeActions
+import com.cau.medicheck.ui.screens.dose.SlotCardActions
 import com.cau.medicheck.ui.screens.dose.S04HomeScreen
 import com.cau.medicheck.ui.screens.dose.S05ScheduleScreen
 import com.cau.medicheck.ui.screens.dose.S10DoseDetailScreen
@@ -99,6 +100,12 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
                     onOpenDose = { key -> go.open(Routes.s10(key)) },
                     onQuickTake = vm::quickTake,
                     onQuickSkip = vm::quickSkip,
+                    onQuickPending = vm::quickPending,
+                    slotCard = SlotCardActions(
+                        onToggle = vm::toggleTaken,
+                        onTakeAll = vm::takeAll,
+                        onReleaseAll = vm::releaseAll
+                    ),
                     onAddMedication = { go.open(Routes.s08New()) },
                     onOpenStats = { go.openTab(Routes.S13) },
                     onOpenNotificationHelp = { go.open(Routes.S34) }

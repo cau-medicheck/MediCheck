@@ -29,7 +29,6 @@ import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ProgressBar
-import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SegmentedTabs
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -48,10 +47,9 @@ import com.cau.medicheck.ui.theme.ProgressFill
  * 여기서는 받은 값을 그리기만 한다.
  */
 
-/** 통계 화면 맨 위: 큰 제목 + 탭 세 개. index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 누락 분석) */
+/** 통계 화면 맨 위: 탭 세 개. (탭 화면이라 큰 제목은 두지 않는다 — 하단 탭 이름이 같은 말이다) index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 누락 분석) */
 @Composable
 private fun ColumnScope.StatsHeader(index: Int, onTab: (Int) -> Unit) {
-    ScreenIntro()
     SegmentedTabs(
         labels = listOf(
             stringResource(R.string.stats_tab_week),
@@ -270,6 +268,7 @@ fun S15SkipPatternScreen(state: SkipPatternUiState, onTab: (Int) -> Unit) {
 
 /** 시간대 → 이름 문구 (일정 화면 S05의 구역 제목과 같은 글자) */
 private fun DayPeriod.labelRes(): Int = when (this) {
+    DayPeriod.DAWN -> R.string.s05_period_dawn
     DayPeriod.MORNING -> R.string.s05_period_morning
     DayPeriod.LUNCH -> R.string.s05_period_lunch
     DayPeriod.EVENING -> R.string.s05_period_evening

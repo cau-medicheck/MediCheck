@@ -133,6 +133,29 @@ class DoseRepository(
     }
 
     /**
+     * 여러 회차의 상태를 한 번에 바꾼다. (홈 맨 위 카드의 "N개 모두 복용 완료"와, 다시 눌러 해제하기)
+     *
+     * 하나의 트랜잭션이다: 중간에 실패하면 하나도 바뀌지 않는다(3개 중 2개만 기록되는 일이 없다).
+     * 이미 그 상태인 회차와 찾을 수 없는 회차는 건너뛴다. 이력은 바뀐 회차마다 한 줄씩 남는다.
+     *
+     * @return 실제로 바뀐 회차들 (부르는 쪽이 "N개를 기록했어요"와 실행취소에 쓴다)
+     */
+    suspend fun changeStatuses(userId: Long, keys: List<DoseKey>, status: DoseStatus): List<DoseKey> {
+        val today = LocalDate.now(clock)
+        // 기록 줄이 없는 오늘 이전 회차가 있으면 changeStatus처럼 먼저 한 번 보충한다.
+        if (keys.any { !it.date.isAfter(today) && findByKey(userId, it) == null }) refresh(userId)
+
+        val changed = transaction.run {
+            keys.filter { key ->
+                val found = findByKey(userId, key) ?: return@filter false
+                applyStatus(userId, found, status) == StatusChangeResult.CHANGED
+            }
+        }
+        if (changed.isNotEmpty()) onChanged()
+        return changed
+    }
+
+    /**
      * 하루치 회차를 계속 흘려 보낸다. 정렬: 예정 시각 → 약 이름.
      *   - 오늘·지난 날짜 → 저장된 기록 (삭제한 약의 남은 기록도 포함)
      *   - 내일 이후 → 지금의 약·규칙으로 계산한 예정 회차 (보기 전용. 약을 고치면 바로 다시 계산된다)
@@ -276,22 +299,35 @@ class DoseRepository(
      *     를 엉뚱한 값으로 되돌리지 않기 위해서)
      */
     suspend fun undoLast(userId: Long, key: DoseKey): UndoResult {
-        val result = undoInTransaction(userId, key)
+        val result = transaction.run { undoOne(userId, key) }
         if (result != UndoResult.NOTHING) onChanged()
         return result
     }
 
-    private suspend fun undoInTransaction(userId: Long, key: DoseKey): UndoResult = transaction.run {
-        val record = findByKey(userId, key) ?: return@run UndoResult.NOTHING
-        val last = statusEventDao.latestFor(userId, record.id) ?: return@run UndoResult.NOTHING
-        if (last.isUndo) return@run UndoResult.NOTHING
-        if (record.status != last.toStatus || record.actedAt != last.toActedAt) return@run UndoResult.NOTHING
+    /**
+     * 여러 회차의 마지막 변경을 한 번에 되돌린다. (changeStatuses로 한꺼번에 바꾼 것의 "실행취소")
+     * 한 트랜잭션 안에서 회차마다 undoLast와 같은 규칙으로 되돌린다.
+     *
+     * @return 실제로 되돌린 개수
+     */
+    suspend fun undoLastAll(userId: Long, keys: List<DoseKey>): Int {
+        val count = transaction.run { keys.count { undoOne(userId, it) == UndoResult.UNDONE } }
+        if (count > 0) onChanged()
+        return count
+    }
+
+    /** 회차 하나의 마지막 변경을 되돌린다. 부르는 쪽이 트랜잭션 안에서 부른다. */
+    private suspend fun undoOne(userId: Long, key: DoseKey): UndoResult {
+        val record = findByKey(userId, key) ?: return UndoResult.NOTHING
+        val last = statusEventDao.latestFor(userId, record.id) ?: return UndoResult.NOTHING
+        if (last.isUndo) return UndoResult.NOTHING
+        if (record.status != last.toStatus || record.actedAt != last.toActedAt) return UndoResult.NOTHING
 
         doseRecordDao.updateStatus(userId, record.id, last.fromStatus, last.fromActedAt)
         statusEventDao.insert(
             eventFor(userId, record, last.toStatus, last.fromStatus, last.toActedAt, last.fromActedAt, isUndo = true)
         )
-        UndoResult.UNDONE
+        return UndoResult.UNDONE
     }
 
     /**
