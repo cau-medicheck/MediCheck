@@ -450,7 +450,7 @@ D의 요일 ∈ s.repeat_days
 `deleted_at IS NULL`인 약의 `deleted_at IS NULL`인 규칙마다:
 
 - 대상 날짜 범위
-  - 시작 = max(약.`start_date`, 규칙.`effective_from`, 그 규칙의 마지막 기록일 + 1일)
+  - 시작 = max(약.`start_date`, 규칙.`effective_from`, 그 규칙의 **오늘 이하** 마지막 기록일 + 1일) — 오늘 뒤의 기록(9.7 미리 건너뜀)은 보지 않는다. 보면 오늘과 그날 사이가 채워지지 않는다(`DoseRecordDao.lastDate(scheduleId, upTo = 오늘)`).
   - 끝 = min(**오늘**, 약.`end_date`, min(약.`paused_from`, 오늘) − 1일)   (9.1과 같은 식)
 - 그중 요일이 `repeat_days`에 들어 있는 날마다 줄 1개
 - `status = PENDING`, `acted_at = NULL`, `created_at = 지금`
@@ -486,6 +486,13 @@ D의 요일 ∈ s.repeat_days
 - 구현(5단계): 화면 쪽은 `DoseRepository.observeDay`가 내일 이후 날짜에서 "기록 줄 + 기록이 없는 예정 회차"를 합친다(→ S04·S05·S10·S12). 알림 쪽은 `ReminderPlanner`의 `nextTrigger`·`dueBetween`·`upcoming`이 같은 규칙으로 "기록 줄(`ReminderDose`) + 기록이 없는 회차의 규칙 계산"을 합친다. 미래 날짜 줄의 상태 변경·실행취소는 아직 잠겨 있다(`FUTURE`) — 보기만 된다.
 
 ---
+
+### 9.7 미리 건너뜀 (2026-11-23)
+
+- 내일 이후 회차는 보통 기록 줄 없이 규칙으로 계산해 보인다(9.5). 사용자가 앞날 회차를 **건너뜀**으로 고르면 그날의 기록 줄을 미리 만들고(`DoseRecordGenerator.createFutureRecord` — 내 규칙·사용 중·지금 설정으로 그날이 회차일일 때만) `SKIPPED`로 적는다. **복용 완료는 그날이 돼야** 한다(`FUTURE`). 미리 건너뛴 것은 "기록 전으로"(`PENDING`) 되돌릴 수 있다.
+- 알림은 기록 줄이 있는 회차를 규칙으로 계산하지 않고 기록 상태를 보며 미기록만 알린다(9.6) → 미리 건너뛴 날은 알림이 오지 않는다. 이를 위해 알림 계산은 기록을 **오늘 + 366일**까지 읽는다(`ReminderRepository.FUTURE_RECORD_DAYS`).
+- 통계는 그날이 되기 전에는 "예정"으로만 센다(10.4 도래 기준 그대로).
+- 정리(`deleteFutureRecords`, 이력 연결을 먼저 끊고 지움): 그 줄의 시각·요일을 바꾸거나 줄을 뺄 때(그 줄의 것), 종료일을 당길 때(새 종료일 뒤), 약을 삭제·일시중지할 때(그 약 전부). 그날 회차가 없어지거나 시각이 달라져 옛 기록이 맞지 않기 때문이다. 조건·이름·메모만 바꾸면 남긴다.
 
 ### 9.6 NEW 알림 계산 요약 (5단계 구현, 05 명세 E1~E9)
 
