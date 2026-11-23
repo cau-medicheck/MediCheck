@@ -49,7 +49,7 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.RecordSheet
 import com.cau.medicheck.ui.components.SurfaceCard
-import com.cau.medicheck.ui.components.TimelineRow
+import com.cau.medicheck.ui.components.TimelineGroup
 import com.cau.medicheck.ui.components.WeekPager
 import com.cau.medicheck.ui.components.dottedDateText
 import com.cau.medicheck.ui.components.fullDateText
@@ -69,6 +69,7 @@ class ScheduleActions(
     val onOpenDose: (DoseKey) -> Unit,
     val onQuickTake: (DoseKey) -> Unit,
     val onQuickSkip: (DoseKey) -> Unit,
+    val onQuickPending: (DoseKey) -> Unit,
     val onAddMedication: () -> Unit
 )
 
@@ -94,7 +95,8 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
             onDismiss = { sheetKey = null },
             onTaken = { actions.onQuickTake(sheetRow.key); sheetKey = null },
             onSkipped = { actions.onQuickSkip(sheetRow.key); sheetKey = null },
-            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) }
+            onOpenDetail = { sheetKey = null; actions.onOpenDose(sheetRow.key) },
+            onPending = { actions.onQuickPending(sheetRow.key); sheetKey = null }
         )
     }
 
@@ -187,13 +189,15 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     color = Muted,
                     modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 4.dp)
                 )
-                Column(Modifier.padding(bottom = 10.dp)) {
-                    state.rows.forEachIndexed { index, row ->
-                        TimelineRow(
-                            row = row,
+                // 홈과 같은 모양: 같은 시각의 약은 옅은 상자 하나로 묶는다 (2026-11-23)
+                val groups = groupBySameTime(state.rows)
+                Column(Modifier.padding(top = 6.dp, bottom = 10.dp)) {
+                    groups.forEachIndexed { index, group ->
+                        TimelineGroup(
+                            rows = group,
                             isFirst = index == 0,
-                            isLast = index == state.rows.lastIndex,
-                            onOpen = { sheetKey = row.key }
+                            isLast = index == groups.lastIndex,
+                            onOpen = { row -> sheetKey = row.key }
                         )
                     }
                 }

@@ -76,7 +76,8 @@ object StatsCalculator {
      *
      * 아직 도래하지 않은 회차(미래 날짜, 오늘인데 예정 시각 전)는 상태와 상관없이 "예정"으로만 센다.
      * 미리 복용 완료를 눌러 둔 회차도 그 시각이 될 때까지는 완료율에 들어가지 않는다.
-     * 도래한 회차만 복용 완료 / 건너뜀 / 기한 경과 미기록으로 나눠 센다.
+     * 도래한 회차만 복용 완료 / 건너뜀 / 미복용으로 나눠 센다.
+     * 단 미기록은 여유 시간(예정 시각 + 30분)까지는 아직 "예정"으로 센다 — 화면의 미복용 표시와 맞추기 위해서.
      */
     fun count(doses: List<DoseItem>, now: LocalDateTime): DoseCounts {
         var taken = 0
@@ -88,7 +89,8 @@ object StatsCalculator {
                 !dose.isDue(now) -> upcoming++
                 dose.status == DoseStatus.TAKEN -> taken++
                 dose.status == DoseStatus.SKIPPED -> skipped++
-                else -> missed++
+                dose.isOverdue(now) -> missed++
+                else -> upcoming++   // 미기록이지만 아직 여유 시간 안
             }
         }
         return DoseCounts(taken, skipped, missed, upcoming)
@@ -129,7 +131,7 @@ object StatsCalculator {
             skippedByPeriod = DayPeriod.entries.associateWith { period ->
                 skipped.count { periodOf(it.time) == period }
             },
-            overdueUnrecorded = due.count { it.status == DoseStatus.PENDING }
+            overdueUnrecorded = due.count { it.status == DoseStatus.PENDING && it.isOverdue(now) }
         )
     }
 }

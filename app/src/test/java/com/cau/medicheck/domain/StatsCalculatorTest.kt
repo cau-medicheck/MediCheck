@@ -88,10 +88,23 @@ class StatsCalculatorTest {
     }
 
     @Test
-    fun `예정 시각과 같은 분이면 도래한 것으로 센다`() {
-        val doses = listOf(dose(18, 12, DoseStatus.PENDING))   // 지금이 12:00
+    fun `미기록은 예정 시각 30분 뒤부터 미복용으로 센다`() {
+        // 지금이 12:00. 12:00 회차는 아직 여유 시간 안이라 예정, 11:30 회차는 30분이 지나 미복용
+        val doses = listOf(dose(18, 12, DoseStatus.PENDING))
+        assertEquals(DoseCounts(upcoming = 1), StatsCalculator.count(doses, now))
 
-        assertEquals(DoseCounts(missed = 1), StatsCalculator.count(doses, now))
+        val late = DoseItem(
+            recordId = 99, scheduleId = 1, medicationId = 1, medicationName = "타이레놀", dosage = "1정", memo = "",
+            date = now.toLocalDate(), time = LocalTime.of(11, 30), status = DoseStatus.PENDING, actedAt = null
+        )
+        assertEquals(DoseCounts(missed = 1), StatsCalculator.count(listOf(late), now))
+    }
+
+    @Test
+    fun `복용 완료는 여유 시간과 상관없이 정각부터 센다`() {
+        val doses = listOf(dose(18, 12, DoseStatus.TAKEN))   // 지금이 12:00
+
+        assertEquals(DoseCounts(taken = 1), StatsCalculator.count(doses, now))
     }
 
     // ---------- 최근 7일 (주간 통계 S13) ----------
