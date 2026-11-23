@@ -113,19 +113,30 @@ class DoseRepository(
      * 회차 열쇠로 상태를 바꾼다. (S10의 버튼 3개, 홈·일정의 "✓ 복용 완료")
      *
      * 기록 줄이 없고 날짜가 오늘 이전이면, 자정을 막 넘긴 경우일 수 있으므로 한 번 보충한 뒤 다시 찾는다.
-     * 그래도 없으면 NOT_FOUND, 미래 날짜면 FUTURE.
+     * 그래도 없으면 NOT_FOUND.
      * 삭제된 약의 지난 기록도 바꿀 수 있다 (2026-11-17 결정 5).
+     *
+     * 미래(내일 이후) 회차 — 2026-11-23 "미리 건너뜀":
+     *   - 건너뜀: 그날의 기록 줄을 미리 만들고 건너뜀으로 적는다. 알림은 미기록만 알리므로 그날 알림이 오지 않는다.
+     *   - 기록 전으로: 미리 건너뛴 것을 되돌린다.
+     *   - 복용 완료: 아직 먹을 수 없는 날이라 받지 않는다(FUTURE).
      */
     suspend fun changeStatus(userId: Long, key: DoseKey, status: DoseStatus): StatusChangeResult {
         val today = LocalDate.now(clock)
+        val isFuture = key.date.isAfter(today)
+        if (isFuture && status == DoseStatus.TAKEN) return StatusChangeResult.FUTURE
         // 보충은 트랜잭션 밖에서 먼저 한다(보충도 자기 트랜잭션을 쓴다).
-        if (!key.date.isAfter(today) && findByKey(userId, key) == null) refresh(userId)
+        if (!isFuture && findByKey(userId, key) == null) refresh(userId)
 
         // 찾기와 바꾸기를 같은 트랜잭션 안에서 한다. 밖에서 읽은 옛 값으로 바꾸면,
         // 같은 회차를 두 번 빠르게 눌렀을 때 둘 다 "PENDING이었다"고 보고 이력을 두 줄 쓸 수 있다.
         val result = transaction.run {
+            // 미래 회차를 건너뛰려는데 줄이 없으면 먼저 만든다(그날이 회차일이 아니면 만들지 않는다)
+            if (isFuture && status == DoseStatus.SKIPPED && findByKey(userId, key) == null) {
+                generator.createFutureRecord(userId, key.scheduleId, key.date)
+            }
             val found = findByKey(userId, key)
-                ?: return@run if (key.date.isAfter(today)) StatusChangeResult.FUTURE else StatusChangeResult.NOT_FOUND
+                ?: return@run if (isFuture) StatusChangeResult.FUTURE else StatusChangeResult.NOT_FOUND
             applyStatus(userId, found, status)
         }
         // 알람 다시 걸기는 트랜잭션이 끝난 뒤에 한다 (다시 걸 때도 DB를 읽기 때문이다).

@@ -81,6 +81,33 @@ class MedicationRepositoryTest {
     private suspend fun addTylenol(userId: Long = me): Long =
         (repository.addMedication(userId, draft()) as MedicationResult.Success).medicationId
 
+    @Test
+    fun `시각을 바꾸면 그 줄의 미리 건너뛴 기록은 지운다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (s08, s20) = scheduleDao.schedules.value.sortedBy { it.time }
+        val generator = DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock)
+        generator.createFutureRecord(me, s08.id, today.plusDays(2))
+        generator.createFutureRecord(me, s20.id, today.plusDays(2))   // 11/18 수요일 = 20:00 줄의 회차일
+
+        repository.updateMedication(
+            me, id, draft(schedules = listOf(morning.copy(id = s08.id, time = LocalTime.of(9, 0)), evening.copy(id = s20.id)))
+        )
+
+        val future = doseRecordDao.records.value.filter { it.date > today.toString() }
+        assertEquals(listOf(s20.id), future.map { it.scheduleId })   // 시각이 바뀐 08:00 줄의 것만 지워짐
+    }
+
+    @Test
+    fun `약을 지우면 미리 건너뛴 기록도 지운다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val s08 = scheduleDao.schedules.value.minBy { it.time }
+        DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, clock).createFutureRecord(me, s08.id, today.plusDays(1))
+
+        repository.deleteMedication(me, id)
+
+        assertTrue(doseRecordDao.records.value.none { it.date > today.toString() })
+    }
+
     // ---------- 등록 ----------
 
     @Test

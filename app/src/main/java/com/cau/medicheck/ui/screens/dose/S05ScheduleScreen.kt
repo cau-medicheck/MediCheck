@@ -180,16 +180,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     )
                     Text(text = stringResource(R.string.s05_total, state.rows.size), fontSize = 12.sp, color = Muted)
                 }
-                // 그날의 상태별 횟수(기록 탭이 보여 주던 것): "완료 1 · 건너뜀 0 · 미복용 1 · 예정 2"
-                Text(
-                    text = stringResource(
-                        R.string.s05_counts,
-                        state.progress.taken, state.progress.skipped, state.progress.missed, state.progress.upcoming
-                    ),
-                    fontSize = 12.sp,
-                    color = Muted,
-                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 4.dp)
-                )
+                // 상태별 횟수는 아래 "복약 진행률" 카드(DayRateCard)에서 한 번만 보인다 (2026-11-23, 시안 C안)
                 // 홈과 같은 모양: 같은 시각의 약은 옅은 상자 하나로 묶는다 (2026-11-23)
                 val groups = groupBySameTime(state.rows)
                 Column(Modifier.padding(top = 6.dp, bottom = 10.dp)) {

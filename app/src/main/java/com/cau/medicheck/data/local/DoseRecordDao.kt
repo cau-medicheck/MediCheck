@@ -23,9 +23,12 @@ interface DoseRecordDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllIgnore(records: List<DoseRecord>)
 
-    /** 한 규칙에서 마지막으로 기록을 만든 날짜. 기록이 하나도 없으면 null. */
-    @Query("SELECT MAX(date) FROM dose_records WHERE schedule_id = :scheduleId")
-    suspend fun lastDate(scheduleId: Long): String?
+    /**
+     * 한 규칙에서 upTo(오늘) 이하 날짜 중 마지막으로 기록을 만든 날짜. 없으면 null.
+     * 오늘보다 뒤의 기록(미리 건너뜀)은 보지 않는다 — 그 날짜를 "마지막 생성일"로 보면 오늘과 그 날 사이가 채워지지 않는다.
+     */
+    @Query("SELECT MAX(date) FROM dose_records WHERE schedule_id = :scheduleId AND date <= :upTo")
+    suspend fun lastDate(scheduleId: Long, upTo: String): String?
 
     /**
      * 한 사용자의, 날짜 범위 안의 기록들.
@@ -212,6 +215,18 @@ interface DoseRecordDao {
             "AND r.date > :endDate AND r.status = 'PENDING'"
     )
     suspend fun findPendingAfter(userId: Long, medicationId: Long, endDate: String): List<Long>
+
+    /**
+     * 한 약의, 날짜가 afterDate보다 뒤인 기록들(상태와 상관없이). 삭제된 규칙의 기록도 포함한다.
+     * 오늘 뒤의 기록은 "미리 건너뜀"으로만 생기므로, 약의 시간·요일을 바꾸거나 약을 지우·멈출 때 정리하는 데 쓴다.
+     */
+    @Query(
+        "SELECT r.* FROM dose_records r " +
+            "JOIN schedules s ON s.id = r.schedule_id " +
+            "JOIN medications m ON m.id = s.medication_id " +
+            "WHERE m.user_id = :userId AND m.id = :medicationId AND r.date > :afterDate"
+    )
+    suspend fun findAfter(userId: Long, medicationId: Long, afterDate: String): List<DoseRecord>
 
     /**
      * 기록 여러 줄을 번호로 지운다 (DB_DESIGN ⑧ "지운다" 갈래). 이 사용자의 기록만 지워진다.
