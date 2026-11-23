@@ -67,6 +67,7 @@ import com.cau.medicheck.domain.periodOf
 import com.cau.medicheck.ui.components.ConditionTag
 import com.cau.medicheck.ui.components.DoseRowUi
 import com.cau.medicheck.ui.components.fullDateText
+import com.cau.medicheck.ui.components.groupBySameTime
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.HeroDeepEnd
 import com.cau.medicheck.ui.theme.HeroDeepStart
@@ -621,14 +622,4 @@ private fun periodRes(time: LocalTime): Int = when (periodOf(time)) {
     DayPeriod.LUNCH -> R.string.s05_period_lunch
     DayPeriod.EVENING -> R.string.s05_period_evening
     DayPeriod.NIGHT -> R.string.s05_period_night
-}
-
-/** 시각 순서로 놓인 줄들을 "같은 시각끼리" 이웃한 묶음으로 나눈다. 예: [08:00, 08:00, 12:30] → [[08:00, 08:00], [12:30]] */
-internal fun groupBySameTime(rows: List<DoseRowUi>): List<List<DoseRowUi>> {
-    val groups = mutableListOf<MutableList<DoseRowUi>>()
-    for (row in rows) {
-        val last = groups.lastOrNull()
-        if (last != null && last.first().time == row.time) last.add(row) else groups.add(mutableListOf(row))
-    }
-    return groups
 }
