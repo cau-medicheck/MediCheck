@@ -6,8 +6,9 @@ import java.time.LocalTime
 /**
  * 약 등록·수정 폼(S08)의 복용 시간 한 줄.
  * @param id 이미 저장돼 있던 규칙이면 그 id, 이번에 새로 추가한 줄이면 null
+ * @param condition 이 시간의 복용 조건 (기본: 상관없음)
  */
-data class FormTimeRow(val id: Long?, val time: LocalTime)
+data class FormTimeRow(val id: Long?, val time: LocalTime, val condition: DoseCondition = DoseCondition.NONE)
 
 /**
  * 폼은 "시간 여러 개 + 요일 한 묶음"이지만, DB는 시간마다 요일을 따로 저장할 수 있다.
@@ -27,7 +28,7 @@ fun toScheduleDrafts(
     originalDays: Map<Long, Set<DayOfWeek>>?
 ): List<ScheduleDraft> = rows.map { row ->
     val own = row.id?.let { originalDays?.get(it) }
-    ScheduleDraft(id = row.id, time = row.time, days = own ?: days)
+    ScheduleDraft(id = row.id, time = row.time, days = own ?: days, condition = row.condition)
 }
 
 /** 불러온 규칙들의 요일이 서로 다른가 (= 혼합 모드로 열어야 하는가) */

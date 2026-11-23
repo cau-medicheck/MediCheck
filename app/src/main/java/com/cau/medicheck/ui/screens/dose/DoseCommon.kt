@@ -47,7 +47,8 @@ fun DoseItem.toRowUi(now: LocalDateTime, today: LocalDate) = DoseRowUi(
     dosage = dosage,
     display = displayStatus(now),
     canQuickTake = status == DoseStatus.PENDING && !date.isAfter(today),
-    memo = memo
+    memo = memo,
+    condition = condition
 )
 
 /**

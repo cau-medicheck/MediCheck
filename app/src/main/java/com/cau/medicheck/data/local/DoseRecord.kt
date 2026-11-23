@@ -66,7 +66,11 @@ data class DoseRecord(
     val actedAt: Long? = null,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: Long
+    val createdAt: Long,
+
+    /** 복용 조건 스냅샷: 기록을 만들 때 규칙 줄의 조건을 복사해 둔다(나중에 조건을 바꿔도 지난 기록은 그대로) */
+    @ColumnInfo(name = "dose_condition", defaultValue = "NONE")
+    val doseCondition: String = "NONE"
 )
 
 /**
@@ -87,7 +91,8 @@ data class DoseRecordRow(
     val medicationId: Long,
     val medicationName: String,
     val dosage: String,
-    val memo: String?
+    val memo: String?,
+    val doseCondition: String = "NONE"
 )
 
 /** "어느 날짜에 기록이 몇 개" 한 줄. (S32의 날짜 목록 조회 결과) */

@@ -1,5 +1,6 @@
 package com.cau.medicheck.data.backup
 
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.backup.BackupData
 import com.cau.medicheck.domain.backup.BackupDoseRecord
 import com.cau.medicheck.domain.backup.BackupMedication
@@ -81,6 +82,7 @@ object BackupJson {
         put("id", s.id); put("medicationId", s.medicationId); put("time", s.time)
         put("repeatDays", s.repeatDays); putOrNull("effectiveFrom", s.effectiveFrom)
         put("createdAt", s.createdAt); putOrNull("deletedAt", s.deletedAt)
+        put("doseCondition", s.doseCondition)
     }
 
     private fun recordToJson(r: BackupDoseRecord) = JSONObject().apply {
@@ -88,6 +90,7 @@ object BackupJson {
         put("scheduledTime", r.scheduledTime); put("medicationName", r.medicationName)
         put("dosage", r.dosage); putOrNull("memo", r.memo); put("status", r.status)
         putOrNull("actedAt", r.actedAt); put("createdAt", r.createdAt)
+        put("doseCondition", r.doseCondition)
     }
 
     private fun eventToJson(e: BackupStatusEvent) = JSONObject().apply {
@@ -123,7 +126,8 @@ object BackupJson {
         repeatDays = o.requireString("repeatDays"),
         effectiveFrom = o.stringOrNull("effectiveFrom"),
         createdAt = o.optLong("createdAt", 0L),
-        deletedAt = o.longOrNull("deletedAt")
+        deletedAt = o.longOrNull("deletedAt"),
+        doseCondition = DoseCondition.parse(o.stringOrNull("doseCondition")).name
     )
 
     private fun recordFromJson(o: JSONObject) = BackupDoseRecord(
@@ -136,7 +140,8 @@ object BackupJson {
         memo = o.stringOrNull("memo"),
         status = o.requireString("status"),
         actedAt = o.longOrNull("actedAt"),
-        createdAt = o.optLong("createdAt", 0L)
+        createdAt = o.optLong("createdAt", 0L),
+        doseCondition = DoseCondition.parse(o.stringOrNull("doseCondition")).name
     )
 
     private fun eventFromJson(o: JSONObject) = BackupStatusEvent(

@@ -11,6 +11,7 @@ import com.cau.medicheck.R
 import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.MedicationResult
 import com.cau.medicheck.domain.ApplyScope
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.FormTimeRow
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.MedicationDraft
@@ -36,8 +37,9 @@ import java.time.LocalTime
  * 폼의 복용 시간 한 줄.
  * @param key 화면에서 줄을 구분하는 번호 (줄을 지우고 더해도 겹치지 않는다)
  * @param id 이미 저장돼 있던 규칙이면 그 id. 수정할 때 "같은 줄"을 찾는 데 쓴다. 새 줄이면 null
+ * @param condition 이 시간의 복용 조건 (식전·식후 등, 기본: 상관없음)
  */
-data class TimeRow(val key: Int, val id: Long?, val time: LocalTime)
+data class TimeRow(val key: Int, val id: Long?, val time: LocalTime, val condition: DoseCondition = DoseCondition.NONE)
 
 /**
  * 같은 이름의 약이 있어서 확인을 기다리는 등록 (S40이 읽는다).
@@ -152,7 +154,7 @@ class MedicationEditViewModel(
                     memo = medication.memo,
                     startDate = medication.startDate,
                     endDate = medication.endDate,
-                    times = medication.schedules.map { s -> TimeRow(key = nextKey++, id = s.id, time = s.time) },
+                    times = medication.schedules.map { s -> TimeRow(key = nextKey++, id = s.id, time = s.time, condition = s.condition) },
                     // 혼합 모드면 버튼에는 모든 시간 요일의 합집합을 켜 둔다.
                     days = medication.schedules.flatMap { s -> s.days }.toSet(),
                     isMixedDays = mixed
@@ -194,6 +196,11 @@ class MedicationEditViewModel(
         state.copy(times = state.times.map { if (it.key == key) it.copy(time = time) else it })
     }
 
+    /** 복용 조건 버튼: 그 줄의 조건을 바꾼다 (한 줄에 하나만 고른다) */
+    fun onConditionChange(key: Int, condition: DoseCondition) = _uiState.update { state ->
+        state.copy(times = state.times.map { if (it.key == key) it.copy(condition = condition) else it })
+    }
+
     /** 요일 버튼: 켜져 있으면 끄고 꺼져 있으면 켠다. 한 번이라도 누르면 혼합 요일 모드가 끝난다. */
     fun onDayToggle(day: DayOfWeek) {
         originalDays = null
@@ -215,7 +222,7 @@ class MedicationEditViewModel(
             startDate = state.startDate,
             endDate = state.endDate,
             memo = state.memo,
-            schedules = toScheduleDrafts(state.times.map { FormTimeRow(it.id, it.time) }, state.days, originalDays)
+            schedules = toScheduleDrafts(state.times.map { FormTimeRow(it.id, it.time, it.condition) }, state.days, originalDays)
         )
     }
 

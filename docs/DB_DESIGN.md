@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | 작성자 | 전수환 (Database & Authentication) |
-| 작성일 | 2026-11-05 (4개 표 초판) → **2026-11-17 개정** (v3 프로토타입 47개 화면 기준, Room version 5) |
+| 작성일 | 2026-11-05 (4개 표 초판) → **2026-11-17 개정** (v3 프로토타입 47개 화면 기준, Room version 5) → **2026-11-23** 복용 조건 칸 추가 (Room version 6) |
 | 상태 | **개정판 — 1단계 PR(Issue #22)에서 코드와 함께 반영** |
 | 근거 | 구현 명세 `00_공통`~`07`, DB 개정안 `08_DB_설계_개정안.md`, 2026-11-17 전수환 결정 1~9 |
 | 관련 결정 | Issue #3 (인증 방식: Room 기반 로컬 인증) |
@@ -50,6 +50,7 @@
 | 15 | 주간 통계 | 월요일~일요일 한 주 | **오늘 포함 최근 7일** | 결정 6 | S13, S20 |
 | 16 | 패턴 분석 | 대상 = 깜빡함 | **건너뜀**을 시간대 4구간으로 + 기한 경과 미기록은 따로 숫자 | 결정 6 | S15 |
 | 17 | `AppDatabase.version` | 3 (저장소 main), 4 (1단계 작업 중간) | **5** (적용함) | 표 구조 변경 | — |
+| 18 | 복용 조건 (2026-11-23) | 없음 (메모에 "아침 식후"처럼 적음) | **NEW** `schedules.dose_condition` + `dose_records.dose_condition` 스냅샷, version **6**. 데이터를 지우지 않는 Migration(5→6) | 같은 시각에 식전·식후 약이 섞여도 화면이 부딪히지 않게(시간대는 시각으로 자동) | S08, S04, S05, S06, S07 |
 
 ---
 
@@ -159,6 +160,7 @@ erDiagram
 | created_at | Long | NOT NULL | 등록 시각 |
 | deleted_at | Long | NULL 허용 | **Soft delete** |
 | effective_from | String "YYYY-MM-DD" | NULL 허용 | **NEW** 이 규칙(지금 값)이 회차를 만들기 시작하는 날. NULL = 약의 시작일부터 |
+| dose_condition | String | NOT NULL, DEFAULT `'NONE'` | **NEW (v6)** 복용 조건: `NONE`(상관없음) / `BEFORE_MEAL`(식전) / `AFTER_MEAL`(식후) / `EMPTY_STOMACH`(공복) / `BEDTIME`(취침 전). `domain/DoseCondition`. 복용 시간 줄마다 하나 |
 
 예) 비타민 D(id=1)를 "매일 08:00 + 월·수·금 20:00"으로 등록하면:
 
@@ -167,6 +169,8 @@ erDiagram
 | 1 | 1 | 08:00 | MON,TUE,WED,THU,FRI,SAT,SUN | NULL |
 | 2 | 1 | 20:00 | MON,WED,FRI | NULL |
 
+- **복용 조건과 시간대는 다르다.** 시간대(새벽 0~4시·아침 5~10시·점심 11~15시·저녁 16~20시·밤 21~23시)는 `time`에서 계산하고 저장하지 않는다(10.7). 복용 조건은 사용자가 고르는 값이라 저장한다. 같은 시각에 조건이 다른 약이 있어도 시간대 표시는 하나다.
+- **조건만 바꿀 때**: 그 줄의 `dose_condition`만 고치고 `effective_from`은 건드리지 않는다(회차가 생기는 날이 바뀌지 않으므로). `FROM_TODAY`면 ⑧ "오늘 치 다시 맞추기"가 오늘 남은 기록의 조건도 바꾼다.
 - 요일 글자 ↔ 요일 묶음 변환은 `domain/RepeatDays.kt`의 `encode/decode` 그대로. 화면 표기("매일", "월·수·금", 일요일부터)는 03 공통 규칙 1.
 - 폼(S08)은 "시간 여러 개 + 요일 한 묶음"이지만 저장은 지금처럼 **시간마다 한 줄**이고 각 줄에 같은 `repeat_days`를 넣는다. 줄마다 요일이 다른 데이터(예: 백업 복원)도 DB는 받는다(S08 혼합 요일 모드, 03 S08 규칙 6).
 - **새 약을 등록할 때**: 모든 규칙 줄의 `effective_from = NULL` (시작일이 지난 약이면 시작일부터 기록을 채운다 — 지금 동작 그대로).
@@ -209,12 +213,13 @@ erDiagram
 | medication_name | String | NOT NULL | **NEW** 스냅샷: 기록을 만들 때의 약 이름 |
 | dosage | String | NOT NULL | **NEW** 스냅샷: 기록을 만들 때의 복용량 |
 | memo | String | NULL 허용 | **NEW** 스냅샷: 기록을 만들 때의 약 메모 |
+| dose_condition | String | NOT NULL, DEFAULT `'NONE'` | **NEW (v6)** 스냅샷: 기록을 만들 때의 규칙 줄 복용 조건 |
 | status | String | NOT NULL | `PENDING`(미기록) / `TAKEN`(복용 완료) / `SKIPPED`(건너뜀) (⑩) |
 | acted_at | Long | NULL 허용 | `TAKEN`이면 **실제 복용 시각**(처음엔 누른 시각, S31에서 고칠 수 있음), `SKIPPED`면 누른 시각, `PENDING`이면 NULL |
 | created_at | Long | NOT NULL | 기록 생성 시각 |
 
 - `UNIQUE(schedule_id, date)` — 같은 규칙·같은 날 기록은 하나만. 이 두 값이 **회차의 열쇠 `DoseKey(scheduleId, date)`**다. 화면 이동 인자(S10·S31), 알림 Intent, 기록이 아직 없는 미래 회차를 가리킬 때 모두 이 열쇠를 쓴다. (이 UNIQUE 인덱스가 `schedule_id` FK의 인덱스도 겸한다 — 지금과 같음.)
-- **스냅샷 4칸(`scheduled_time`·`medication_name`·`dosage`·`memo`)은 기록을 만들 때 한 번 채우고 이후 바꾸지 않는다.** 단 하나의 예외: **오늘·`PENDING`·예정 시각 전**인 기록은 약·규칙을 `FROM_TODAY`로 고칠 때 새 값으로 다시 맞춘다(⑧ "오늘 치 다시 맞추기" (2) — 같은 줄을 UPDATE하므로 id와 이력 연결이 유지된다). 화면(S04·S05·S10·S12·S16·S32)과 CSV(S43)·알림 문구는 지난 날짜·오늘의 약 이름·복용량을 **이 칸에서** 읽는다(medications를 JOIN해서 읽지 않는다). JOIN은 "이 기록이 이 사용자의 것인가"를 확인할 때만 쓴다.
+- **스냅샷 5칸(`scheduled_time`·`medication_name`·`dosage`·`memo`·`dose_condition`)은 기록을 만들 때 한 번 채우고 이후 바꾸지 않는다.** 단 하나의 예외: **오늘·`PENDING`·예정 시각 전**인 기록은 약·규칙을 `FROM_TODAY`로 고칠 때 새 값으로 다시 맞춘다(⑧ "오늘 치 다시 맞추기" (2) — 같은 줄을 UPDATE하므로 id와 이력 연결이 유지된다). 화면(S04·S05·S10·S12·S16·S32)과 CSV(S43)·알림 문구는 지난 날짜·오늘의 약 이름·복용량을 **이 칸에서** 읽는다(medications를 JOIN해서 읽지 않는다). JOIN은 "이 기록이 이 사용자의 것인가"를 확인할 때만 쓴다.
 - `user_id` 칸은 두지 않는다. 주인 확인은 지금처럼 `schedules → medications.user_id` JOIN으로 한다(약 줄은 soft delete라 늘 남아 있어 JOIN이 끊기지 않는다).
 - **실제 복용 시각을 보이는 조건 (한 곳에서 판정)**: `status = TAKEN`이고 `acted_at`이 있으며, **`acted_at`을 `AppClock.zone`(10.7)으로 바꾼 날짜가 `date`와 같을 때만** "HH:mm". 아니면 보이지 않는다(3일 전 회차를 오늘 복용 완료로 바꾼 경우, 누른 시각이 실제 복용 시각처럼 보이지 않게 — 02 S10 2-5). 이 판정은 domain 함수 하나 `DoseItem.actualTimeOrNull(zone): LocalTime?`에 두고 **S10 2-5·S31 3-4 처음 값·CSV '실제복용시각'(부록 C)이 함께 쓴다.** 샘플 계정의 기록은 `acted_at = NULL`.
 - 사용자가 이 표의 줄을 직접 지우는 기능은 없다. 시스템이 지우는 경우는 ⑧에 모두 적었다.
@@ -226,7 +231,7 @@ erDiagram
 SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date,
        r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt,
        m.id AS medicationId, r.medication_name AS medicationName,
-       r.dosage AS dosage, r.memo AS memo
+       r.dosage AS dosage, r.memo AS memo, r.dose_condition AS doseCondition
 FROM dose_records r
 JOIN schedules s ON s.id = r.schedule_id
 JOIN medications m ON m.id = s.medication_id
@@ -346,7 +351,7 @@ ORDER BY r.date, r.scheduled_time, r.medication_name COLLATE NOCASE
 - **삭제 직전에 ⑨ 기록 보충을 먼저 실행**한 뒤 `deleted_at`을 적는다.
 - **오늘 치 다시 맞추기**: 약·규칙을 수정(`FROM_TODAY`)·삭제·일시중지한 직후, **오늘 날짜이면서 `PENDING`이고 예정 시각이 지금보다 뒤인** 기록("오늘 남은 미기록")을 새 설정에 맞춘다. 바뀌기 전 규칙·이름으로 만든 기록이라 그대로 두면 틀린 시각·이름으로 보이기 때문이다. 이미 응답했거나 시각이 지난 기록, 지난 날짜의 기록은 건드리지 않는다. **규칙 줄 단위로** 두 갈래로 나눈다:
   - **(1) 지운다 (DELETE)** — 그 규칙 줄이 soft delete됐을 때, 약을 삭제·일시중지했을 때, 또는 규칙이 남아 있어도 새 설정으로 **오늘이 더는 회차일이 아닐 때**(요일에서 오늘이 빠짐, ⑤ "오늘 시각 규칙"으로 적용일이 내일이 됨). DAO(구현): `DoseRecordDao.findUpcomingPending(userId, medId, today, nowTime)`로 대상 줄을 읽고, 지울 줄 id를 모아 `DoseStatusEventDao.detachRecords` → `DoseRecordDao.deleteByIds(userId, ids)`.
-  - **(2) 고친다 (UPDATE)** — 규칙 줄이 남아 있고 새 설정으로도 오늘이 회차일일 때(이때 ⑤ 규칙에 따라 새 시각은 지금보다 뒤다). 같은 기록 줄의 `scheduled_time`·`medication_name`·`dosage`·`memo`를 새 값으로 바꾼다. **id가 그대로라 이력 연결과 "마지막 변경 실행취소"가 유지된다.** 약 이름·메모만 고친 경우도 이 갈래다(손대지 않은 줄의 기록이 끊기지 않음). DAO(구현): `DoseRecordDao.updateUpcomingSnapshot(userId, recordId, time, name, dosage, memo)` (PENDING 줄만 바뀜).
+  - **(2) 고친다 (UPDATE)** — 규칙 줄이 남아 있고 새 설정으로도 오늘이 회차일일 때(이때 ⑤ 규칙에 따라 새 시각은 지금보다 뒤다). 같은 기록 줄의 `scheduled_time`·`medication_name`·`dosage`·`memo`를 새 값으로 바꾼다. **id가 그대로라 이력 연결과 "마지막 변경 실행취소"가 유지된다.** 약 이름·메모만 고친 경우도 이 갈래다(손대지 않은 줄의 기록이 끊기지 않음). DAO(구현): `DoseRecordDao.updateUpcomingSnapshot(userId, recordId, time, name, dosage, memo, condition)` (PENDING 줄만 바뀜).
   - (1) 뒤에는 ⑨ 보충이 새 설정으로 오늘 기록을 다시 만든다(적용일이 오늘인 새 줄 등). 
   - (1)로 지운 기록에 이력이 있었으면 이력 줄은 남는다. FK SET NULL에 기대지 않고 **지우기 직전에** `UPDATE dose_status_events SET dose_record_id = NULL WHERE dose_record_id IN (지울 기록 id들)`을 같은 트랜잭션에서 먼저 한다. 이력 줄은 `schedule_id`·`dose_date`를 들고 있어 S30에서 여전히 그 회차(S10)로 이어진다. 새로 만든 기록은 새 id라서 그 회차의 "마지막 변경 실행취소"는 `'실행취소할 기록이 없습니다.'`(v3 문구)가 된다 — (1)의 경우에만.
   - (검토한 다른 길: 이력이 있는 기록은 지우지 않기 — 옛 시각·옛 이름 기록이 남아 같은 (규칙, 날짜)에 새 기록을 만들 수 없어 쓰지 않는다.)
@@ -449,7 +454,7 @@ D의 요일 ∈ s.repeat_days
   - 끝 = min(**오늘**, 약.`end_date`, min(약.`paused_from`, 오늘) − 1일)   (9.1과 같은 식)
 - 그중 요일이 `repeat_days`에 들어 있는 날마다 줄 1개
 - `status = PENDING`, `acted_at = NULL`, `created_at = 지금`
-- **스냅샷 채우기**: `scheduled_time = 규칙의 지금 time`, `medication_name = 약의 지금 name`, `dosage = 약의 지금 dosage`, `memo = 약의 지금 memo`
+- **스냅샷 채우기**: `scheduled_time = 규칙의 지금 time`, `medication_name = 약의 지금 name`, `dosage = 약의 지금 dosage`, `memo = 약의 지금 memo`, `dose_condition = 규칙의 지금 dose_condition`
 - 이미 있는 (schedule_id, date)는 건너뜀 (`INSERT OR IGNORE` — UNIQUE 제약으로 보장)
 - **미래 날짜는 만들지 않는다.** 오늘 치는 시각이 이미 지났어도 만든다(→ '! 기한 경과 · 미기록'). 앱을 안 연 날의 회차를 놓치지 않기 위해서다. 약 수정 때 "만들자마자 기한 경과"가 되는 회차는 생성기가 아니라 ⑤ "오늘 시각 규칙"(적용일을 내일로)이 막는다.
 
@@ -573,14 +578,15 @@ D의 요일 ∈ s.repeat_days
 
 **성능**: 집계는 SQL이 아니라 `observeRange` 결과를 Kotlin(`StatsCalculator`)에서 한다. 한 번에 읽는 줄은 많아야 약 10개 × 시간 3개 × 31일 ≈ 1천 줄이다. `medications(user_id)` → `schedules(medication_id)` → `dose_records(schedule_id, date)` 인덱스로 충분하므로 **`date` 단독 인덱스나 SQL 집계 질의는 만들지 않는다.** Room `Flow`는 세 표 중 하나에 쓰기만 해도 다시 값을 보내지만 이 크기에서는 문제없다. 화면은 보충(`refresh`)이 끝난 뒤 구독한다.
 
-### 10.6 패턴 분석 (S15)과 시간대 4구간
+### 10.6 패턴 분석 (S15)과 시간대 5구간
 
-- **세는 것**: 최근 30일의 **건너뜀(SKIPPED)**을 예정 시각(`scheduled_time`)의 시간대별로. **기한 경과 미기록은 따로 숫자 하나**로.
-- **시간대 4구간** (S05 일정의 시간대 묶음과 같은 경계, `domain/DayPeriod.kt` 하나만 쓴다):
+- **세는 것**: 최근 30일의 **건너뜀(SKIPPED)**을 예정 시각(`scheduled_time`)의 시간대별로. **미복용(기한 경과 미기록)은 따로 숫자 하나**로.
+- **시간대 5구간** (S05 일정의 시간대 묶음과 같은 경계, `domain/DayPeriod.kt` 하나만 쓴다. 2026-11-23에 새벽을 나눔 — 새벽 2시 약이 "아침"으로 보이던 것):
 
 | 구간 | 예정 시각의 "시" | 
 |---|---|
-| 아침 | 0 ~ 10 (00:00 ~ 10:59) |
+| 새벽 | 0 ~ 4 (00:00 ~ 04:59) |
+| 아침 | 5 ~ 10 (05:00 ~ 10:59) |
 | 점심 | 11 ~ 15 (11:00 ~ 15:59) |
 | 저녁 | 16 ~ 20 (16:00 ~ 20:59) |
 | 밤 | 21 ~ 23 (21:00 ~ 23:59) |
@@ -599,7 +605,7 @@ D의 요일 ∈ s.repeat_days
 
 화면이 쓰는 질의를 한곳에 모았다. **모든 질의는 `userId`를 받는다**(⑦ 계정 격리). `Flow` = 값이 바뀌면 다시 보내는 흐름(화면 구독용), `suspend` = 한 번 읽기. 결과 클래스의 필드 이름 = SQL의 `AS` 별칭. "삭제된 약 포함" = soft delete된 약·규칙의 기록도 나오는지.
 
-**공통 결과 클래스** `DoseRecordRow(id, scheduleId, date, scheduledTime, status, actedAt, medicationId, medicationName, dosage, memo)` — ⑥의 `observeRange` SQL과 같은 SELECT 목록(이하 "ROW 칸").
+**공통 결과 클래스** `DoseRecordRow(id, scheduleId, date, scheduledTime, status, actedAt, medicationId, medicationName, dosage, memo, doseCondition)` — ⑥의 `observeRange` SQL과 같은 SELECT 목록(이하 "ROW 칸").
 
 | 화면 | DAO.함수(인자): 반환 | SQL 요지 | 삭제된 약 포함 | 단계 |
 |---|---|---|---|---|
@@ -619,7 +625,7 @@ D의 요일 ∈ s.repeat_days
 | S40 | `MedicationDao.findActiveByName(userId, name, excludeId): List<Medication>` (suspend) | `SELECT * FROM medications WHERE user_id = :userId AND deleted_at IS NULL AND name = :name COLLATE NOCASE AND id != :excludeId` (`excludeId` = 수정 중인 약 id, 새 약이면 0) — `MedicationRepository.findSameName`이 부름 | 아니오 | 3 |
 | S19·S21 | `UserDao.observeById(userId): Flow<User?>` / 이메일 중복은 `findByEmail(email)` 결과의 `id != userId`로 자기 자신 제외 | `SELECT * FROM users WHERE id = :userId` | — | 6 |
 | S44 | 지금 계정만: 각 DAO의 `deleteAllForUser(userId)` → `UserSettingsDao.deleteForUser` → `UserDao.deleteById` (⑧-3, 결정 3) | ⑧ 명시적 삭제 순서 | — | 6 |
-| 쓰기 (S33·S07·S09) | `ScheduleDao.raiseEffectiveFrom(userId, medId, date)`, `MedicationDao.setPausedFrom(userId, medId, date?)`, `MedicationDao.updateSource(userId, medId, …)`, `DoseRecordDao.findUpcomingPending(userId, medId, today, nowTime)` + `updateUpcomingSnapshot(userId, recordId, time, name, dosage, memo)` + `deleteByIds(userId, recordIds)`(⑧ 오늘 치 다시 맞추기 — 08 초안의 `deleteUpcomingPending`·`deleteUpcomingPendingForSchedule`를 줄 단위로 바꿈), `deletePendingAfter(userId, medId, endDate)`(종료일 당김), `DoseStatusEventDao.detachRecords(userId, recordIds)` | 모두 `WHERE … AND medication_id IN (SELECT id FROM medications WHERE user_id = :userId)`(또는 같은 뜻의 서브쿼리) | — | 3 |
+| 쓰기 (S33·S07·S09) | `ScheduleDao.raiseEffectiveFrom(userId, medId, date)`, `MedicationDao.setPausedFrom(userId, medId, date?)`, `MedicationDao.updateSource(userId, medId, …)`, `DoseRecordDao.findUpcomingPending(userId, medId, today, nowTime)` + `updateUpcomingSnapshot(userId, recordId, time, name, dosage, memo, condition)` + `deleteByIds(userId, recordIds)`(⑧ 오늘 치 다시 맞추기 — 08 초안의 `deleteUpcomingPending`·`deleteUpcomingPendingForSchedule`를 줄 단위로 바꿈), `deletePendingAfter(userId, medId, endDate)`(종료일 당김), `DoseStatusEventDao.detachRecords(userId, recordIds)` | 모두 `WHERE … AND medication_id IN (SELECT id FROM medications WHERE user_id = :userId)`(또는 같은 뜻의 서브쿼리) | — | 3 |
 
 - 정확한 SQL 문장은 구현 PR에서 이 표의 조건을 그대로 옮긴다. 이 표에 없는 질의가 필요해지면 이 표에 먼저 한 줄 더한다.
 

@@ -160,10 +160,10 @@ class BackupRepository(
     )
 
     private fun Schedule.toBackup() =
-        BackupSchedule(id, medicationId, time, repeatDays, effectiveFrom, createdAt, deletedAt)
+        BackupSchedule(id, medicationId, time, repeatDays, effectiveFrom, createdAt, deletedAt, doseCondition)
 
     private fun DoseRecord.toBackup() = BackupDoseRecord(
-        id, scheduleId, date, scheduledTime, medicationName, dosage, memo, status, actedAt, createdAt
+        id, scheduleId, date, scheduledTime, medicationName, dosage, memo, status, actedAt, createdAt, doseCondition
     )
 
     private fun DoseStatusEvent.toBackup() = BackupStatusEvent(
@@ -179,13 +179,13 @@ class BackupRepository(
 
     private fun BackupSchedule.toEntity(medicationId: Long) = Schedule(
         medicationId = medicationId, time = time, repeatDays = repeatDays,
-        createdAt = createdAt, deletedAt = deletedAt, effectiveFrom = effectiveFrom
+        createdAt = createdAt, deletedAt = deletedAt, effectiveFrom = effectiveFrom, doseCondition = doseCondition
     )
 
     private fun BackupDoseRecord.toEntity(scheduleId: Long) = DoseRecord(
         scheduleId = scheduleId, date = date, scheduledTime = scheduledTime,
         medicationName = medicationName, dosage = dosage, memo = memo,
-        status = status, actedAt = actedAt, createdAt = createdAt
+        status = status, actedAt = actedAt, createdAt = createdAt, doseCondition = doseCondition
     )
 
     private fun BackupStatusEvent.toEntity(userId: Long, doseRecordId: Long?, scheduleId: Long) = DoseStatusEvent(

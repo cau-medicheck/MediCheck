@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.periodOf
 import com.cau.medicheck.ui.screens.dose.DayProgress
@@ -98,7 +99,7 @@ fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () ->
         // 약 이름 + 복용량·메모
         Column(Modifier.weight(1f).padding(vertical = 13.dp)) {
             RowTitle(row.name)
-            RowSub(doseSubText(row))
+            DoseSubLine(row)
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
             Spacer(Modifier.width(8.dp))
@@ -150,7 +151,7 @@ fun TimelineGroup(rows: List<DoseRowUi>, isFirst: Boolean, isLast: Boolean, onOp
                 ) {
                     Column(Modifier.weight(1f)) {
                         RowTitle(row.name)
-                        RowSub(doseSubText(row))
+                        DoseSubLine(row)
                     }
                     Spacer(Modifier.width(8.dp))
                     DoseStatusTail(row.display)
@@ -171,10 +172,6 @@ private fun groupDisplay(rows: List<DoseRowUi>): DoseDisplayStatus = when {
     rows.all { it.display == DoseDisplayStatus.TAKEN } -> DoseDisplayStatus.TAKEN
     else -> DoseDisplayStatus.SKIPPED
 }
-
-/** "1정 · 아침 식후" — 메모가 없으면 복용량만 */
-private fun doseSubText(row: DoseRowUi): String =
-    if (row.memo.isBlank()) row.dosage else row.dosage + " · " + row.memo
 
 /**
  * 시각 + 시간대 칸.
@@ -331,7 +328,9 @@ fun RecordSheet(
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                 )
                 HorizontalDivider(thickness = 1.dp, color = Line)
-                LabelValueRow(stringResource(R.string.s04_sheet_dosage), row.dosage, showDivider = row.memo.isNotBlank())
+                val hasCondition = row.condition != DoseCondition.NONE
+                LabelValueRow(stringResource(R.string.s04_sheet_dosage), row.dosage, showDivider = hasCondition || row.memo.isNotBlank())
+                if (hasCondition) LabelValueRow(stringResource(R.string.s04_sheet_condition), conditionLabel(row.condition), showDivider = row.memo.isNotBlank())
                 if (row.memo.isNotBlank()) LabelValueRow(stringResource(R.string.s04_sheet_memo), row.memo, showDivider = false)
                 HorizontalDivider(thickness = 1.dp, color = Line)
 

@@ -6,6 +6,7 @@ import com.cau.medicheck.data.local.Schedule
 import com.cau.medicheck.data.local.ScheduleDao
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.domain.ApplyScope
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
@@ -100,7 +101,8 @@ class MedicationRepository(
                         medicationId = medicationId,
                         time = schedule.time.format(TIME_FORMAT),
                         repeatDays = RepeatDays.encode(schedule.days),
-                        createdAt = createdAt
+                        createdAt = createdAt,
+                        doseCondition = schedule.condition.name
                     )
                 )
             }
@@ -171,6 +173,7 @@ class MedicationRepository(
                 val savedSchedule = schedule.id?.let { saved[it] }
                 val newTime = schedule.time.format(TIME_FORMAT)
                 val newDays = RepeatDays.encode(schedule.days)
+                val newCondition = schedule.condition.name
                 if (savedSchedule != null) {
                     keptIds += savedSchedule.id
                     val changed = savedSchedule.time != newTime || savedSchedule.repeatDays != newDays
@@ -179,9 +182,14 @@ class MedicationRepository(
                             savedSchedule.copy(
                                 time = newTime,
                                 repeatDays = newDays,
-                                effectiveFrom = applyDateOf(newTime)
+                                effectiveFrom = applyDateOf(newTime),
+                                doseCondition = newCondition
                             )
                         )
+                    } else if (savedSchedule.doseCondition != newCondition) {
+                        // 복용 조건만 바뀜: 회차가 생기는 날은 그대로라 적용 시작일을 건드리지 않는다.
+                        // 오늘 남은 기록의 조건은 아래 reconcileUpcomingToday가 맞춘다("오늘 이후"일 때).
+                        scheduleDao.update(savedSchedule.copy(doseCondition = newCondition))
                     } else if (scope == ApplyScope.FROM_TODAY &&
                         savedSchedule.effectiveFrom != null && savedSchedule.effectiveFrom > today.toString()
                     ) {
@@ -201,7 +209,8 @@ class MedicationRepository(
                             time = newTime,
                             repeatDays = newDays,
                             createdAt = changedAt,
-                            effectiveFrom = applyDateOf(newTime)
+                            effectiveFrom = applyDateOf(newTime),
+                            doseCondition = newCondition
                         )
                     )
                 }
@@ -359,7 +368,8 @@ class MedicationRepository(
             .map {
                 ScheduleItem(
                     it.id, LocalTime.parse(it.time), RepeatDays.decode(it.repeatDays),
-                    effectiveFrom = it.effectiveFrom?.let(LocalDate::parse)
+                    effectiveFrom = it.effectiveFrom?.let(LocalDate::parse),
+                    condition = DoseCondition.parse(it.doseCondition)
                 )
             }
             .sortedBy { it.time },

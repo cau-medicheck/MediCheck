@@ -6,6 +6,7 @@ import com.cau.medicheck.data.local.DoseRecordRow
 import com.cau.medicheck.data.local.DoseStatusEvent
 import com.cau.medicheck.data.local.DoseStatusEventDao
 import com.cau.medicheck.data.local.TransactionRunner
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DosePlanner
@@ -388,6 +389,7 @@ class DoseRepository(
         date = LocalDate.parse(date),
         time = LocalTime.parse(scheduledTime),
         status = DoseStatus.valueOf(status),
-        actedAt = actedAt
+        actedAt = actedAt,
+        condition = DoseCondition.parse(doseCondition)
     )
 }

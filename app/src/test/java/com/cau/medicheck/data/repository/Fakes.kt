@@ -296,7 +296,8 @@ internal class FakeDoseRecordDao(
                     medicationId = medication.id,
                     medicationName = record.medicationName,   // 스냅샷
                     dosage = record.dosage,                   // 스냅샷
-                    memo = record.memo                        // 스냅샷
+                    memo = record.memo,                       // 스냅샷
+                    doseCondition = record.doseCondition      // 스냅샷
                 )
             }.sortedWith(compareBy({ it.date }, { it.scheduledTime }, { it.medicationName.lowercase() }))
         }
@@ -370,14 +371,15 @@ internal class FakeDoseRecordDao(
         time: String,
         name: String,
         dosage: String,
-        memo: String?
+        memo: String?,
+        condition: String
     ): Int {
         var changed = 0
         records.update { list ->
             list.map {
                 if (it.id == recordId && it.status == "PENDING" && isMine(it, userId)) {
                     changed++
-                    it.copy(scheduledTime = time, medicationName = name, dosage = dosage, memo = memo)
+                    it.copy(scheduledTime = time, medicationName = name, dosage = dosage, memo = memo, doseCondition = condition)
                 } else it
             }
         }

@@ -21,6 +21,15 @@ class ScheduleFormTest {
     private val twenty = LocalTime.of(20, 0)
 
     @Test
+    fun `줄마다 고른 복용 조건이 그대로 저장할 규칙에 들어간다`() {
+        val rows = listOf(FormTimeRow(1, eight, DoseCondition.BEFORE_MEAL), FormTimeRow(null, twenty))
+
+        val drafts = toScheduleDrafts(rows, monWedFri, originalDays = null)
+
+        assertEquals(listOf(DoseCondition.BEFORE_MEAL, DoseCondition.NONE), drafts.map { it.condition })
+    }
+
+    @Test
     fun `통일 모드에서는 모든 줄에 화면에서 고른 요일이 들어간다`() {
         val rows = listOf(FormTimeRow(1, eight), FormTimeRow(null, twenty))
 
