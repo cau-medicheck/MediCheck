@@ -110,14 +110,15 @@ class ReminderRepository(
         runCatching { refreshRecords(userId) }
 
         val today = LocalDate.now(clock)
-        // 어제: 자정을 넘기는 재알림(23:50 + 15분)용. 내일: 폰의 날짜가 뒤로 가 이미 기록이 있는 경우용.
+        // 어제: 자정을 넘기는 재알림(23:50 + 15분)용. 앞날: 미리 건너뛴 기록(2026-11-23)이 있으면 그 회차는 규칙으로 계산하지 않고
+        // 기록 상태를 보게 하려고 넉넉히(FUTURE_RECORD_DAYS) 읽는다. 앞날 기록은 미리 건너뛸 때만 생겨서 양이 적다.
         // 일시중지 중인 약과 삭제한 약은 DB 조회(findReminderRows)에서 이미 빠져 있다.
         val rules = scheduleDao.findReminderRows(userId).map { it.toRule() }
         // 기록은 삭제·일시중지한 약의 것도 남아 있으므로, 사용 중인 약의 기록만 알림 대상으로 삼는다.
         // 규칙이 아니라 "약"으로 거른다 — '내일부터 적용'으로 지운 옛 시간 줄의 오늘 기록은 오늘 울려야 한다.
         val activeMedicationIds = rules.map { it.medicationId }.toSet()
         val records = doseRecordDao
-            .observeRange(userId, today.minusDays(1).toString(), today.plusDays(1).toString())
+            .observeRange(userId, today.minusDays(1).toString(), today.plusDays(FUTURE_RECORD_DAYS).toString())
             .first()
             .filter { it.medicationId in activeMedicationIds }
             .map { it.toDose() }
@@ -150,6 +151,9 @@ class ReminderRepository(
     companion object {
         /** 알림 센터에 보여 줄 최대 줄 수 (v3와 같음) */
         const val UPCOMING_LIMIT = 8
+
+        /** 알림 계산에 앞날 기록(미리 건너뜀)을 며칠 뒤까지 읽을지 */
+        const val FUTURE_RECORD_DAYS = 366L
 
         /** 알람이 늦게 울렸을 때, 그 사이에 지나간 회차를 함께 알리는 범위(분) */
         const val LATE_WINDOW_MINUTES = 30L

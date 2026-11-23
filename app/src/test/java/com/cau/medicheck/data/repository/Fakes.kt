@@ -278,8 +278,8 @@ internal class FakeDoseRecordDao(
         }
     }
 
-    override suspend fun lastDate(scheduleId: Long): String? =
-        records.value.filter { it.scheduleId == scheduleId }.maxOfOrNull { it.date }
+    override suspend fun lastDate(scheduleId: Long, upTo: String): String? =
+        records.value.filter { it.scheduleId == scheduleId && it.date <= upTo }.maxOfOrNull { it.date }
 
     override fun observeRange(userId: Long, fromDate: String, toDate: String): Flow<List<DoseRecordRow>> =
         records.map { list ->
@@ -392,6 +392,12 @@ internal class FakeDoseRecordDao(
             medication != null && medication.userId == userId && medication.id == medicationId &&
                 record.date > endDate && record.status == "PENDING"
         }.map { it.id }
+
+    override suspend fun findAfter(userId: Long, medicationId: Long, afterDate: String): List<DoseRecord> =
+        records.value.filter { record ->
+            val medication = medicationOf(record)
+            medication != null && medication.userId == userId && medication.id == medicationId && record.date > afterDate
+        }
 
     override suspend fun deleteByIds(userId: Long, recordIds: List<Long>) {
         records.update { list -> list.filterNot { it.id in recordIds && isMine(it, userId) } }

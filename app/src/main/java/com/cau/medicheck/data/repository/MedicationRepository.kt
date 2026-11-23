@@ -168,6 +168,7 @@ class MedicationRepository(
 
             val saved = scheduleDao.findActiveByMedication(medicationId).associateBy { it.id }
             val keptIds = mutableSetOf<Long>()
+            val timeChangedIds = mutableSetOf<Long>()   // 시각이나 요일이 바뀐 줄 (미리 건너뜀을 지울 대상)
 
             draft.schedules.forEach { schedule ->
                 val savedSchedule = schedule.id?.let { saved[it] }
@@ -178,6 +179,7 @@ class MedicationRepository(
                     keptIds += savedSchedule.id
                     val changed = savedSchedule.time != newTime || savedSchedule.repeatDays != newDays
                     if (changed) {
+                        timeChangedIds += savedSchedule.id
                         scheduleDao.update(
                             savedSchedule.copy(
                                 time = newTime,
@@ -216,7 +218,12 @@ class MedicationRepository(
                 }
             }
 
-            saved.keys.filter { it !in keptIds }.forEach { scheduleDao.softDelete(it, changedAt) }
+            val removedIds = saved.keys.filter { it !in keptIds }
+            removedIds.forEach { scheduleDao.softDelete(it, changedAt) }
+
+            // 미리 건너뛴 앞날의 기록 정리: 시각·요일이 바뀌었거나 빠진 줄의 것은 그날 회차가 맞지 않으므로 지운다.
+            val staleIds = timeChangedIds + removedIds
+            if (staleIds.isNotEmpty()) doseRecordGenerator.deleteFutureRecords(userId, medicationId, staleIds)
 
             // 끝난 약의 종료일을 늘린 경우 (DB_DESIGN ⑤ "종료일을 늘릴 때").
             // 그냥 두면 생성기가 "마지막 기록일 + 1일"부터 오늘까지 채워서, 약이 끝나 있던 날들이
@@ -240,6 +247,8 @@ class MedicationRepository(
             val newEnd = updated.endDate
             if (newEnd != null && (existing.endDate == null || newEnd < existing.endDate)) {
                 doseRecordGenerator.deletePendingAfterEnd(userId, medicationId, LocalDate.parse(newEnd))
+                // 새 종료일 뒤에 미리 건너뛴 기록도 지운다(그날은 더 이상 회차가 아니다)
+                doseRecordGenerator.deleteFutureRecords(userId, medicationId, after = LocalDate.parse(newEnd))
             }
 
             // "오늘 이후 회차에 적용": 아직 시각이 안 된 오늘 치 기록은 옛 값으로 만든 것이므로 새 값으로
@@ -267,6 +276,8 @@ class MedicationRepository(
 
             // 삭제한 약의, 아직 시각이 안 된 오늘 치 기록은 더 이상 먹을 일이 없으므로 지운다.
             doseRecordGenerator.reconcileUpcomingToday(userId, existing.copy(deletedAt = deletedAt))
+            // 미리 건너뛴 앞날의 기록도 지운다(그날 회차가 없어졌다)
+            doseRecordGenerator.deleteFutureRecords(userId, medicationId)
         }
         onChanged()
         return MedicationResult.Success(medicationId)
@@ -292,6 +303,8 @@ class MedicationRepository(
                 doseRecordGenerator.generateForMedication(existing)
                 medicationDao.setPausedFrom(userId, medicationId, today)
                 doseRecordGenerator.reconcileUpcomingToday(userId, existing.copy(pausedFrom = today))
+                // 미리 건너뛴 앞날의 기록도 지운다(멈춘 동안은 회차가 없다)
+                doseRecordGenerator.deleteFutureRecords(userId, medicationId)
             } else {
                 medicationDao.setPausedFrom(userId, medicationId, null)
                 scheduleDao.raiseEffectiveFrom(userId, medicationId, today)

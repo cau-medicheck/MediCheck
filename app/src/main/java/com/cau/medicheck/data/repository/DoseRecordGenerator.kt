@@ -61,7 +61,7 @@ class DoseRecordGenerator(
                 startDate = startDate,
                 endDate = endDate,
                 repeatDays = RepeatDays.decode(schedule.repeatDays),
-                lastCreatedDate = doseRecordDao.lastDate(schedule.id)?.let(LocalDate::parse),
+                lastCreatedDate = doseRecordDao.lastDate(schedule.id, today.toString())?.let(LocalDate::parse),
                 today = today,
                 effectiveFrom = schedule.effectiveFrom?.let(LocalDate::parse),
                 pausedFrom = pausedFrom
@@ -141,6 +141,52 @@ class DoseRecordGenerator(
             statusEventDao.detachRecords(userId, toDelete)
             doseRecordDao.deleteByIds(userId, toDelete)
         }
+    }
+
+    /**
+     * 미래 회차의 기록 줄을 미리 만든다 (2026-11-23 "미리 건너뜀"). 내일 이후는 보통 기록 줄이 없고 규칙으로 계산해 보여 주는데,
+     * 그날을 미리 건너뛰려면 상태를 적을 줄이 있어야 한다. 줄이 생기면 알림은 그 회차를 규칙으로 계산하지 않고
+     * 기록 상태를 본다(미기록만 알린다) → 건너뛴 날은 알림이 오지 않는다.
+     *
+     * 내 규칙이고, 사용 중이고, 지금 설정으로 그날이 회차일일 때만 만든다. 이미 있으면 그대로 둔다(IGNORE).
+     * @return 만들었거나 이미 있던 줄이 있으면 true
+     */
+    suspend fun createFutureRecord(userId: Long, scheduleId: Long, date: LocalDate): Boolean {
+        val schedule = scheduleDao.findAllForUser(userId).firstOrNull { it.id == scheduleId && it.deletedAt == null }
+            ?: return false
+        val medication = medicationDao.findById(schedule.medicationId)
+            ?.takeIf { it.userId == userId && it.deletedAt == null }
+            ?: return false
+        val occurs = DosePlanner.occursOn(
+            date = date,
+            startDate = LocalDate.parse(medication.startDate),
+            endDate = medication.endDate?.let(LocalDate::parse),
+            repeatDays = RepeatDays.decode(schedule.repeatDays),
+            effectiveFrom = schedule.effectiveFrom?.let(LocalDate::parse),
+            pausedFrom = medication.pausedFrom?.let(LocalDate::parse),
+            today = LocalDate.now(clock)
+        )
+        if (!occurs) return false
+        doseRecordDao.insertAllIgnore(listOf(newRecord(medication, schedule, date, clock.millis())))
+        return true
+    }
+
+    /**
+     * 오늘 뒤의 기록(미리 건너뜀)을 지운다. 약의 시간·요일을 바꾸거나 규칙을 빼거나, 약을 지우·멈추거나,
+     * 종료일을 당겼을 때 부른다. 그날의 회차 자체가 없어지거나 시각이 바뀌어 옛 기록이 맞지 않기 때문이다.
+     * 지우는 순서는 다른 정리와 같다: 이력의 연결을 먼저 끊고(이력 줄은 남음) 기록을 지운다.
+     *
+     * @param scheduleIds 이 규칙들의 기록만 지운다. null이면 이 약의 모든 규칙
+     * @param after 이 날짜보다 뒤만 (기본: 오늘)
+     */
+    suspend fun deleteFutureRecords(userId: Long, medicationId: Long, scheduleIds: Set<Long>? = null, after: LocalDate? = null) {
+        val from = maxOf(after ?: LocalDate.now(clock), LocalDate.now(clock))
+        val ids = doseRecordDao.findAfter(userId, medicationId, from.toString())
+            .filter { scheduleIds == null || it.scheduleId in scheduleIds }
+            .map { it.id }
+        if (ids.isEmpty()) return
+        statusEventDao.detachRecords(userId, ids)
+        doseRecordDao.deleteByIds(userId, ids)
     }
 
     /**

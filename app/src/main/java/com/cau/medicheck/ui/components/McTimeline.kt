@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -305,12 +307,30 @@ fun RecordSheet(
                 HorizontalDivider(thickness = 1.dp, color = Line)
 
                 if (isFuture) {
+                    // 앞날: 복용 완료는 그날이 되어야 하고, 건너뜀만 미리 할 수 있다(그날 알림이 오지 않는다 — 2026-11-23)
+                    val skipped = row.display == DoseDisplayStatus.SKIPPED
                     Text(
-                        text = stringResource(R.string.s04_sheet_future),
+                        text = stringResource(if (skipped) R.string.s04_sheet_future_skipped else R.string.s04_sheet_future),
                         fontSize = 13.sp,
                         color = Muted,
-                        modifier = Modifier.padding(vertical = 18.dp)
+                        lineHeight = 19.sp,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 10.dp)
                     )
+                    if (skipped && onPending != null) {
+                        McButton(
+                            text = stringResource(R.string.s04_sheet_to_pending),
+                            onClick = onPending,
+                            kind = ButtonKind.LIGHT,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else if (!skipped) {
+                        McButton(
+                            text = stringResource(R.string.s04_sheet_skip_ahead),
+                            onClick = onSkipped,
+                            kind = ButtonKind.LIGHT,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 } else {
                     Row(Modifier.padding(top = 18.dp)) {
                         McButton(
@@ -378,14 +398,30 @@ fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Mo
                 .padding(top = 10.dp, bottom = 16.dp)
                 .clearAndSetSemantics { }
         )
-        // 오늘은 미복용과 예정을 따로, 지난 날은 예정이 없으므로 미복용까지만
-        val counts = buildList {
-            add(stringResource(R.string.common_count_taken) to progress.taken)
-            add(stringResource(R.string.common_count_skipped) to progress.skipped)
-            add(stringResource(R.string.common_count_missed) to progress.missed)
-            if (isToday) add(stringResource(R.string.s04_chip_upcoming) to progress.upcoming)
+        // 아래: 상태 색으로 칠한 칸 (시간표 꼬리표와 같은 색). 오늘은 예정까지 네 칸, 지난 날은 예정이 없어 세 칸.
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            StatusCountBox(stringResource(R.string.common_count_taken), progress.taken, HomeChipDoneBg, HomeChipDoneText)
+            StatusCountBox(stringResource(R.string.common_count_skipped), progress.skipped, HomeChipSkippedBg, HomeChipSkippedText)
+            StatusCountBox(stringResource(R.string.common_count_missed), progress.missed, HomeChipMissedBg, HomeChipMissedText)
+            if (isToday) StatusCountBox(stringResource(R.string.s04_chip_upcoming), progress.upcoming, HomeChipWaitBg, HomeChipWaitText)
         }
-        CountTriple(counts)
+    }
+}
+
+/** 진행률 카드의 상태 칸 하나: 위 이름, 아래 큰 숫자. TalkBack은 "완료 1"처럼 한 번에 읽는다. */
+@Composable
+private fun RowScope.StatusCountBox(label: String, count: Int, background: Color, textColor: Color) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .weight(1f)
+            .clip(RoundedCornerShape(12.dp))
+            .background(background)
+            .padding(vertical = 10.dp)
+            .semantics(mergeDescendants = true) { }
+    ) {
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textColor)
+        Text(count.toString(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = textColor, modifier = Modifier.padding(top = 2.dp))
     }
 }
 

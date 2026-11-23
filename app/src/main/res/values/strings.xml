@@ -285,7 +285,9 @@
     <string name="s04_sheet_when">%1$s · 예정 %2$s</string>
     <string name="s04_sheet_dosage">1회 복용량</string>
     <string name="s04_sheet_memo">복용 메모</string>
-    <string name="s04_sheet_future">이날의 복약 일정이에요. 그날이 되면 기록할 수 있어요.</string>
+    <string name="s04_sheet_future">이날의 복약 일정이에요. 복용 완료는 그날 기록할 수 있고, 미리 건너뛰면 그날 알림이 오지 않아요.</string>
+    <string name="s04_sheet_future_skipped">미리 건너뛴 복약이에요. 그날 알림이 오지 않아요.</string>
+    <string name="s04_sheet_skip_ahead">↷ 미리 건너뛰기</string>
     <string name="s04_sheet_detail">회차 상세 보기 ›</string>
     <string name="s04_chip_upcoming">예정</string>
     <string name="s04_chip_skipped">건너뜀</string>
@@ -329,7 +331,6 @@
     <string name="s05_cd_next_week">다음 주</string>
     <string name="s05_cd_date_field">날짜 선택</string>
     <string name="s05_btn_today">오늘</string>
-    <string name="s05_counts">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d · 예정 %4$d</string>
     <string name="s05_total">총 %1$d회</string>
     <string name="s05_period_morning">아침</string>
     <string name="s05_period_lunch">점심</string>

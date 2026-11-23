@@ -346,6 +346,60 @@ class DoseRepositoryTest {
         assertTrue(eventDao.events.value.isEmpty())
     }
 
+    // ---------- 미리 건너뜀 (2026-11-23) ----------
+
+    @Test
+    fun `미래 회차를 건너뛰면 그날 기록 줄이 건너뜀으로 미리 생긴다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        val inThreeDays = today.plusDays(3)
+
+        val result = repository.changeStatus(me, DoseKey(1, inThreeDays), DoseStatus.SKIPPED)
+
+        assertEquals(StatusChangeResult.CHANGED, result)
+        val record = doseRecordDao.records.value.single { it.date == inThreeDays.toString() }
+        assertEquals("SKIPPED", record.status)
+        assertEquals("08:00", record.scheduledTime)
+    }
+
+    @Test
+    fun `회차일이 아닌 미래 날짜는 건너뛸 수 없다`() = runBlocking<Unit> {
+        insertMedication(repeatDays = "MON")   // 오늘(11/16)은 월요일, 내일은 화요일
+        repository.refresh(me)
+
+        val result = repository.changeStatus(me, DoseKey(1, today.plusDays(1)), DoseStatus.SKIPPED)
+
+        assertEquals(StatusChangeResult.FUTURE, result)
+        assertTrue(doseRecordDao.records.value.none { it.date > today.toString() })
+    }
+
+    @Test
+    fun `미리 건너뛴 것을 되돌리면 미기록이 된다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        val key = DoseKey(1, today.plusDays(2))
+        repository.changeStatus(me, key, DoseStatus.SKIPPED)
+
+        val result = repository.changeStatus(me, key, DoseStatus.PENDING)
+
+        assertEquals(StatusChangeResult.CHANGED, result)
+        assertEquals("PENDING", doseRecordDao.records.value.single { it.date == key.date.toString() }.status)
+    }
+
+    @Test
+    fun `미리 건너뛴 기록이 있어도 그 사이 날짜의 기록은 빠짐없이 생긴다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        repository.changeStatus(me, DoseKey(1, today.plusDays(3)), DoseStatus.SKIPPED)
+
+        // 이틀 뒤가 됐다고 치고 보충한다
+        val later = Clock.fixed(Instant.parse("2026-11-18T10:00:00Z"), ZoneOffset.UTC)
+        DoseRecordGenerator(medicationDao, scheduleDao, doseRecordDao, eventDao, later).generateForUser(me)
+
+        val dates = doseRecordDao.records.value.map { it.date }.sorted()
+        assertEquals(listOf("2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"), dates)
+    }
+
     @Test
     fun `다른 사람의 회차를 열쇠로 바꾸려 하면 아무것도 바뀌지 않는다`() = runBlocking<Unit> {
         insertMedication(userId = someoneElse)
