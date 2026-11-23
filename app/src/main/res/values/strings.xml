@@ -279,7 +279,6 @@
     <string name="s04_tab_all">전체</string>
     <string name="s04_tab_pending">기록 전</string>
     <string name="s04_pending_none">기록을 기다리는 복약이 없어요.</string>
-    <string name="s04_rate_label">오늘 복약 진행률</string>
     <string name="s04_sheet_title">복약 기록</string>
     <string name="s04_sheet_close">닫기</string>
     <string name="s04_sheet_when">%1$s · 예정 %2$s</string>
@@ -302,15 +301,6 @@
     <string name="s04_cd_quick_take">%1$s %2$s 회차를 복용 완료로 기록</string>
     <string name="s04_toast_undo">실행취소</string>
     <!-- 홈 맨 위 카드: 시각 묶음 (2026-11-23) -->
-    <string name="s04_slot_now">지금 먹을 약</string>
-    <string name="s04_slot_next">다음 먹을 약</string>
-    <string name="s04_slot_past">지난 복약</string>
-    <string name="s04_slot_later">나중 복약</string>
-    <string name="s04_slot_in">%1$s 뒤</string>
-    <string name="s04_slot_left">%1$d개 남음</string>
-    <string name="s04_dur_hm">%1$d시간 %2$d분</string>
-    <string name="s04_dur_h">%1$d시간</string>
-    <string name="s04_dur_m">%1$d분</string>
     <string name="s04_btn_take_all">✓ %1$d개 모두 복용 완료</string>
     <string name="s04_btn_take_one">✓ 복용 완료</string>
     <string name="s04_btn_release">✓ 모두 복용함</string>
@@ -318,9 +308,6 @@
     <string name="s04_btn_all_recorded">모두 기록했어요</string>
     <string name="s04_btn_all_recorded_sub">고치려면 약을 누르세요</string>
     <string name="s04_back_now">지금으로 ›</string>
-    <string name="s04_missed_bar">%1$s에 미복용 %2$d개</string>
-    <string name="s04_cd_prev_slot">이전 시간대</string>
-    <string name="s04_cd_next_slot">다음 시간대</string>
     <string name="s04_tomorrow_first">내일 첫 복약 · %1$s (%2$d개)</string>
     <string name="s04_toast_taken_n">%1$d개를 복용 완료로 기록했어요.</string>
     <string name="s04_toast_released_n">방금 기록한 %1$d개를 기록 전으로 되돌렸어요.</string>
