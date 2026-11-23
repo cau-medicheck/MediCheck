@@ -76,37 +76,7 @@ import com.cau.medicheck.ui.theme.TimelineLine
 import java.time.LocalDate
 import java.time.LocalTime
 
-// 홈·일정·기록 화면이 함께 쓰는 시간표 부품: 시간표 한 줄, 상태 표시, 아래에서 올라오는 복약 기록 창.
-
-/**
- * 시간표의 한 줄:  08:00 ●  약 이름                [상태] ›
- *                  아침  │  1정 · 아침 식후
- *
- * 시각 오른쪽의 세로선이 줄과 줄을 이어 하루의 흐름을 보여 준다. 점의 색은 상태 표시와 같다.
- * 줄 전체를 누르면 기록 창(RecordSheet)이 아래에서 올라온다.
- */
-@Composable
-fun TimelineRow(row: DoseRowUi, isFirst: Boolean, isLast: Boolean, onOpen: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClickLabel = stringResource(R.string.s04_cd_open_dose), role = Role.Button, onClick = onOpen)
-            .height(IntrinsicSize.Min)   // 세로선이 줄의 높이만큼 그려지도록
-            .padding(horizontal = 18.dp)
-    ) {
-        TimelineTime(row.time)
-        TimelineRail(row.display, isFirst, isLast)
-        // 약 이름 + 복용량·메모
-        Column(Modifier.weight(1f).padding(vertical = 13.dp)) {
-            RowTitle(row.name)
-            DoseSubLine(row)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
-            Spacer(Modifier.width(8.dp))
-            DoseStatusTail(row.display)
-        }
-    }
-}
+// 홈·일정·날짜별 기록 화면이 함께 쓰는 시간표 부품: 같은 시각 묶음(TimelineGroup), 상태 표시, 아래에서 올라오는 복약 기록 창.
 
 /**
  * 같은 시각의 약들을 한 묶음으로 보여 준다. (홈 "하루 복약 일정" 카드, 2026-11-23 시안 C-0)
@@ -417,4 +387,14 @@ fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Mo
         }
         CountTriple(counts)
     }
+}
+
+/** 홈·일정·날짜별 기록이 함께 쓴다. 시각 순서로 놓인 줄들을 "같은 시각끼리" 이웃한 묶음으로 나눈다. 예: [08:00, 08:00, 12:30] → [[08:00, 08:00], [12:30]] */
+fun groupBySameTime(rows: List<DoseRowUi>): List<List<DoseRowUi>> {
+    val groups = mutableListOf<MutableList<DoseRowUi>>()
+    for (row in rows) {
+        val last = groups.lastOrNull()
+        if (last != null && last.first().time == row.time) last.add(row) else groups.add(mutableListOf(row))
+    }
+    return groups
 }

@@ -16,7 +16,8 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
-import com.cau.medicheck.ui.components.TimelineRow
+import com.cau.medicheck.ui.components.TimelineGroup
+import com.cau.medicheck.ui.components.groupBySameTime
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.screens.dose.DayDosesUiState
 
@@ -55,13 +56,15 @@ fun S12RecordsDetailScreen(
                 )
             } else {
                 // 지난 기록을 보는 화면이라 줄을 누르면 기록 창이 아니라 회차 상세로 간다.
+                // 홈·일정과 같은 모양: 같은 시각의 약은 옅은 상자 하나로 묶는다 (2026-11-23)
+                val groups = groupBySameTime(state.rows)
                 Column(Modifier.padding(vertical = 8.dp)) {
-                    state.rows.forEachIndexed { index, row ->
-                        TimelineRow(
-                            row = row,
+                    groups.forEachIndexed { index, group ->
+                        TimelineGroup(
+                            rows = group,
                             isFirst = index == 0,
-                            isLast = index == state.rows.lastIndex,
-                            onOpen = { onOpenDose(row.key) }
+                            isLast = index == groups.lastIndex,
+                            onOpen = { row -> onOpenDose(row.key) }
                         )
                     }
                 }
