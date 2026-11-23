@@ -62,8 +62,8 @@ class CsvExporterTest {
 
         assertEquals("복용 완료", status(dose(status = DoseStatus.TAKEN)))
         assertEquals("건너뜀", status(dose(status = DoseStatus.SKIPPED)))
-        assertEquals("기한 경과 · 미기록", status(dose(hour = 8)))    // 08:00, 지금 12:00
-        assertEquals("기한 경과 · 미기록", status(dose(hour = 12)))   // 정각도 도래
+        assertEquals("미복용", status(dose(hour = 8)))       // 08:00, 지금 12:00
+        assertEquals("복용 예정", status(dose(hour = 12)))   // 정각이지만 30분 여유 안
         assertEquals("복용 예정", status(dose(hour = 20)))
         assertEquals("복용 예정", status(dose(date = today.plusDays(1))))
     }

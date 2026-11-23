@@ -40,7 +40,7 @@ object CsvExporter {
 
     /**
      * 회차 하나 → CSV 한 줄.
-     *   상태: 복용 완료 / 건너뜀 / 기한 경과 · 미기록(미기록이고 도래함) / 복용 예정(미기록이고 아직) — 내보내는 순간 기준
+     *   상태: 복용 완료 / 건너뜀 / 미복용(미기록이고 예정 시각 30분이 지남) / 복용 예정(미기록이고 아직) — 내보내는 순간 기준
      *   실제복용시각: 복용 완료이고 그날 누른(적은) 시각이 있을 때만. 화면(S10)과 같은 판정을 쓴다.
      */
     fun toRow(item: DoseItem, now: LocalDateTime, zone: ZoneId): List<String> = listOf(
@@ -51,7 +51,7 @@ object CsvExporter {
         when (item.displayStatus(now)) {
             DoseDisplayStatus.TAKEN -> "복용 완료"
             DoseDisplayStatus.SKIPPED -> "건너뜀"
-            DoseDisplayStatus.MISSED -> "기한 경과 · 미기록"
+            DoseDisplayStatus.MISSED -> "미복용"
             DoseDisplayStatus.UPCOMING -> "복용 예정"
         },
         item.actualTimeOrNull(zone)?.format(TIME_FORMAT).orEmpty()

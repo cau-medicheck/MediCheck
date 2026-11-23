@@ -77,13 +77,26 @@ data class DoseItem(
         !scheduledAt.isAfter(now.truncatedTo(ChronoUnit.MINUTES))
 
     /**
+     * 미복용으로 볼 때가 됐는가 = 예정 시각 + 여유(MISSED_GRACE_MINUTES)가 지금(분 단위) 이하인가.
+     * 정각이 지나자마자 "미복용"이 뜨면 재촉하는 느낌이라 여유를 둔다(2026-11-23 결정, 30분).
+     * 알림은 이 값과 상관없이 예정 시각 정각에 울린다.
+     */
+    fun isOverdue(now: LocalDateTime): Boolean =
+        !scheduledAt.plusMinutes(MISSED_GRACE_MINUTES).isAfter(now.truncatedTo(ChronoUnit.MINUTES))
+
+    /**
      * 지금 시각(now)을 기준으로 화면에 보여 줄 상태를 계산한다.
-     * 미기록(PENDING)이면서 도래했으면 MISSED(기한 경과 · 미기록), 아직이면 UPCOMING(복용 예정).
+     * 미기록(PENDING)이면서 여유 시간까지 지났으면 MISSED(미복용), 아니면 UPCOMING(예정).
      */
     fun displayStatus(now: LocalDateTime): DoseDisplayStatus = when (status) {
         DoseStatus.TAKEN -> DoseDisplayStatus.TAKEN
         DoseStatus.SKIPPED -> DoseDisplayStatus.SKIPPED
-        DoseStatus.PENDING -> if (isDue(now)) DoseDisplayStatus.MISSED else DoseDisplayStatus.UPCOMING
+        DoseStatus.PENDING -> if (isOverdue(now)) DoseDisplayStatus.MISSED else DoseDisplayStatus.UPCOMING
+    }
+
+    companion object {
+        /** 예정 시각이 지나고 몇 분 뒤부터 "미복용"으로 보는가. 바꾸려면 이 숫자 하나만 고친다. */
+        const val MISSED_GRACE_MINUTES = 30L
     }
 
     /**

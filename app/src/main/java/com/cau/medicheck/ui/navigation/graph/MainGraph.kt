@@ -129,6 +129,7 @@ fun NavGraphBuilder.mainGraph(user: User, go: AppNavigator, settings: SettingsCa
                     onOpenDose = { key -> go.open(Routes.s10(key)) },
                     onQuickTake = vm::quickTake,
                     onQuickSkip = vm::quickSkip,
+                    onQuickPending = vm::quickPending,
                     onAddMedication = { go.open(Routes.s08New()) }
                 )
             }

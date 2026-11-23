@@ -12,7 +12,7 @@ import java.time.ZoneOffset
 
 /**
  * 화면에 보여 줄 상태 계산 테스트. (docs/DB_DESIGN.md ⑩)
- * "기한 경과 · 미기록(MISSED)"은 저장하지 않고, PENDING인 기록의 예정 일시와 지금을 비교해서 정한다.
+ * "미복용(MISSED)"은 저장하지 않고, PENDING인 기록의 예정 일시(+ 여유 30분)와 지금을 비교해서 정한다.
  */
 class DoseItemTest {
 
@@ -33,16 +33,25 @@ class DoseItemTest {
     }
 
     @Test
-    fun `예정 시각 정각부터 PENDING은 기한 경과다`() {
-        assertEquals(DoseDisplayStatus.MISSED, dose(DoseStatus.PENDING).displayStatus(at(8, 0)))
-        // 초가 붙어 있어도 분 단위로 본다 (08:00:30도 08:00과 같다)
-        assertEquals(DoseDisplayStatus.MISSED, dose(DoseStatus.PENDING).displayStatus(at(8, 0).plusSeconds(30)))
-        assertEquals(DoseDisplayStatus.UPCOMING, dose(DoseStatus.PENDING).displayStatus(at(7, 59).plusSeconds(59)))
+    fun `예정 시각이 지나도 30분까지 PENDING은 아직 예정이다`() {
+        assertEquals(DoseDisplayStatus.UPCOMING, dose(DoseStatus.PENDING).displayStatus(at(8, 0)))
+        assertEquals(DoseDisplayStatus.UPCOMING, dose(DoseStatus.PENDING).displayStatus(at(8, 29)))
+        // 초가 붙어 있어도 분 단위로 본다 (08:29:59도 08:29와 같다)
+        assertEquals(DoseDisplayStatus.UPCOMING, dose(DoseStatus.PENDING).displayStatus(at(8, 29).plusSeconds(59)))
     }
 
     @Test
-    fun `예정 시각이 지난 PENDING은 기한 경과다`() {
-        assertEquals(DoseDisplayStatus.MISSED, dose(DoseStatus.PENDING).displayStatus(at(8, 1)))
+    fun `예정 시각 30분 뒤부터 PENDING은 미복용이다`() {
+        assertEquals(DoseDisplayStatus.MISSED, dose(DoseStatus.PENDING).displayStatus(at(8, 30)))
+        assertEquals(DoseDisplayStatus.MISSED, dose(DoseStatus.PENDING).displayStatus(at(9, 0)))
+    }
+
+    @Test
+    fun `도래는 정각부터, 미복용은 여유 시간 뒤부터다`() {
+        // 도래(완료율에 들어가는 때)는 정각, 미복용 표시는 30분 뒤 — 둘을 섞지 않는다
+        assertTrue(dose(DoseStatus.PENDING).isDue(at(8, 0)))
+        assertFalse(dose(DoseStatus.PENDING).isOverdue(at(8, 0)))
+        assertTrue(dose(DoseStatus.PENDING).isOverdue(at(8, 30)))
     }
 
     @Test
