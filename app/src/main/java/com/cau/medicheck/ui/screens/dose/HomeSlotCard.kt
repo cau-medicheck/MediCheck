@@ -113,6 +113,9 @@ class SlotCardActions(
  *  - 평소에는 DoseSlots.pick이 고른 장("처음 카드")을 따라간다.
  *  - 사용자가 넘기거나(밀기·‹ ›·시각 칩) 이 카드에서 기록하면 그 장에 머문다(hold).
  *    기록하자마자 다음 시각으로 넘어가 버리면 "다시 누르면 해제" 버튼을 볼 수 없기 때문이다.
+ *  - 머무는 동안에는 "처음 카드가 어느 장인지"도 머물기 시작한 때의 값으로 굳혀 둔다.
+ *    그러지 않으면 약 하나를 눌러 그 묶음이 다 기록되는 순간 처음 카드가 다른 시각으로 바뀌고, 지금 장이
+ *    "지난 복약" 모양으로 다시 그려지며(미복용 줄이 사라짐) 약 줄이 위로 올라가 같은 곳을 다시 눌러 해제할 수 없다.
  *  - 머무는 것은 홈에 다시 들어올 때, 시각이 바뀌어 가장 가까운 시각이 달라질 때, "지금으로"를 누를 때 풀린다.
  */
 @Composable
@@ -122,16 +125,21 @@ fun SlotHeroCard(state: DayDosesUiState, actions: SlotCardActions, modifier: Mod
     }
     val nowTime = state.now.toLocalTime()
     val times = slots.map { it.time }
-    val defaultIdx = DoseSlots.pick(times, slots.map { it.pending.isNotEmpty() }, nowTime)
+    val liveDefault = DoseSlots.pick(times, slots.map { it.pending.isNotEmpty() }, nowTime)
     // 기록 여부와 상관없이 "시각만으로" 가장 가까운 묶음. 이 값이 바뀌면(시간이 흘러 한가운데를 넘으면) 머무르기를 푼다.
     val nearestByTime = DoseSlots.pick(times, times.map { true }, nowTime)
 
     var hold by remember { mutableStateOf(false) }
+    // 머무르기 시작한 때의 "처음 카드" 번호. 머무는 동안 화면은 이 값을 처음 카드로 그린다.
+    var heldDefault by remember { mutableStateOf<Int?>(null) }
+    val startHold = { if (!hold) { hold = true; heldDefault = liveDefault } }
+    val releaseHold = { hold = false; heldDefault = null }
     LifecycleResumeEffect(Unit) {
-        hold = false   // 홈에 다시 들어오면 처음 카드로
+        releaseHold()   // 홈에 다시 들어오면 처음 카드로
         onPauseOrDispose { }
     }
-    LaunchedEffect(nearestByTime) { hold = false }
+    LaunchedEffect(nearestByTime) { releaseHold() }
+    val defaultIdx = if (hold) heldDefault ?: liveDefault else liveDefault
 
     if (state.isLoading) {
         // 불러오는 동안 "예정된 복약이 없어요"가 잠깐 비치지 않도록 날짜만 보인다
@@ -142,24 +150,24 @@ fun SlotHeroCard(state: DayDosesUiState, actions: SlotCardActions, modifier: Mod
         HeroShell(modifier) { SummaryBody(state, stringResource(R.string.s04_next_none), tomorrow = null) }
         return
     }
-    if (defaultIdx == -1 && !hold) {
+    if (liveDefault == -1 && !hold) {
         val tomorrow = state.tomorrowFirst?.let { (time, count) -> stringResource(R.string.s04_tomorrow_first, timeText(time), count) }
         HeroShell(modifier) { SummaryBody(state, stringResource(R.string.s04_next_all_done), tomorrow) }
         return
     }
 
-    val start = defaultIdx.coerceAtLeast(0)
+    val start = liveDefault.coerceAtLeast(0)
     val pager = rememberPagerState(initialPage = start) { slots.size }
     val scope = rememberCoroutineScope()
     val dragged by pager.interactionSource.collectIsDraggedAsState()
-    LaunchedEffect(dragged) { if (dragged) hold = true }
+    LaunchedEffect(dragged) { if (dragged) startHold() }
     // 머무르지 않을 때는 처음 카드를 따라간다
-    LaunchedEffect(defaultIdx, hold, slots.size) {
-        if (!hold && defaultIdx in slots.indices && pager.currentPage != defaultIdx) pager.animateScrollToPage(defaultIdx)
+    LaunchedEffect(liveDefault, hold, slots.size) {
+        if (!hold && liveDefault in slots.indices && pager.currentPage != liveDefault) pager.animateScrollToPage(liveDefault)
     }
     val goTo: (Int) -> Unit = { page ->
         if (page in slots.indices) {
-            hold = true
+            startHold()
             scope.launch { pager.animateScrollToPage(page) }
         }
     }
@@ -177,13 +185,13 @@ fun SlotHeroCard(state: DayDosesUiState, actions: SlotCardActions, modifier: Mod
             defaultIdx = defaultIdx,
             onGo = goTo,
             onBackToNow = {
-                hold = false
-                if (defaultIdx in slots.indices) scope.launch { pager.animateScrollToPage(defaultIdx) }
+                releaseHold()
+                if (liveDefault in slots.indices) scope.launch { pager.animateScrollToPage(liveDefault) }
             },
             actions = SlotCardActions(
-                onToggle = { hold = true; actions.onToggle(it) },
-                onTakeAll = { hold = true; actions.onTakeAll(it) },
-                onReleaseAll = { hold = true; actions.onReleaseAll(it) }
+                onToggle = { startHold(); actions.onToggle(it) },
+                onTakeAll = { startHold(); actions.onTakeAll(it) },
+                onReleaseAll = { startHold(); actions.onReleaseAll(it) }
             )
         )
     }
