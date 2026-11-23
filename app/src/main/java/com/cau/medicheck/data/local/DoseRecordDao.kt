@@ -39,7 +39,7 @@ interface DoseRecordDao {
         "SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date, " +
             "r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt, " +
             "m.id AS medicationId, r.medication_name AS medicationName, " +
-            "r.dosage AS dosage, r.memo AS memo " +
+            "r.dosage AS dosage, r.memo AS memo, r.dose_condition AS doseCondition " +
             "FROM dose_records r " +
             "JOIN schedules s ON s.id = r.schedule_id " +
             "JOIN medications m ON m.id = s.medication_id " +
@@ -56,7 +56,7 @@ interface DoseRecordDao {
         "SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date, " +
             "r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt, " +
             "m.id AS medicationId, r.medication_name AS medicationName, " +
-            "r.dosage AS dosage, r.memo AS memo " +
+            "r.dosage AS dosage, r.memo AS memo, r.dose_condition AS doseCondition " +
             "FROM dose_records r " +
             "JOIN schedules s ON s.id = r.schedule_id " +
             "JOIN medications m ON m.id = s.medication_id " +
@@ -115,7 +115,7 @@ interface DoseRecordDao {
         "SELECT r.id AS id, r.schedule_id AS scheduleId, r.date AS date, " +
             "r.scheduled_time AS scheduledTime, r.status AS status, r.acted_at AS actedAt, " +
             "m.id AS medicationId, r.medication_name AS medicationName, " +
-            "r.dosage AS dosage, r.memo AS memo " +
+            "r.dosage AS dosage, r.memo AS memo, r.dose_condition AS doseCondition " +
             "FROM dose_records r " +
             "JOIN schedules s ON s.id = r.schedule_id " +
             "JOIN medications m ON m.id = s.medication_id " +
@@ -184,7 +184,7 @@ interface DoseRecordDao {
      */
     @Query(
         "UPDATE dose_records SET scheduled_time = :time, medication_name = :name, " +
-            "dosage = :dosage, memo = :memo " +
+            "dosage = :dosage, memo = :memo, dose_condition = :condition " +
             "WHERE id = :recordId AND status = 'PENDING' AND schedule_id IN (" +
             "SELECT s.id FROM schedules s JOIN medications m ON m.id = s.medication_id " +
             "WHERE m.user_id = :userId)"
@@ -195,7 +195,8 @@ interface DoseRecordDao {
         time: String,
         name: String,
         dosage: String,
-        memo: String?
+        memo: String?,
+        condition: String
     ): Int
 
     /**

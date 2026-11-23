@@ -130,6 +130,7 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
                     onDosageChange = vm::onDosageChange,
                     onMemoChange = vm::onMemoChange,
                     onTimeChange = vm::onTimeChange,
+                    onConditionChange = vm::onConditionChange,
                     onRemoveTime = vm::removeTime,
                     onAddTime = vm::addTime,
                     onDayToggle = vm::onDayToggle,

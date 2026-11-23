@@ -84,7 +84,7 @@ class SampleAccountSeederTest {
         val records = doseRecordDao.records.value
         val vitamin = records.filter { it.medicationName == "비타민 D" }
         assertEquals(33, vitamin.size)
-        assertTrue(vitamin.all { it.dosage == "1정" && it.memo == "아침 식후" && it.scheduledTime == "08:00" })
+        assertTrue(vitamin.all { it.dosage == "1정" && it.doseCondition == "AFTER_MEAL" && it.scheduledTime == "08:00" })
         assertTrue(records.all { it.actedAt == null })
         val counts = records.groupingBy { it.status }.eachCount()
         assertEquals(mapOf("TAKEN" to 73, "SKIPPED" to 12, "PENDING" to 14), counts)

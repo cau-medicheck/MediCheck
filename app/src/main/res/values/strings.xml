@@ -336,6 +336,14 @@
     <string name="s05_period_evening">저녁</string>
     <string name="s05_period_night">밤</string>
     <string name="s05_period_dawn">새벽</string>
+    <!-- 복용 조건 (2026-11-23) -->
+    <string name="cond_none">상관없음</string>
+    <string name="cond_before_meal">식전</string>
+    <string name="cond_after_meal">식후</string>
+    <string name="cond_empty_stomach">공복</string>
+    <string name="cond_bedtime">취침 전</string>
+    <string name="s08_cd_condition">%1$s 복용 조건</string>
+    <string name="s04_sheet_condition">복용 조건</string>
     <string name="s05_empty_title">이 날짜에는 복용할 약이 없어요</string>
     <string name="s05_empty_body">반복 요일과 복용 기간을 확인해주세요.</string>
     <string name="s05_empty_action">약 등록</string>
@@ -445,7 +453,7 @@
     <string name="s08_hint_name">예: 비타민 C</string>
     <string name="s08_label_dosage">1회 복용량 *</string>
     <string name="s08_hint_dosage">예: 1정 / 5ml</string>
-    <string name="s08_label_times">복용 시간 *</string>
+    <string name="s08_label_times">복용 시간 · 복용 조건 *</string>
     <string name="s08_cd_time">복용 시간 %1$d</string>
     <string name="s08_cd_time_remove">복용 시간 %1$d 삭제</string>
     <string name="s08_link_add_time">＋ 시간 추가하기</string>
@@ -454,7 +462,7 @@
     <string name="s08_label_start">복용 시작일 *</string>
     <string name="s08_label_end">복용 종료일 (선택)</string>
     <string name="s08_label_memo">메모</string>
-    <string name="s08_hint_memo">식전·식후 등 복용 메모</string>
+    <string name="s08_hint_memo">예: 물 한 컵 이상</string>
     <string name="s08_btn_register">약 등록 완료</string>
     <string name="s08_btn_save">변경사항 저장</string>
     <string name="s08_toast_check_basic">약 이름·복용량·복용 시간을 확인해주세요.</string>

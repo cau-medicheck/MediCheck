@@ -64,6 +64,7 @@ import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseSlots
 import com.cau.medicheck.domain.periodOf
+import com.cau.medicheck.ui.components.ConditionTag
 import com.cau.medicheck.ui.components.DoseRowUi
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
@@ -458,6 +459,7 @@ private fun SlotMedRow(row: DoseRowUi, onToggle: () -> Unit) {
             color = Color.White.copy(alpha = 0.8f),
             modifier = Modifier.padding(start = 7.dp)
         )
+        ConditionTag(row.condition, Modifier.padding(start = 7.dp), onDark = true)
         if (missed) {
             Text(
                 text = missedWord,

@@ -22,13 +22,16 @@ object SampleData {
     /** 매일 = 7개 요일 전부 */
     val REPEAT_DAYS: String = RepeatDays.encode(RepeatDays.EVERY_DAY)
 
-    /** 샘플 약 하나. no는 v3의 약 번호(1·2·3)로, 상태 공식에 쓰인다. */
-    data class Med(val no: Int, val name: String, val dosage: String, val time: String, val memo: String)
+    /**
+     * 샘플 약 하나. no는 v3의 약 번호(1·2·3)로, 상태 공식에 쓰인다.
+     * 처음에는 메모에 "아침 식후"를 적었으나, 복용 조건이 생긴 뒤(2026-11-23)로는 조건으로 옮겼다(메모는 비움).
+     */
+    data class Med(val no: Int, val name: String, val dosage: String, val time: String, val condition: DoseCondition)
 
     val MEDS = listOf(
-        Med(1, "비타민 D", "1정", "08:00", "아침 식후"),
-        Med(2, "오메가3", "1캡슐", "12:30", "점심 식후"),
-        Med(3, "마그네슘", "1정", "21:00", "저녁")
+        Med(1, "비타민 D", "1정", "08:00", DoseCondition.AFTER_MEAL),
+        Med(2, "오메가3", "1캡슐", "12:30", DoseCondition.AFTER_MEAL),
+        Med(3, "마그네슘", "1정", "21:00", DoseCondition.BEDTIME)
     )
 
     /** 기록을 만드는 날의 범위: 오늘 기준 며칠 전인지 (-32 ~ 0) */

@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.room.withTransaction
 import androidx.sqlite.db.SupportSQLiteDatabase
 
@@ -21,6 +22,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  *     5: v3 프로토타입(47개 화면) 기준 개정을 한 번에 — users.is_sample,
  *        medications.paused_from·hospital·department·source_memo, schedules.effective_from,
  *        dose_records 스냅샷(medication_name·dosage·memo), 새 표 dose_status_events·user_settings
+ *     6: 복용 조건 — schedules.dose_condition, dose_records.dose_condition(스냅샷). 데이터를 지우지 않고 칸만 더한다(MIGRATION_5_6)
  * - 표마다 DAO(창구)를 하나씩 꺼낼 수 있게 함수를 적어 둔다. 몸통은 Room이 만든다.
  */
 @Database(
@@ -32,7 +34,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         DoseStatusEvent::class,
         UserSettingsEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -58,13 +60,13 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * DB를 연다. 앱 전체에서 한 번만 호출한다 (AppContainer 참고).
          *
+         * addMigrations: 5 → 6은 칸 두 개를 더하기만 하면 되므로 데이터를 지우지 않고 옮긴다(MIGRATION_5_6).
          * fallbackToDestructiveMigration:
-         *   개발 중에 표 구조(version)가 바뀌면 기존 데이터를 지우고 새로 만든다.
-         *   출시 후라면 데이터를 옮기는 코드(Migration)를 써야 하지만,
-         *   지금은 개발 단계라 단순한 쪽을 택했다.
+         *   그 밖의 옛 버전(1~4)에서 올라오면 기존 데이터를 지우고 새로 만든다. 개발 단계라 단순한 쪽을 택했다.
          */
         fun create(context: Context): AppDatabase {
             val builder = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DB_NAME)
+                .addMigrations(MIGRATION_5_6)
                 .fallbackToDestructiveMigration(dropAllTables = true)
 
             // 디버그 빌드(개발용 APK)에서만: DB를 열 때 외래 키 검사가 켜져 있는지 로그로 남긴다.
@@ -74,6 +76,17 @@ abstract class AppDatabase : RoomDatabase() {
             if (isDebuggable) builder.addCallback(ForeignKeyLogger)
 
             return builder.build()
+        }
+
+        /**
+         * 5 → 6: 복용 조건 칸 두 개를 더한다. 이미 있는 줄은 "상관없음"(NONE)이 된다.
+         * DEFAULT 값은 Entity의 @ColumnInfo(defaultValue)와 같아야 Room의 구조 검사를 통과한다.
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE schedules ADD COLUMN dose_condition TEXT NOT NULL DEFAULT 'NONE'")
+                db.execSQL("ALTER TABLE dose_records ADD COLUMN dose_condition TEXT NOT NULL DEFAULT 'NONE'")
+            }
         }
 
         /** DB가 열릴 때 PRAGMA foreign_keys 값(1 = 켜짐, 0 = 꺼짐)을 Logcat에 찍는다. */

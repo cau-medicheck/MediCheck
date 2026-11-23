@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.ui.theme.CircleInner
@@ -94,8 +95,10 @@ data class DoseRowUi(
     val dosage: String,
     val display: DoseDisplayStatus,
     val canQuickTake: Boolean,
-    /** 복용 메모("아침 식후" 등). 없으면 "" */
-    val memo: String = ""
+    /** 복용 메모. 없으면 "" */
+    val memo: String = "",
+    /** 복용 조건(식전·식후 등) */
+    val condition: DoseCondition = DoseCondition.NONE
 )
 
 /**

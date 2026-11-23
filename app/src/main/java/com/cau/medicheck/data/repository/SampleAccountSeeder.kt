@@ -86,13 +86,14 @@ class SampleAccountSeeder(
             val medicationId = medicationDao.insert(
                 Medication(
                     userId = userId, name = med.name, dosage = med.dosage,
-                    startDate = startDate, endDate = null, memo = med.memo, createdAt = now
+                    startDate = startDate, endDate = null, memo = null, createdAt = now
                 )
             )
             val scheduleId = scheduleDao.insert(
                 Schedule(
                     medicationId = medicationId, time = med.time,
-                    repeatDays = SampleData.REPEAT_DAYS, createdAt = now
+                    repeatDays = SampleData.REPEAT_DAYS, createdAt = now,
+                    doseCondition = med.condition.name
                 )
             )
             doseRecordDao.insertAllIgnore(
@@ -103,10 +104,11 @@ class SampleAccountSeeder(
                         scheduledTime = med.time,
                         medicationName = med.name,   // 스냅샷: 그때의 약 값
                         dosage = med.dosage,
-                        memo = med.memo,
+                        memo = null,
                         status = SampleData.statusFor(offset, med.no).name,
                         actedAt = null,              // v3 샘플에는 실제 복용 시각이 없다
-                        createdAt = now
+                        createdAt = now,
+                        doseCondition = med.condition.name
                     )
                 }
             )

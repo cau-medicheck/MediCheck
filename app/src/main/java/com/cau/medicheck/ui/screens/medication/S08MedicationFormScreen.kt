@@ -17,6 +17,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.cau.medicheck.domain.DoseCondition
+import com.cau.medicheck.ui.components.ConditionChips
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
@@ -44,6 +46,7 @@ class MedicationFormActions(
     val onDosageChange: (String) -> Unit,
     val onMemoChange: (String) -> Unit,
     val onTimeChange: (key: Int, LocalTime) -> Unit,
+    val onConditionChange: (key: Int, DoseCondition) -> Unit,
     val onRemoveTime: (key: Int) -> Unit,
     val onAddTime: () -> Unit,
     val onDayToggle: (DayOfWeek) -> Unit,
@@ -103,7 +106,7 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
             label = stringResource(R.string.s08_label_dosage)
         )
 
-        // ----- 복용 시간: 줄마다 [08:00] [삭제]. 한 줄만 남으면 "삭제"가 눌리지 않는다 -----
+        // ----- 복용 시간: 줄마다 [08:00] [삭제] + 복용 조건 버튼들. 한 줄만 남으면 "삭제"가 눌리지 않는다 -----
         FieldLabel(stringResource(R.string.s08_label_times))
         state.times.forEachIndexed { index, row ->
             val timeName = stringResource(R.string.s08_cd_time, index + 1)
@@ -129,6 +132,13 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
                     modifier = Modifier.semantics { contentDescription = removeName }
                 )
             }
+            // 이 시간의 복용 조건: [상관없음] [식전] [식후] [공복] [취침 전] 중 하나
+            ConditionChips(
+                selected = row.condition,
+                onSelect = { actions.onConditionChange(row.key, it) },
+                timeLabel = timeText(row.time),
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
         LinkText(stringResource(R.string.s08_link_add_time), actions.onAddTime, Modifier.padding(top = 8.dp))
 

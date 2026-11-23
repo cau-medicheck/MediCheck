@@ -105,7 +105,8 @@ object DosePlanner {
                         date = date,
                         time = schedule.time,
                         status = DoseStatus.PENDING,
-                        actedAt = null
+                        actedAt = null,
+                        condition = schedule.condition
                     )
                 }
         }.sortedWith(compareBy<DoseItem> { it.time }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.medicationName })

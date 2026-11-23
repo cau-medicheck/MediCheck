@@ -18,7 +18,9 @@ data class ScheduleItem(
     val time: LocalTime,
     val days: Set<DayOfWeek>,
     /** 이 규칙이 회차를 만들기 시작하는 날. 없으면 약의 시작일부터 */
-    val effectiveFrom: LocalDate? = null
+    val effectiveFrom: LocalDate? = null,
+    /** 복용 조건 (식전·식후 등) */
+    val condition: DoseCondition = DoseCondition.NONE
 )
 
 /** 약 하나와 그 약의 복용 시간 규칙들. 목록 화면과 수정 화면이 읽는 모양. */
@@ -45,7 +47,8 @@ data class MedicationDetail(
 data class ScheduleDraft(
     val id: Long? = null,
     val time: LocalTime,
-    val days: Set<DayOfWeek>
+    val days: Set<DayOfWeek>,
+    val condition: DoseCondition = DoseCondition.NONE
 )
 
 /** 등록·수정 화면에서 "저장"을 눌렀을 때 넘어오는 입력값 묶음. */

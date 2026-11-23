@@ -31,6 +31,7 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.timeWithCondition
 import com.cau.medicheck.ui.theme.Navy
 
 /** 약 상세 화면의 버튼들이 부를 함수 묶음 */
@@ -102,7 +103,7 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
     SurfaceCard(Modifier.padding(top = 22.dp), padding = 0.dp) {
         Column(Modifier.padding(horizontal = 16.dp)) {
             LabelValueRow(stringResource(R.string.s07_label_dosage), med.dosage)
-            LabelValueRow(stringResource(R.string.s07_label_times), med.schedules.joinToString(" · ") { timeText(it.time) })
+            LabelValueRow(stringResource(R.string.s07_label_times), med.schedules.map { timeWithCondition(it) }.joinToString(" · "))
             LabelValueRow(stringResource(R.string.s07_label_days), scheduleDaysText(med.schedules))
             LabelValueRow(stringResource(R.string.s07_label_start), med.startDate.toString())
             LabelValueRow(

@@ -50,6 +50,26 @@ class BackupJsonTest {
     }
 
     @Test
+    fun `복용 조건은 그대로 오가고, 조건이 없는 옛 백업은 상관없음으로 읽는다`() {
+        val withCondition = validBackup.copy(
+            schedules = validBackup.schedules.map { it.copy(doseCondition = "AFTER_MEAL") },
+            doseRecords = validBackup.doseRecords.map { it.copy(doseCondition = "AFTER_MEAL") }
+        )
+        assertEquals(withCondition, BackupJson.decode(BackupJson.encode(withCondition)))
+
+        val old = """
+            {"format":"MediCheck-backup","version":1,
+             "medications":[{"id":1,"name":"비타민 D","dosage":"1정","startDate":"2026-10-10"}],
+             "schedules":[{"id":1,"medicationId":1,"time":"08:00","repeatDays":"MON"}],
+             "doseRecords":[{"id":1,"scheduleId":1,"date":"2026-10-10","scheduledTime":"08:00",
+                             "medicationName":"비타민 D","dosage":"1정","status":"TAKEN","doseCondition":"모르는 값"}]}
+        """.trimIndent()
+        val data = BackupJson.decode(old)!!
+        assertEquals("NONE", data.schedules.single().doseCondition)
+        assertEquals("NONE", data.doseRecords.single().doseCondition)   // 모르는 값도 상관없음으로
+    }
+
+    @Test
     fun `JSON이 아니면 읽지 못한다`() {
         assertNull(BackupJson.decode("이것은 백업 파일이 아닙니다"))
         assertNull(BackupJson.decode(""))

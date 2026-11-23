@@ -53,7 +53,9 @@ data class BackupSchedule(
     val repeatDays: String,
     val effectiveFrom: String?,
     val createdAt: Long,
-    val deletedAt: Long?
+    val deletedAt: Long?,
+    /** 복용 조건. 조건이 생기기 전(version 6 전)에 만든 백업에는 없으므로 "NONE" */
+    val doseCondition: String = "NONE"
 )
 
 /** 복용 기록 한 줄 (dose_records 표). 약 이름·복용량·메모는 그 회차 때의 값(스냅샷)이다 */
@@ -67,7 +69,9 @@ data class BackupDoseRecord(
     val memo: String?,
     val status: String,
     val actedAt: Long?,
-    val createdAt: Long
+    val createdAt: Long,
+    /** 복용 조건 스냅샷. 옛 백업에는 없으므로 "NONE" */
+    val doseCondition: String = "NONE"
 )
 
 /**

@@ -59,7 +59,9 @@ data class DoseItem(
     val time: LocalTime,
     val status: DoseStatus,
     /** 복용 완료면 실제 복용 시각, 건너뜀이면 누른 시각(밀리초). 미기록이면 null */
-    val actedAt: Long?
+    val actedAt: Long?,
+    /** 복용 조건 (기록의 스냅샷 또는 지금 규칙 값) */
+    val condition: DoseCondition = DoseCondition.NONE
 ) {
     /** 이 회차의 예정 일시 (날짜 + 시각) */
     val scheduledAt: LocalDateTime get() = LocalDateTime.of(date, time)

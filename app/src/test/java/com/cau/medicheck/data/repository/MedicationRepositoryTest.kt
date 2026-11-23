@@ -1,6 +1,7 @@
 package com.cau.medicheck.data.repository
 
 import com.cau.medicheck.domain.ApplyScope
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
 import com.cau.medicheck.domain.RepeatDays
@@ -81,6 +82,53 @@ class MedicationRepositoryTest {
         (repository.addMedication(userId, draft()) as MedicationResult.Success).medicationId
 
     // ---------- 등록 ----------
+
+    @Test
+    fun `등록하면 복용 조건이 규칙 줄과 기록 스냅샷에 저장된다`() = runBlocking<Unit> {
+        repository.addMedication(
+            me,
+            draft(schedules = listOf(morning.copy(condition = DoseCondition.AFTER_MEAL), evening.copy(condition = DoseCondition.BEDTIME)))
+        )
+
+        assertEquals(listOf("AFTER_MEAL", "BEDTIME"), scheduleDao.schedules.value.map { it.doseCondition })
+        val today08 = doseRecordDao.records.value.single { it.date == today.toString() && it.scheduledTime == "08:00" }
+        assertEquals("AFTER_MEAL", today08.doseCondition)
+    }
+
+    @Test
+    fun `조건만 바꾸면 적용 시작일은 그대로이고 오늘 남은 기록의 조건만 바뀐다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (s08, s20) = scheduleDao.schedules.value.sortedBy { it.time }
+
+        repository.updateMedication(
+            me, id,
+            draft(schedules = listOf(morning.copy(id = s08.id, condition = DoseCondition.AFTER_MEAL), evening.copy(id = s20.id, condition = DoseCondition.BEDTIME)))
+        )
+
+        val saved = scheduleDao.schedules.value.sortedBy { it.time }
+        assertEquals(listOf("AFTER_MEAL", "BEDTIME"), saved.map { it.doseCondition })
+        assertEquals(listOf<String?>(null, null), saved.map { it.effectiveFrom })   // 회차가 생기는 날은 그대로
+        val todays = doseRecordDao.records.value.filter { it.date == today.toString() }.associateBy { it.scheduledTime }
+        assertEquals("NONE", todays.getValue("08:00").doseCondition)      // 이미 시각이 지난 기록은 그대로
+        assertEquals("BEDTIME", todays.getValue("20:00").doseCondition)   // 오늘 남은 기록은 새 조건
+    }
+
+    @Test
+    fun `내일부터 적용으로 조건을 바꾸면 오늘 기록은 그대로다`() = runBlocking<Unit> {
+        val id = addTylenol()
+        val (s08, s20) = scheduleDao.schedules.value.sortedBy { it.time }
+
+        repository.updateMedication(
+            me, id,
+            draft(schedules = listOf(morning.copy(id = s08.id), evening.copy(id = s20.id, condition = DoseCondition.BEDTIME))),
+            scope = ApplyScope.FROM_TOMORROW
+        )
+
+        assertEquals("BEDTIME", scheduleDao.schedules.value.single { it.id == s20.id }.doseCondition)
+        val today20 = doseRecordDao.records.value.single { it.date == today.toString() && it.scheduledTime == "20:00" }
+        assertEquals("NONE", today20.doseCondition)
+    }
+
 
     @Test
     fun `약을 등록하면 약 한 줄과 복용 시간 줄들이 저장된다`() = runBlocking<Unit> {

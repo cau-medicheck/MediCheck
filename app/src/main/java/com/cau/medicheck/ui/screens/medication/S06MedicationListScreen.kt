@@ -37,6 +37,7 @@ import com.cau.medicheck.ui.components.RowTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.scheduleDaysText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.timeWithCondition
 import com.cau.medicheck.ui.theme.Faint
 
 /**
@@ -117,7 +118,7 @@ private fun MedicationRow(row: MedicationRowUi, onOpen: (Long) -> Unit, showDivi
             RowTitle(med.name)
             MedicationStatusPill(row.status, showActive = false)
         }
-        RowSub((listOf(med.dosage) + med.schedules.map { timeText(it.time) }).joinToString(" · "))
+        RowSub((listOf(med.dosage) + med.schedules.map { timeWithCondition(it) }).joinToString(" · "))
         RowSub(scheduleDaysText(med.schedules))
     }
 }

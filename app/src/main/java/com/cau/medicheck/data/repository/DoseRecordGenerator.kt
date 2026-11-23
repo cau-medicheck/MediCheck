@@ -84,7 +84,8 @@ class DoseRecordGenerator(
             dosage = medication.dosage,
             memo = medication.memo,
             status = DoseStatus.PENDING.name,
-            createdAt = createdAt
+            createdAt = createdAt,
+            doseCondition = schedule.doseCondition   // 규칙 줄의 "지금" 복용 조건을 복사해 둔다
         )
 
     /**
@@ -127,7 +128,8 @@ class DoseRecordGenerator(
                     time = schedule.time,
                     name = medication.name,
                     dosage = medication.dosage,
-                    memo = medication.memo
+                    memo = medication.memo,
+                    condition = schedule.doseCondition
                 )
             } else {
                 toDelete += record.id
