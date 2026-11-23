@@ -7,12 +7,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -24,6 +22,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -48,48 +48,37 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.cau.medicheck.R
-import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseSlots
-import com.cau.medicheck.domain.periodOf
-import com.cau.medicheck.ui.components.ConditionTag
 import com.cau.medicheck.ui.components.DoseRowUi
-import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.groupBySameTime
 import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.HeroDeepEnd
 import com.cau.medicheck.ui.theme.HeroDeepStart
 import com.cau.medicheck.ui.theme.HeroPastEnd
 import com.cau.medicheck.ui.theme.HeroPastStart
-import java.time.Duration
 import java.time.LocalTime
 import kotlinx.coroutines.launch
 
 /*
  * 홈 맨 위 카드: 같은 시각에 먹는 약 묶음을 보여 주고, 한 번에 또는 하나씩 기록한다.
- * (2026-11-23 결정, 시안: 04_화면캡처/홈카드_묶음기록_시안/종합_시안.html)
+ * (2026-11-23 결정, 시안: 04_화면캡처/홈카드_묶음기록_시안/종합_시안.html → 간소화: 04_화면캡처/홈카드_간소화_시안/ 간단 B)
  *
- *   11월 23일 월요일
- *   ‹   ● 08:00  [12:30]  ● 21:00   ›        ← 오늘의 시각들. 눌러서 이동, 옆으로 밀어도 이동
- *   ⚠ 08:00에 미복용 2개 ›                    ← 처음 카드보다 앞 시각에 미복용이 있을 때만
- *   ⏱ 다음 먹을 약 [40분 뒤]
- *   12:30 점심
- *   ○ Omega-3  1 cap                          ← 약 이름·동그라미를 누르면 그 약만 복용 완료 ↔ 기록 전
- *   [ ✓ 복용 완료 ]                            ← 여러 개면 "✓ N개 모두 복용 완료"
- *   지금으로 ›                                 ← 다른 시각으로 넘겼을 때만
- *   오늘 복약 진행률 20 %  ▬▭▭▭
+ *   ● 08:00  [12:30]  ● 21:00      ← 오늘의 시각들. 눌러서 이동, 옆으로 밀어도 이동
+ *   12:30
+ *   ○ Omega-3  1 cap               ← 약 이름·동그라미를 누르면 그 약만 복용 완료 ↔ 기록 전
+ *   [ ✓ 복용 완료 ]                 ← 여러 개면 "✓ N개 모두 복용 완료"
+ *   지금으로 ›                      ← 다른 시각으로 넘겼을 때만
  */
 
 /** 같은 시각에 먹는 회차 묶음 */
@@ -142,17 +131,17 @@ fun SlotHeroCard(state: DayDosesUiState, actions: SlotCardActions, modifier: Mod
     val defaultIdx = if (hold) heldDefault ?: liveDefault else liveDefault
 
     if (state.isLoading) {
-        // 불러오는 동안 "예정된 복약이 없어요"가 잠깐 비치지 않도록 날짜만 보인다
-        HeroShell(modifier) { DateLine(state); Spacer(Modifier.height(200.dp)) }
+        // 불러오는 동안 "예정된 복약이 없어요"가 잠깐 비치지 않도록 빈 카드만 보인다
+        HeroShell(modifier) { Spacer(Modifier.height(180.dp)) }
         return
     }
     if (slots.isEmpty()) {
-        HeroShell(modifier) { SummaryBody(state, stringResource(R.string.s04_next_none), tomorrow = null) }
+        HeroShell(modifier) { SummaryBody(stringResource(R.string.s04_next_none), tomorrow = null) }
         return
     }
     if (liveDefault == -1 && !hold) {
         val tomorrow = state.tomorrowFirst?.let { (time, count) -> stringResource(R.string.s04_tomorrow_first, timeText(time), count) }
-        HeroShell(modifier) { SummaryBody(state, stringResource(R.string.s04_next_all_done), tomorrow) }
+        HeroShell(modifier) { SummaryBody(stringResource(R.string.s04_next_all_done), tomorrow) }
         return
     }
 
@@ -225,10 +214,9 @@ private fun WithPillArt(content: @Composable () -> Unit) {
     }
 }
 
-/** 오늘 회차가 없거나 모두 기록했을 때: 날짜 / 큰 안내 / (내일 첫 복약) / 진행률 */
+/** 오늘 회차가 없거나 모두 기록했을 때: 큰 안내 / (내일 첫 복약) */
 @Composable
-private fun SummaryBody(state: DayDosesUiState, message: String, tomorrow: String?) {
-    DateLine(state)
+private fun SummaryBody(message: String, tomorrow: String?) {
     WithPillArt {
         Text(
             text = message,
@@ -236,22 +224,25 @@ private fun SummaryBody(state: DayDosesUiState, message: String, tomorrow: Strin
             lineHeight = 27.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.padding(top = 10.dp)
+            modifier = Modifier.padding(top = 4.dp)
         )
         if (tomorrow != null) {
             Text(tomorrow, fontSize = 13.sp, color = Color.White.copy(alpha = 0.85f), modifier = Modifier.padding(top = 6.dp))
         }
-        Spacer(Modifier.height(28.dp))   // 그림이 들어갈 높이
+        Spacer(Modifier.height(36.dp))   // 그림이 들어갈 높이
     }
-    RateLine(state.progress, Modifier.padding(top = 16.dp))
 }
 
-@Composable
-private fun DateLine(state: DayDosesUiState) {
-    Text(fullDateText(state.date), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.85f))
-}
-
-/** 카드 한 장 = 시각 묶음 하나 */
+/**
+ * 카드 한 장 = 시각 묶음 하나. (2026-11-23 간단 B: 날짜·화살표·미복용 줄·"지금 먹을 약"·시간대·꼬리표·진행률을 뺐다 —
+ * 시각 칩의 점, 약 앞 동그라미 색, 아래 "하루 복약 일정" 카드가 같은 정보를 보여 준다)
+ *
+ *   ● 08:00  [12:30]  ● 21:00      ← 시각 칩(눌러서 이동). 점: 미복용 있음 = 주황, 모두 기록 = 민트
+ *   12:30                          ← 큰 시각
+ *   ○ Omega-3  1 cap               ← 눌러서 복용 완료 ↔ 기록 전 (동그라미 색 = 상태)
+ *   [ ✓ 복용 완료 ]
+ *   지금으로 ›                      ← 다른 시각으로 넘겼을 때만
+ */
 @Composable
 private fun SlotPage(
     state: DayDosesUiState,
@@ -263,72 +254,24 @@ private fun SlotPage(
     actions: SlotCardActions
 ) {
     val slot = slots[index]
-    val nowTime = state.now.toLocalTime()
     val isDefault = index == defaultIdx
-    val isPast = !slot.time.isAfter(nowTime)
+    val isPast = !slot.time.isAfter(state.now.toLocalTime())
 
     HeroShell(past = isPast && !isDefault) {
-        DateLine(state)
-        SlotNav(slots, index, onGo, Modifier.padding(top = 8.dp))
-
-        // 처음 카드보다 앞 시각에 미복용이 있으면 한 줄로 알린다 (누르면 그 시각으로)
-        if (isDefault) {
-            val missedBefore = slots.withIndex().firstOrNull { (i, s) -> i < index && s.missedCount > 0 }
-            if (missedBefore != null) MissedBar(missedBefore.value, onClick = { onGo(missedBefore.index) })
-        }
+        SlotChips(slots, index, onGo)
 
         WithPillArt {
-            // ⏱ 지금 먹을 약 / 다음 먹을 약 [40분 뒤] / 지난 복약 / 나중 복약 [9시간 뒤]
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp)) {
-                ClockMark()
-                val label = when {
-                    isDefault && isPast -> R.string.s04_slot_now
-                    isDefault -> R.string.s04_slot_next
-                    isPast -> R.string.s04_slot_past
-                    else -> R.string.s04_slot_later
-                }
-                Text(
-                    text = stringResource(label),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.88f),
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-                if (!isPast) {
-                    Text(
-                        text = stringResource(R.string.s04_slot_in, durationText(Duration.between(nowTime, slot.time))),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier
-                            .padding(start = 6.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color.White.copy(alpha = 0.18f))
-                            .padding(horizontal = 7.dp, vertical = 2.dp)
-                    )
-                }
-            }
-
-            // 08:00 아침 · 2개 남음
             Text(
-                text = buildAnnotatedString {
-                    append(timeText(slot.time))
-                    withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.85f), letterSpacing = 0.sp)) {
-                        append("  " + stringResource(periodRes(slot.time)))
-                        val left = slot.pending.size
-                        if (left in 1 until slot.rows.size) append(" · " + stringResource(R.string.s04_slot_left, left))
-                    }
-                },
-                fontSize = 26.sp,
-                lineHeight = 34.sp,
+                text = timeText(slot.time),
+                fontSize = 28.sp,
+                lineHeight = 36.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-1).sp,
                 color = Color.White,
-                modifier = Modifier.padding(top = 6.dp)
+                modifier = Modifier.padding(top = 10.dp).semantics { heading() }
             )
-
             // 약 줄들: 그림과 겹치지 않게 폭을 조금 줄인다
-            Column(Modifier.fillMaxWidth(0.74f).padding(top = 6.dp, bottom = 12.dp)) {
+            Column(Modifier.fillMaxWidth(0.74f).padding(top = 4.dp, bottom = 12.dp)) {
                 slot.rows.forEach { row -> SlotMedRow(row, onToggle = { actions.onToggle(row) }) }
             }
         }
@@ -349,100 +292,56 @@ private fun SlotPage(
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             )
         }
-        RateLine(state.progress, Modifier.padding(top = 14.dp))
     }
 }
 
-/** ‹  ● 08:00  [12:30]  ● 21:00  › — 시각 칩의 점: 모두 기록 = 민트, 미복용 있음 = 주황, 그 밖 = 흐린 흰색 */
+/** ● 08:00  [12:30]  ● 21:00 — 오늘의 시각 칩. 눌러서 그 시각으로 간다(화살표 대신). 점: 모두 기록 = 민트, 미복용 있음 = 주황, 그 밖 = 흐린 흰색 */
 @Composable
-private fun SlotNav(slots: List<DoseSlot>, index: Int, onGo: (Int) -> Unit, modifier: Modifier = Modifier) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.fillMaxWidth()) {
-        NavArrow("‹", stringResource(R.string.s04_cd_prev_slot), enabled = index > 0) { onGo(index - 1) }
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState())
-        ) {
-            slots.forEachIndexed { i, slot ->
-                val selected = i == index
-                val dot = when {
-                    slot.pending.isEmpty() -> Color(0xFF7FE0CF)
-                    slot.missedCount > 0 -> Color(0xFFFFB866)
-                    else -> (if (selected) Color(0xFF0F6E7A) else Color.White).copy(alpha = 0.6f)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (selected) Color.White else Color.Transparent)
-                        .clickable(role = Role.Tab, onClick = { onGo(i) })
-                        .heightIn(min = 32.dp)
-                        .padding(horizontal = 8.dp, vertical = 5.dp)
-                ) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(dot))
-                    Text(
-                        text = timeText(slot.time),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (selected) Color(0xFF0F6E7A) else Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
+private fun SlotChips(slots: List<DoseSlot>, index: Int, onGo: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .offset(x = (-8).dp)   // 칩 안쪽 여백만큼 당겨 아래 글자와 왼쪽 줄을 맞춘다
+            .horizontalScroll(rememberScrollState())
+            .selectableGroup()
+    ) {
+        slots.forEachIndexed { i, slot ->
+            val selected = i == index
+            val dot = when {
+                slot.pending.isEmpty() -> Color(0xFF7FE0CF)
+                slot.missedCount > 0 -> Color(0xFFFFB866)
+                else -> (if (selected) Color(0xFF0F6E7A) else Color.White).copy(alpha = 0.6f)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(if (selected) Color.White else Color.Transparent)
+                    .selectable(selected = selected, role = Role.Tab, onClick = { onGo(i) })
+                    .heightIn(min = 40.dp)
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Box(Modifier.size(7.dp).clip(CircleShape).background(dot))
+                Text(
+                    text = timeText(slot.time),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) Color(0xFF0F6E7A) else Color.White.copy(alpha = 0.75f),
+                    modifier = Modifier.padding(start = 5.dp)
+                )
             }
         }
-        NavArrow("›", stringResource(R.string.s04_cd_next_slot), enabled = index < slots.lastIndex) { onGo(index + 1) }
-    }
-}
-
-@Composable
-private fun NavArrow(symbol: String, label: String, enabled: Boolean, onClick: () -> Unit) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(36.dp)
-            .alpha(if (enabled) 1f else 0.3f)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.16f))
-            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label, onClick = onClick)
-            .clearAndSetSemantics { contentDescription = label; role = Role.Button }
-    ) {
-        Text(symbol, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-    }
-}
-
-/** ⚠ 08:00에 미복용 2개 › */
-@Composable
-private fun MissedBar(slot: DoseSlot, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(top = 10.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White.copy(alpha = 0.13f))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 9.dp)
-    ) {
-        Text(
-            text = "⚠ " + stringResource(R.string.s04_missed_bar, timeText(slot.time), slot.missedCount),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFFFFD9A8),
-            modifier = Modifier.weight(1f)
-        )
-        Text("›", fontSize = 15.sp, color = Color.White, modifier = Modifier.clearAndSetSemantics { })
     }
 }
 
 /**
- * 약 한 줄: ○ 이름 1 cap [미복용]. 줄 전체가 누르는 곳이다(체크칸처럼 켜고 끈다).
- * 복용 완료 = 흰 동그라미 안 체크 + 흐리게·취소선, 건너뜀 = 파란 고리 + 흐리게, 미복용 = 주황 고리 + "미복용" 꼬리표.
+ * 약 한 줄: ○ 이름 1 cap. 줄 전체가 누르는 곳이다(체크칸처럼 켜고 끈다).
+ * 복용 완료 = 흰 동그라미 안 체크 + 흐리게·취소선, 건너뜀 = 파란 고리 + 흐리게, 미복용 = 주황 고리.
  */
 @Composable
 private fun SlotMedRow(row: DoseRowUi, onToggle: () -> Unit) {
     val taken = row.display == DoseDisplayStatus.TAKEN
     val skipped = row.display == DoseDisplayStatus.SKIPPED
     val missed = row.display == DoseDisplayStatus.MISSED
-    val missedWord = stringResource(R.string.s04_chip_missed)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -468,20 +367,6 @@ private fun SlotMedRow(row: DoseRowUi, onToggle: () -> Unit) {
             color = Color.White.copy(alpha = 0.8f),
             modifier = Modifier.padding(start = 7.dp)
         )
-        ConditionTag(row.condition, Modifier.padding(start = 7.dp), onDark = true)
-        if (missed) {
-            Text(
-                text = missedWord,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A4508),
-                modifier = Modifier
-                    .padding(start = 7.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(Color(0xFFFFD9A8))
-                    .padding(horizontal = 6.dp, vertical = 1.dp)
-            )
-        }
     }
 }
 
@@ -551,83 +436,4 @@ private fun HeroButton(title: String, sub: String?, modifier: Modifier, color: C
         Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = color)
         if (sub != null) Text(sub, fontSize = 11.sp, color = color.copy(alpha = 0.8f), modifier = Modifier.padding(top = 2.dp))
     }
-}
-
-/** 카드 아래 한 줄: 오늘 복약 진행률  20 %  ▬▭▭▭ (하루 전체 값이라 어느 장에서나 같다) */
-@Composable
-private fun RateLine(progress: DayProgress, modifier: Modifier = Modifier) {
-    val rate = progress.percent   // 기록하자마자 올라간다. null이면 오늘 회차가 없다
-    Column(modifier) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.18f)))
-        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 12.dp)) {
-            Column {
-                Text(stringResource(R.string.s04_rate_label), fontSize = 11.sp, color = Color.White.copy(alpha = 0.88f))
-                // "20" 크게 + "%" 작게. TalkBack에는 "20퍼센트"로 한 번에 읽히도록 한 Text에 넣는다.
-                Text(
-                    text = buildAnnotatedString {
-                        if (rate == null) append(stringResource(R.string.common_na))
-                        else {
-                            append(rate.toString())
-                            withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)) { append(" %") }
-                        }
-                    },
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            // 막대는 숫자와 같은 내용이라 TalkBack이 읽지 않는다
-            Box(
-                Modifier
-                    .weight(1f)
-                    .padding(bottom = 8.dp)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Color.White.copy(alpha = 0.22f))
-                    .clearAndSetSemantics { }
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(((rate ?: 0) / 100f).coerceIn(0f, 1f))
-                        .fillMaxHeight()
-                        .background(Color.White)
-                )
-            }
-        }
-    }
-}
-
-/** 작은 시계 그림(동그라미 + 바늘 둘). 장식이라 TalkBack이 읽지 않는다. */
-@Composable
-private fun ClockMark() {
-    Canvas(Modifier.size(14.dp).clearAndSetSemantics { }) {
-        val stroke = size.minDimension * 0.11f
-        val c = Offset(size.width / 2, size.height / 2)
-        drawCircle(Color.White, radius = size.minDimension / 2 - stroke / 2, style = Stroke(stroke))
-        drawLine(Color.White, c, Offset(c.x, size.height * 0.26f), strokeWidth = stroke, cap = StrokeCap.Round)
-        drawLine(Color.White, c, Offset(size.width * 0.68f, c.y), strokeWidth = stroke, cap = StrokeCap.Round)
-    }
-}
-
-/** "40분", "3시간 30분", "9시간" */
-@Composable
-private fun durationText(d: Duration): String {
-    val minutes = d.toMinutes().coerceAtLeast(1)
-    val h = (minutes / 60).toInt()
-    val m = (minutes % 60).toInt()
-    return when {
-        h == 0 -> stringResource(R.string.s04_dur_m, m)
-        m == 0 -> stringResource(R.string.s04_dur_h, h)
-        else -> stringResource(R.string.s04_dur_hm, h, m)
-    }
-}
-
-private fun periodRes(time: LocalTime): Int = when (periodOf(time)) {
-    DayPeriod.DAWN -> R.string.s05_period_dawn
-    DayPeriod.MORNING -> R.string.s05_period_morning
-    DayPeriod.LUNCH -> R.string.s05_period_lunch
-    DayPeriod.EVENING -> R.string.s05_period_evening
-    DayPeriod.NIGHT -> R.string.s05_period_night
 }
