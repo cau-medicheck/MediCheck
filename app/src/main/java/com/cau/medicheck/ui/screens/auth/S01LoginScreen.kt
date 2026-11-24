@@ -25,22 +25,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
-import com.cau.medicheck.ui.components.AuthLogo
-import com.cau.medicheck.ui.components.AuthSub
-import com.cau.medicheck.ui.components.AuthTitle
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.FormField
-import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.LinkText
-import com.cau.medicheck.ui.components.McAppFrame
 import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.SegmentedTabs
-import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.theme.Gap16
-import com.cau.medicheck.ui.theme.Gap22
 import com.cau.medicheck.ui.theme.MediCheckTheme
 
 /**
@@ -72,88 +62,79 @@ fun S01LoginScreen(
     // (LinkText·SegmentedTabs에는 enabled 인자가 없어서 여기서 막는다)
     val submit = { if (!busy) onLogin(email, password) }
 
-    McAppFrame(screenId = Routes.S01, loggedIn = false) {
-        McScreenColumn(paneTitle = stringResource(R.string.screen_title_s01)) {
-            AuthLogo(
-                symbol = Glyph.LOGO,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 24.dp, bottom = 16.dp)
+    AuthFrame(
+        paneTitle = stringResource(R.string.screen_title_s01),
+        tagline = stringResource(R.string.s01_tagline),
+        footer = {
+            AuthFooterLink(
+                question = stringResource(R.string.s01_no_account),
+                action = stringResource(R.string.auth_tab_signup),
+                onClick = { if (!busy) onGoToSignUp() }
             )
-            AuthTitle(stringResource(R.string.app_name))
-            AuthSub(stringResource(R.string.s01_subtitle), Modifier.padding(top = 8.dp))
-            Spacer(Modifier.height(Gap22))
-
-            SegmentedTabs(
-                labels = listOf(stringResource(R.string.auth_tab_login), stringResource(R.string.auth_tab_signup)),
-                selectedIndex = 0,
-                onSelect = { index -> if (index == 1 && !busy) onGoToSignUp() }
-            )
-
-            val emailLabel = stringResource(R.string.auth_label_email)
-            FieldLabel(emailLabel)
-            FormField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = stringResource(R.string.auth_hint_email),
-                label = emailLabel,
-                enabled = !busy,
-                // 이메일 키보드, 첫 글자 자동 대문자·자동 수정 끔, 키보드 버튼 '다음' → 비밀번호 칸으로
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-            )
-
-            val passwordLabel = stringResource(R.string.auth_label_password)
-            FieldLabel(passwordLabel)
-            FormField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = stringResource(R.string.auth_hint_password),
-                label = passwordLabel,
-                enabled = !busy,
-                keyboardOptions = KeyboardOptions(
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { submit() }),
-                visualTransformation = PasswordVisualTransformation()   // 글자를 점(•)으로 가린다
-            )
-
-            // 오른쪽 정렬 링크 (v3: text-align:right; margin-top:10px)
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) {
-                LinkText(
-                    text = stringResource(R.string.s01_forgot),
-                    onClick = { if (!busy) onForgot() }
-                )
-            }
-            Spacer(Modifier.height(Gap16))
-
-            McButton(
-                text = stringResource(R.string.s01_submit),
-                onClick = submit,
-                kind = ButtonKind.PRIMARY,
-                full = true,
-                enabled = !busy,
-                loading = state.pressed == AuthAction.LOGIN
-            )
-            Spacer(Modifier.height(Gap16))
-            McButton(
-                text = stringResource(R.string.s01_sample),
-                onClick = { if (!busy) onSample() },
-                kind = ButtonKind.LIGHT,
-                full = true,
-                enabled = !busy,
-                loading = state.pressed == AuthAction.SAMPLE
-            )
-            Spacer(Modifier.height(Gap16))
-            Notice(stringResource(R.string.s01_notice))
         }
+    ) {
+        AuthCardTitle(stringResource(R.string.auth_tab_login))
+        val emailLabel = stringResource(R.string.auth_label_email)
+        FieldLabel(emailLabel)
+        FormField(
+            value = email,
+            onValueChange = { email = it },
+            placeholder = stringResource(R.string.auth_hint_email),
+            label = emailLabel,
+            enabled = !busy,
+            // 이메일 키보드, 첫 글자 자동 대문자·자동 수정 끔, 키보드 버튼 '다음' → 비밀번호 칸으로
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+        )
+
+        val passwordLabel = stringResource(R.string.auth_label_password)
+        FieldLabel(passwordLabel)
+        FormField(
+            value = password,
+            onValueChange = { password = it },
+            placeholder = stringResource(R.string.auth_hint_password),
+            label = passwordLabel,
+            enabled = !busy,
+            keyboardOptions = KeyboardOptions(
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = { submit() }),
+            visualTransformation = PasswordVisualTransformation()   // 글자를 점(•)으로 가린다
+        )
+
+        // 오른쪽 정렬 링크 (v3: text-align:right; margin-top:10px)
+        Box(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) {
+            LinkText(
+                text = stringResource(R.string.s01_forgot),
+                onClick = { if (!busy) onForgot() }
+            )
+        }
+        Spacer(Modifier.height(Gap16))
+
+        McButton(
+            text = stringResource(R.string.s01_submit),
+            onClick = submit,
+            kind = ButtonKind.PRIMARY,
+            full = true,
+            enabled = !busy,
+            loading = state.pressed == AuthAction.LOGIN
+        )
+        Spacer(Modifier.height(Gap16))
+        McButton(
+            text = stringResource(R.string.s01_sample),
+            onClick = { if (!busy) onSample() },
+            kind = ButtonKind.LIGHT,
+            full = true,
+            enabled = !busy,
+            loading = state.pressed == AuthAction.SAMPLE
+        )
     }
 }
 

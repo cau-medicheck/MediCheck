@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.alpha
@@ -326,25 +327,39 @@ fun McScreenColumn(
  * 그림 파일 없이 글자와 Canvas로 그린다. TalkBack은 "MediCheck" 한 덩어리 제목으로 읽는다.
  */
 @Composable
-private fun BrandWordmark() {
+private fun BrandWordmark() = Wordmark(fontSize = 20.sp)
+
+/**
+ * 글자 로고 "MediCheck". 머리말(남색·청록)과 로그인 전 화면의 청록 머리(onDark = 흰색·민트)가 함께 쓴다.
+ * "Check" 밑에 두 색 캡슐 밑줄을 그린다. TalkBack은 "MediCheck" 한 덩어리 제목으로 읽는다.
+ */
+@Composable
+fun Wordmark(fontSize: TextUnit, onDark: Boolean = false, modifier: Modifier = Modifier) {
     val appName = stringResource(R.string.app_name)
-    Row(modifier = Modifier.clearAndSetSemantics { contentDescription = appName; heading() }) {
-        Text(text = "Medi", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.6).sp, color = Navy, maxLines = 1)
+    val first = if (onDark) Color.White else Navy
+    val second = if (onDark) WordmarkOnDark else Teal
+    val light = if (onDark) Color.White.copy(alpha = 0.45f) else LogoUnderlineMint
+    val tracking = (-0.03f * fontSize.value).sp
+    Row(modifier = modifier.clearAndSetSemantics { contentDescription = appName; heading() }) {
+        Text(text = "Medi", fontSize = fontSize, fontWeight = FontWeight.ExtraBold, letterSpacing = tracking, color = first, maxLines = 1)
         Text(
             text = "Check",
-            fontSize = 20.sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.ExtraBold,
-            letterSpacing = (-0.6).sp,
-            color = Teal,
+            letterSpacing = tracking,
+            color = second,
             maxLines = 1,
-            // 캡슐 밑줄: 왼쪽 42%는 옅은 민트, 나머지는 청록. 글자 아래쪽 바깥에 그린다
+            // 캡슐 밑줄: 왼쪽 42%는 옅은 색, 나머지는 진한 색. 글자 아래쪽 바깥에 그린다
             modifier = Modifier.drawBehind {
-                val h = 3.dp.toPx()
-                val top = size.height - 2.dp.toPx()
+                val h = size.height * 0.11f
+                val top = size.height - h * 0.6f
                 val r = CornerRadius(h / 2)
-                drawRoundRect(LogoUnderlineMint, Offset(0f, top), Size(size.width, h), r)
-                drawRoundRect(Teal, Offset(size.width * 0.42f, top), Size(size.width * 0.58f, h), r)
+                drawRoundRect(light, Offset(0f, top), Size(size.width, h), r)
+                drawRoundRect(second, Offset(size.width * 0.42f, top), Size(size.width * 0.58f, h), r)
             }
         )
     }
 }
+
+/** 청록 바탕 위 로고의 "Check" 색 */
+private val WordmarkOnDark = Color(0xFFA8EDE3)
