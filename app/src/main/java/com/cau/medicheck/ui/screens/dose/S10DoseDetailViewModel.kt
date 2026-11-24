@@ -9,12 +9,15 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.R
 import com.cau.medicheck.data.repository.DoseRepository
+import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.StatusChangeResult
 import com.cau.medicheck.data.repository.UndoResult
 import com.cau.medicheck.domain.DoseDisplayStatus
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.DoseStatus
+import com.cau.medicheck.domain.MedicationColor
+import com.cau.medicheck.domain.MedicationShape
 import com.cau.medicheck.ui.components.ToastBus
 import com.cau.medicheck.ui.navigation.SelectionStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,7 +52,10 @@ data class DoseDetailUiState(
     val display: DoseDisplayStatus = DoseDisplayStatus.UPCOMING,
     val isFuture: Boolean = false,
     val actualTime: LocalTime? = null,
-    val shouldClose: Boolean = false
+    val shouldClose: Boolean = false,
+    /** 약 아이콘의 모양·색 (내 약에서 고른 값). 약 정보를 못 읽었으면 null */
+    val shape: MedicationShape? = null,
+    val color: MedicationColor? = null
 )
 
 /** DB에서 읽어 온 결과: 어느 열쇠로 읽었고(key), 무엇이 나왔고(dose), 그때의 오늘(today) */
@@ -68,6 +74,7 @@ class S10DoseDetailViewModel(
     private val hasArgs: Boolean,
     private val argKey: DoseKey?,
     private val doseRepository: DoseRepository,
+    private val medicationRepository: MedicationRepository,
     private val selection: SelectionStore,
     private val toastBus: ToastBus,
     private val clock: Clock = Clock.systemDefaultZone()
@@ -90,6 +97,13 @@ class S10DoseDetailViewModel(
             else doseRepository.observeDose(userId, key, today).map { Loaded(key, it, today) }
         }
 
+    /** 보여 주는 회차의 약 (아이콘 모양·색을 위해). 약이 바뀌면 새 값이 온다 */
+    private val medication = dose.map { it.dose?.medicationId }.distinctUntilChanged()
+        .flatMapLatest { id ->
+            if (id == null) flowOf(null)
+            else medicationRepository.observeMedications(userId).map { list -> list.find { it.id == id } }
+        }
+
     val uiState: StateFlow<DoseDetailUiState> =
         combine(dose, now, resolved, shouldClose, key) { (loadedKey, dose, today), now, resolved, close, key ->
             DoseDetailUiState(
@@ -102,7 +116,8 @@ class S10DoseDetailViewModel(
                 actualTime = dose?.actualTimeOrNull(clock.zone),
                 shouldClose = close
             )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DoseDetailUiState())
+        }.combine(medication) { state, med -> state.copy(shape = med?.shape, color = med?.color) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DoseDetailUiState())
 
     init {
         viewModelScope.launch { tickerFlow(clock).collect { now.value = it } }
@@ -161,7 +176,7 @@ class S10DoseDetailViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 S10DoseDetailViewModel(
-                    userId, hasArgs, argKey, container.doseRepository, container.selection, container.toastBus,
+                    userId, hasArgs, argKey, container.doseRepository, container.medicationRepository, container.selection, container.toastBus,
                     clock = container.clock
                 )
             }

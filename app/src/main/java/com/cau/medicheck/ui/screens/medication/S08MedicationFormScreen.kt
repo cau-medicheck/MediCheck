@@ -49,7 +49,6 @@ import java.time.LocalTime
 /** 약 등록/수정 화면의 입력·버튼이 부를 함수 묶음 */
 class MedicationFormActions(
     val onBackToList: () -> Unit,
-    val onOpenPhoto: () -> Unit,
     val onNameChange: (String) -> Unit,
     val onDosageChange: (String) -> Unit,
     val onMemoChange: (String) -> Unit,
@@ -95,11 +94,6 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
             subtitle = stringResource(R.string.s08_subtitle),
             modifier = Modifier.padding(top = 16.dp)
         )
-        // 사진으로 등록하는 기능은 시안(S29)만 있다. 등록할 때만 길을 열어 둔다.
-        if (state.isNew) {
-            LinkText(stringResource(R.string.s08_link_photo), actions.onOpenPhoto, Modifier.padding(top = 6.dp))
-        }
-
         val next = KeyboardOptions(imeAction = ImeAction.Next)   // 키보드의 "다음" 키
         FieldLabel(stringResource(R.string.s08_label_name))
         FormField(
