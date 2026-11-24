@@ -37,7 +37,6 @@ import com.cau.medicheck.domain.DayMark
 import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseItem
-import com.cau.medicheck.domain.DoseKey
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.RecentDay
 import com.cau.medicheck.ui.components.BackLink
@@ -69,8 +68,6 @@ import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ProgressTrack
 import com.cau.medicheck.ui.theme.Teal
-import com.cau.medicheck.ui.theme.TimelineDotMissed
-import com.cau.medicheck.ui.theme.TimelineDotSkipped
 import com.cau.medicheck.ui.theme.TimelineDotWait
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -82,9 +79,7 @@ class MedicationDetailActions(
     val onEdit: () -> Unit,
     val onDelete: () -> Unit,
     val onOpenSource: () -> Unit,
-    val onOpenArchive: () -> Unit,
-    /** 다음 복용 띠를 눌렀을 때: 그 회차의 상세(S10) */
-    val onOpenDose: (DoseKey) -> Unit
+    val onOpenArchive: () -> Unit
 )
 
 /**
@@ -148,8 +143,8 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
         }
     }
 
-    // ----- 다음 복용 띠: 누르면 그 회차의 상세(S10) -----
-    state.nextDose?.let { NextDoseBand(it, onClick = { actions.onOpenDose(it.key) }) }
+    // ----- 다음 복용 띠 (보기 전용) -----
+    state.nextDose?.let { NextDoseBand(it) }
 
     // ----- 최근 7일: 요일 동그라미 -----
     RecentWeekCard(state.recentDays, state.recentCounts)
@@ -218,9 +213,9 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
     }
 }
 
-/** 청록 띠: "다음 복용 / 내일 12:30 · 식후   [보기 ›]" */
+/** 청록 띠: "다음 복용 / 내일 12:30 · 식후" */
 @Composable
-private fun NextDoseBand(dose: DoseItem, onClick: () -> Unit) {
+private fun NextDoseBand(dose: DoseItem) {
     val today = LocalDate.now()
     val day = when (dose.date) {
         today -> stringResource(R.string.s07_day_today)
@@ -230,31 +225,17 @@ private fun NextDoseBand(dose: DoseItem, onClick: () -> Unit) {
     val condition = if (dose.condition == DoseCondition.NONE) "" else " · " + conditionLabel(dose.condition)
     val value = "$day ${timeText(dose.time)}$condition"
     val label = stringResource(R.string.s07_next_label)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
         modifier = Modifier
             .padding(top = 16.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Teal)
-            .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 15.dp, vertical = 12.dp)
             .clearAndSetSemantics { contentDescription = "$label, $value" }
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
-            Text(value, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-        }
-        Text(
-            text = stringResource(R.string.s07_next_open),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Teal,
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.White)
-                .padding(horizontal = 11.dp, vertical = 7.dp)
-        )
+        Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
+        Text(value, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
     }
 }
 
@@ -285,33 +266,34 @@ private fun RecentWeekCard(days: List<RecentDay>, counts: DoseCounts) {
             days.forEach { day -> DayCircle(day, isToday = day.date == today) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 12.dp)) {
-            Legend(HomeChipDoneText, stringResource(R.string.s07_legend_taken))
-            Legend(TimelineDotMissed, stringResource(R.string.s07_legend_missed))
-            Legend(TimelineDotSkipped, stringResource(R.string.s07_legend_skipped))
-            Legend(TimelineDotWait, stringResource(R.string.s07_legend_upcoming))
+            DayMark.entries.filter { it != DayMark.NONE }.forEach { Legend(it) }
         }
     }
 }
 
+/** 동그라미의 바탕색 · 글자색 · 기호. 범례도 같은 값을 써서 색이 어긋나지 않게 한다 */
+private data class MarkLook(val bg: Color, val fg: Color, val symbol: String)
+
+private fun DayMark.look(): MarkLook = when (this) {
+    DayMark.TAKEN -> MarkLook(HomeChipDoneBg, HomeChipDoneText, "✓")
+    DayMark.MISSED -> MarkLook(HomeChipMissedBg, HomeChipMissedText, "!")
+    DayMark.SKIPPED -> MarkLook(HomeChipSkippedBg, HomeChipSkippedText, "–")
+    DayMark.UPCOMING -> MarkLook(Color.White, HomeChipWaitText, "○")
+    DayMark.NONE -> MarkLook(ProgressTrack, Muted, "")
+}
+
+/** 동그라미 모양: 바탕색, 예정이면 흰 바탕에 회색 테두리 */
+private fun Modifier.markCircle(mark: DayMark): Modifier = this
+    .clip(CircleShape)
+    .background(mark.look().bg)
+    .then(if (mark == DayMark.UPCOMING) Modifier.border(1.5.dp, TimelineDotWait, CircleShape) else Modifier)
+
 /** 요일 동그라미 하나: 먹음 ✓ · 미복용 ! · 건너뜀 – · 예정 ○ · 회차 없음(빈 동그라미) */
 @Composable
 private fun DayCircle(day: RecentDay, isToday: Boolean) {
-    val (bg, fg, symbol) = when (day.mark) {
-        DayMark.TAKEN -> Triple(HomeChipDoneBg, HomeChipDoneText, "✓")
-        DayMark.MISSED -> Triple(HomeChipMissedBg, HomeChipMissedText, "!")
-        DayMark.SKIPPED -> Triple(HomeChipSkippedBg, HomeChipSkippedText, "–")
-        DayMark.UPCOMING -> Triple(Color.White, HomeChipWaitText, "○")
-        DayMark.NONE -> Triple(ProgressTrack, Muted, "")
-    }
+    val (_, fg, symbol) = day.mark.look()
     val dayName = if (isToday) stringResource(R.string.s07_day_today) else weekdayText(day.date)
-    val markName = when (day.mark) {
-        DayMark.TAKEN -> stringResource(R.string.s07_legend_taken)
-        DayMark.MISSED -> stringResource(R.string.s07_legend_missed)
-        DayMark.SKIPPED -> stringResource(R.string.s07_legend_skipped)
-        DayMark.UPCOMING -> stringResource(R.string.s07_legend_upcoming)
-        DayMark.NONE -> stringResource(R.string.s07_mark_none)
-    }
-    val description = fullDateText(day.date) + ", " + markName
+    val description = fullDateText(day.date) + ", " + markName(day.mark)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clearAndSetSemantics { contentDescription = description }
@@ -320,9 +302,7 @@ private fun DayCircle(day: RecentDay, isToday: Boolean) {
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(32.dp)
-                .clip(CircleShape)
-                .background(bg)
-                .then(if (day.mark == DayMark.UPCOMING) Modifier.border(1.5.dp, TimelineDotWait, CircleShape) else Modifier)
+                .markCircle(day.mark)
         ) {
             Text(symbol, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = fg)
         }
@@ -336,13 +316,25 @@ private fun DayCircle(day: RecentDay, isToday: Boolean) {
     }
 }
 
+/** 범례 하나: 동그라미를 작게 줄인 것 + 이름 */
 @Composable
-private fun Legend(color: Color, text: String) {
+private fun Legend(mark: DayMark) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(7.dp).clip(CircleShape).background(color))
-        Text(text, fontSize = 11.sp, color = Muted, modifier = Modifier.padding(start = 4.dp))
+        Box(Modifier.size(11.dp).markCircle(mark))
+        Text(markName(mark), fontSize = 11.sp, color = Muted, modifier = Modifier.padding(start = 4.dp))
     }
 }
+
+@Composable
+private fun markName(mark: DayMark): String = stringResource(
+    when (mark) {
+        DayMark.TAKEN -> R.string.s07_legend_taken
+        DayMark.MISSED -> R.string.s07_legend_missed
+        DayMark.SKIPPED -> R.string.s07_legend_skipped
+        DayMark.UPCOMING -> R.string.s07_legend_upcoming
+        DayMark.NONE -> R.string.s07_mark_none
+    }
+)
 
 /** 정보 칸의 한 줄: 왼쪽 이름, 오른쪽 값. onClick이 있으면 줄 전체를 누를 수 있고 값이 청록색이다. */
 @Composable
