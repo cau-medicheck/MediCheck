@@ -3,19 +3,25 @@ package com.cau.medicheck.ui.screens.stats
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
@@ -30,7 +36,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -40,9 +48,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,18 +67,14 @@ import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.SlotRate
 import com.cau.medicheck.domain.Streaks
 import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.IconSquareButton
+import com.cau.medicheck.ui.components.GlyphText
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.SegmentedTabs
-import com.cau.medicheck.ui.components.StatusCountBox
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.monthTitleText
 import com.cau.medicheck.ui.theme.DangerTitle
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
 import com.cau.medicheck.ui.theme.HomeChipDoneText
-import com.cau.medicheck.ui.theme.HomeChipMissedBg
 import com.cau.medicheck.ui.theme.HomeChipMissedText
-import com.cau.medicheck.ui.theme.HomeChipSkippedBg
 import com.cau.medicheck.ui.theme.HomeChipSkippedText
 import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
@@ -76,6 +83,9 @@ import com.cau.medicheck.ui.theme.ProgressTrack
 import com.cau.medicheck.ui.theme.RateFair
 import com.cau.medicheck.ui.theme.RateGood
 import com.cau.medicheck.ui.theme.RateLow
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.TimelineDotMissed
+import com.cau.medicheck.ui.theme.TimelineDotSkipped
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -85,20 +95,49 @@ import java.time.YearMonth
  * 설명 문장은 두지 않는다(계산 기준은 설정의 "복약률 계산 기준"에만 있다).
  */
 
-/** 통계 화면 맨 위: 탭 세 개. index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 패턴) */
+/** 통계 화면 맨 위: 밑줄 글자 탭 "주간 · 월간 · 패턴". index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 패턴) */
 @Composable
-private fun ColumnScope.StatsHeader(index: Int, onTab: (Int) -> Unit) {
-    SegmentedTabs(
-        labels = listOf(
-            stringResource(R.string.stats_tab_week),
-            stringResource(R.string.stats_tab_month),
-            stringResource(R.string.stats_tab_pattern)
-        ),
-        selectedIndex = index,
-        onSelect = onTab,
-        modifier = Modifier.padding(vertical = 16.dp)
+private fun StatsHeader(index: Int, onTab: (Int) -> Unit) {
+    val labels = listOf(
+        stringResource(R.string.stats_tab_week),
+        stringResource(R.string.stats_tab_month),
+        stringResource(R.string.stats_tab_pattern)
     )
+    Column(Modifier.padding(top = 4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.selectableGroup()) {
+            labels.forEachIndexed { i, label ->
+                val on = i == index
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .selectable(selected = on, role = Role.Tab, onClick = { onTab(i) })
+                        .padding(top = 6.dp)
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 16.sp,
+                        fontWeight = if (on) FontWeight.ExtraBold else FontWeight.Bold,
+                        color = if (on) Navy else TabOffText,
+                        modifier = Modifier.padding(horizontal = 2.dp)
+                    )
+                    // 고른 탭만 청록 밑줄
+                    Box(
+                        Modifier
+                            .padding(top = 8.dp)
+                            .width(if (on) 34.dp else 0.dp)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(if (on) Teal else Color.Transparent)
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = Line)
+    }
 }
+
+/** 고르지 않은 탭 글자 (흰 바탕에서 읽을 수 있는 진하기) */
+private val TabOffText = Color(0xFF5E7480)
 
 // ---------------------------------------------------------------------------------------------
 // 색: 80% 이상 초록 · 50% 이상 주황 · 그 아래 빨강 (내 약 카드·약 상세와 같은 기준)
@@ -138,18 +177,66 @@ private fun heatColor(rate: Int?): Color = when {
 // 공통 부품
 // ---------------------------------------------------------------------------------------------
 
-/** ‹ 제목 / 날짜 범위 › — 주·달 이동 */
+/**
+ * 기간 이동 알약: 화면 맨 아래(하단 탭 바로 위)에 떠 있는 가로로 긴 흰 알약 [‹  11월 4주차 / 11.23 ~ 11.29  ›].
+ * 스크롤해도 그 자리에 있다. 그림자로 떠 보이게 한다.
+ */
 @Composable
-private fun PeriodNav(title: String, range: String, prevLabel: String, nextLabel: String, onPrev: () -> Unit, onNext: () -> Unit, nextEnabled: Boolean) {
-    SurfaceCard(padding = 10.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconSquareButton(Glyph.PREV, prevLabel, outlined = true, onClick = onPrev)
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.semantics { heading() })
-                Text(range, fontSize = 12.sp, color = Muted)
-            }
-            IconSquareButton(Glyph.NEXT, nextLabel, outlined = true, onClick = onNext, enabled = nextEnabled)
+private fun FloatingPeriodBar(title: String, range: String, prevLabel: String, nextLabel: String, onPrev: () -> Unit, onNext: () -> Unit, nextEnabled: Boolean, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(99.dp)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(10.dp, shape, ambientColor = Navy.copy(alpha = 0.25f), spotColor = Navy.copy(alpha = 0.25f))
+            .clip(shape)
+            .background(Color.White)
+            .padding(6.dp)
+    ) {
+        RoundArrow(Glyph.PREV, prevLabel, onPrev, enabled = true)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.semantics { heading() })
+            Text(range, fontSize = 12.sp, color = Muted)
         }
+        RoundArrow(Glyph.NEXT, nextLabel, onNext, enabled = nextEnabled)
+    }
+}
+
+/** 알약 양 끝의 동그란 화살표 단추 (48dp 누름 영역) */
+@Composable
+private fun RoundArrow(symbol: String, label: String, onClick: () -> Unit, enabled: Boolean) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .alpha(if (enabled) 1f else 0.35f)
+            .clip(CircleShape)
+            .background(ProgressTrack)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label, onClick = onClick)
+            .clearAndSetSemantics {
+                contentDescription = label
+                role = Role.Button
+                if (!enabled) disabled()
+            }
+    ) {
+        GlyphText(symbol, fontSize = 18, color = Navy)
+    }
+}
+
+/** 통계 화면 틀: 스크롤 내용 위에 아래쪽 기간 알약을 겹쳐 띄운다(알약이 없으면 내용만) */
+@Composable
+private fun StatsFrame(paneTitle: String, bar: (@Composable (Modifier) -> Unit)?, content: @Composable ColumnScope.() -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        McScreenColumn(paneTitle = paneTitle) {
+            content()
+            // 마지막 카드가 떠 있는 알약에 가리지 않게 아래 여백
+            if (bar != null) Spacer(Modifier.height(84.dp))
+        }
+        bar?.invoke(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        )
     }
 }
 
@@ -165,7 +252,7 @@ private fun rangeText(from: LocalDate, to: LocalDate): String =
 @Composable
 private fun SummaryCard(total: DoseCounts, prevRate: Int?, @androidx.annotation.StringRes deltaRes: Int) {
     val rate = total.completionRate
-    SurfaceCard(Modifier.padding(top = 12.dp)) {
+    SurfaceCard(Modifier.padding(top = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             RateRing(rate, size = 92.dp)
             Column(Modifier.padding(start = 18.dp)) {
@@ -178,11 +265,37 @@ private fun SummaryCard(total: DoseCounts, prevRate: Int?, @androidx.annotation.
                 if (rate != null && prevRate != null) DeltaChip(rate - prevRate, deltaRes, Modifier.padding(top = 8.dp))
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-            StatusCountBox(stringResource(R.string.common_count_taken), total.taken, HomeChipDoneBg, HomeChipDoneText)
-            StatusCountBox(stringResource(R.string.common_count_skipped), total.skipped, HomeChipSkippedBg, HomeChipSkippedText)
-            StatusCountBox(stringResource(R.string.common_count_missed), total.missed, HomeChipMissedBg, HomeChipMissedText)
+        // 완료 · 건너뜀 · 미복용: 선으로 나눈 세 칸 (색 점 + 이름 / 횟수 / 비율)
+        HorizontalDivider(color = Line, modifier = Modifier.padding(top = 18.dp))
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(top = 14.dp)) {
+            CountColumn(stringResource(R.string.common_count_taken), total.taken, total.due, RateGood, HomeChipDoneText, Modifier.weight(1f))
+            Box(Modifier.width(1.dp).fillMaxHeight().background(Line))
+            CountColumn(stringResource(R.string.common_count_skipped), total.skipped, total.due, TimelineDotSkipped, HomeChipSkippedText, Modifier.weight(1f))
+            Box(Modifier.width(1.dp).fillMaxHeight().background(Line))
+            CountColumn(stringResource(R.string.common_count_missed), total.missed, total.due, TimelineDotMissed, HomeChipMissedText, Modifier.weight(1f))
         }
+    }
+}
+
+/** 숫자 한 칸: "● 완료 / 5회 / 56%". 비율 = 그 횟수 ÷ 먹어야 했던 횟수 */
+@Composable
+private fun CountColumn(label: String, count: Int, due: Int, dot: Color, textColor: Color, modifier: Modifier) {
+    val unit = stringResource(R.string.s15_count_unit)
+    val share = if (due == 0) null else Math.round(count * 100f / due)
+    val shareText = share?.let { stringResource(R.string.common_percent, it) }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.clearAndSetSemantics { contentDescription = "$label $count$unit ${shareText.orEmpty()}" }
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(8.dp).clip(CircleShape).background(dot))
+            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.padding(start = 5.dp))
+        }
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
+            Text(count.toString(), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+            Text(unit, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(start = 1.dp, bottom = 4.dp))
+        }
+        if (shareText != null) Text(shareText, fontSize = 11.sp, color = Muted)
     }
 }
 
@@ -265,20 +378,18 @@ private fun RateBar(rate: Int?, modifier: Modifier = Modifier) {
 
 @Composable
 fun S13WeekStatsScreen(state: WeeklyStatsUiState, onTab: (Int) -> Unit, onShiftWeek: (Long) -> Unit) {
-    McScreenColumn(paneTitle = stringResource(R.string.screen_title_s13)) {
+    val week = state.week
+    val title = stringResource(R.string.stats_week_title, week.month.monthValue, week.index)
+    val range = rangeText(state.monday, state.monday.plusDays(6))
+    val prev = stringResource(R.string.stats_cd_prev_week)
+    val next = stringResource(R.string.stats_cd_next_week)
+    StatsFrame(
+        paneTitle = stringResource(R.string.screen_title_s13),
+        bar = { m -> FloatingPeriodBar(title, range, prev, next, { onShiftWeek(-1) }, { onShiftWeek(1) }, !state.isThisWeek, m) }
+    ) {
         StatsHeader(index = 0, onTab = onTab)
-        val week = state.week
-        PeriodNav(
-            title = stringResource(R.string.stats_week_title, week.month.monthValue, week.index),
-            range = rangeText(state.monday, state.monday.plusDays(6)),
-            prevLabel = stringResource(R.string.stats_cd_prev_week),
-            nextLabel = stringResource(R.string.stats_cd_next_week),
-            onPrev = { onShiftWeek(-1) },
-            onNext = { onShiftWeek(1) },
-            nextEnabled = !state.isThisWeek
-        )
         // 기록을 읽어 오는 잠깐 동안은 "– · 0"이 번쩍이지 않게 아래를 그리지 않는다.
-        if (state.isLoading) return@McScreenColumn
+        if (state.isLoading) return@StatsFrame
 
         SummaryCard(state.stats.total, state.prevRate, R.string.stats_delta_week)
 
@@ -341,19 +452,17 @@ private fun WeekdayBars(days: List<DayStats>, today: LocalDate) {
 
 @Composable
 fun S14MonthStatsScreen(state: MonthStatsUiState, onTab: (Int) -> Unit, onShiftMonth: (Long) -> Unit) {
-    McScreenColumn(paneTitle = stringResource(R.string.screen_title_s14)) {
+    val month = state.month
+    val title = monthTitleText(month)
+    val range = rangeText(month.atDay(1), month.atEndOfMonth())
+    val prev = stringResource(R.string.common_cd_prev_month)
+    val next = stringResource(R.string.common_cd_next_month)
+    StatsFrame(
+        paneTitle = stringResource(R.string.screen_title_s14),
+        bar = { m -> FloatingPeriodBar(title, range, prev, next, { onShiftMonth(-1) }, { onShiftMonth(1) }, month.isBefore(YearMonth.from(state.today)), m) }
+    ) {
         StatsHeader(index = 1, onTab = onTab)
-        val month = state.month
-        PeriodNav(
-            title = monthTitleText(month),
-            range = rangeText(month.atDay(1), month.atEndOfMonth()),
-            prevLabel = stringResource(R.string.common_cd_prev_month),
-            nextLabel = stringResource(R.string.common_cd_next_month),
-            onPrev = { onShiftMonth(-1) },
-            onNext = { onShiftMonth(1) },
-            nextEnabled = month.isBefore(YearMonth.from(state.today))
-        )
-        if (state.isLoading) return@McScreenColumn
+        if (state.isLoading) return@StatsFrame
 
         SummaryCard(state.stats.total, state.prevRate, R.string.stats_delta_month)
 
@@ -476,16 +585,16 @@ private fun WeekRateRow(row: WeekRow) {
 
 @Composable
 fun S15PatternScreen(state: PatternUiState, onTab: (Int) -> Unit) {
-    McScreenColumn(paneTitle = stringResource(R.string.screen_title_s15)) {
+    StatsFrame(paneTitle = stringResource(R.string.screen_title_s15), bar = null) {
         StatsHeader(index = 2, onTab = onTab)
         Text(
             text = stringResource(R.string.s15_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Navy,
-            modifier = Modifier.padding(start = 2.dp, bottom = 4.dp).semantics { heading() }
+            modifier = Modifier.padding(start = 2.dp, top = 18.dp, bottom = 4.dp).semantics { heading() }
         )
-        if (state.isLoading) return@McScreenColumn
+        if (state.isLoading) return@StatsFrame
 
         SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
             Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 6.dp)) {

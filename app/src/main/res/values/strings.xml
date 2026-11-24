@@ -592,6 +592,7 @@
     <string name="s15_streak_current">현재</string>
     <string name="s15_streak_best">최고</string>
     <string name="s15_days_unit">일</string>
+    <string name="s15_count_unit">회</string>
     <string name="stats_tab_week">주간</string>
     <string name="stats_tab_month">월간</string>
     <string name="stats_tab_pattern">패턴</string>
