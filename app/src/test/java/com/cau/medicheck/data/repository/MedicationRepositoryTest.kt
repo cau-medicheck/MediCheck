@@ -111,6 +111,27 @@ class MedicationRepositoryTest {
     // ---------- 등록 ----------
 
     @Test
+    fun `바로 복용 시작을 끄고 등록하면 쉬는 중이고 기록이 하나도 생기지 않는다`() = runBlocking<Unit> {
+        val id = (repository.addMedication(me, draft().copy(startActive = false)) as MedicationResult.Success).medicationId
+
+        assertEquals(today.toString(), medicationDao.medications.value.single().pausedFrom)
+        assertTrue(doseRecordDao.records.value.isEmpty())
+
+        // 켜면 그날부터 일정에 들어간다 (지금 10:00 → 오늘 20:00 회차만, 지난 08:00은 내일부터)
+        repository.setPaused(me, id, paused = false)
+        assertEquals(listOf("20:00"), doseRecordDao.records.value.map { it.scheduledTime })
+    }
+
+    @Test
+    fun `시작일이 지난 약을 쉬는 중으로 등록해도 지난 날 기록이 쌓이지 않는다`() = runBlocking<Unit> {
+        repository.addMedication(me, draft(startDate = today.minusDays(5)).copy(startActive = false))
+
+        assertEquals(today.minusDays(5).toString(), medicationDao.medications.value.single().pausedFrom)
+        assertTrue(doseRecordDao.records.value.isEmpty())
+    }
+
+
+    @Test
     fun `등록하면 복용 조건이 규칙 줄과 기록 스냅샷에 저장된다`() = runBlocking<Unit> {
         repository.addMedication(
             me,
@@ -726,11 +747,11 @@ class MedicationRepositoryTest {
         laterRepository.setPaused(me, id, paused = false)
 
         assertNull(medicationDao.medications.value.single().pausedFrom)
-        assertTrue(scheduleDao.schedules.value.all { it.effectiveFrom == "2026-11-18" })
-        // 재개한 날(18일) 치만 생기고, 중지했던 17일은 비어 있다
+        // 오늘 시각 규칙: 10시에 재개 → 이미 지난 08:00 줄은 내일(19일)부터, 아직인 20:00 줄은 오늘(18일)부터
+        assertEquals(listOf("2026-11-19", "2026-11-18"), scheduleDao.schedules.value.sortedBy { it.time }.map { it.effectiveFrom })
+        // 재개한 날(18일)은 20:00 치만 생기고, 중지했던 17일은 비어 있다
         val after = doseRecordDao.records.value.filter { it.date > today.toString() }
-        assertEquals(setOf("2026-11-18"), after.map { it.date }.toSet())
-        assertEquals(2, after.size)
+        assertEquals(listOf("2026-11-18" to "20:00"), after.map { it.date to it.scheduledTime })
     }
 
     @Test

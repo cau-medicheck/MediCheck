@@ -91,7 +91,10 @@ class MedicationRepository(
             startDate = draft.startDate.toString(),
             endDate = draft.endDate?.toString(),
             memo = draft.memo.trim().ifEmpty { null },
-            createdAt = createdAt
+            createdAt = createdAt,
+            // "바로 복용 시작"을 끄고 등록하면 쉬는 중으로 만든다. 시작일(이 지났으면 그날)부터 멈춰 두어
+            // 기록이 하나도 생기지 않게 한다 → 켜기 전에 '미복용'이 쌓이지 않는다. 켜면 그날부터 일정에 들어간다.
+            pausedFrom = if (draft.startActive) null else minOf(draft.startDate, LocalDate.now(clock)).toString()
         )
         val newId = transaction.run {
             val medicationId = medicationDao.insert(newMedication)
@@ -307,7 +310,15 @@ class MedicationRepository(
                 doseRecordGenerator.deleteFutureRecords(userId, medicationId)
             } else {
                 medicationDao.setPausedFrom(userId, medicationId, null)
-                scheduleDao.raiseEffectiveFrom(userId, medicationId, today)
+                // 다시 켤 때 규칙 줄마다 "오늘 시각 규칙": 시각이 아직이면 오늘부터, 이미 지났으면 내일부터.
+                // 그냥 오늘부터로 하면 10시에 켰을 때 08:00 회차가 오늘 기록으로 생겨 곧바로 '미복용'이 된다 (2026-11-24).
+                val nowTime = LocalTime.now(clock).format(TIME_FORMAT)
+                scheduleDao.findActiveByMedication(medicationId).forEach { schedule ->
+                    val target = applyDate(schedule.time, LocalDate.now(clock), nowTime).toString()
+                    if (schedule.effectiveFrom == null || schedule.effectiveFrom < target) {
+                        scheduleDao.update(schedule.copy(effectiveFrom = target))
+                    }
+                }
                 // 생성기는 넘겨받은 약의 값으로 계산하므로, 중지가 풀린 값을 넘겨야 오늘 치가 생긴다.
                 doseRecordGenerator.generateForMedication(existing.copy(pausedFrom = null))
             }

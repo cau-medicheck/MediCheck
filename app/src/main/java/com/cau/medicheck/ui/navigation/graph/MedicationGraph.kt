@@ -23,6 +23,7 @@ import com.cau.medicheck.ui.screens.medication.MedicationEditViewModel
 import com.cau.medicheck.ui.screens.medication.MedicationFormActions
 import com.cau.medicheck.ui.screens.medication.MedicationListViewModel
 import com.cau.medicheck.ui.screens.medication.PrescriptionSourceViewModel
+import com.cau.medicheck.ui.screens.medication.MedicationListActions
 import com.cau.medicheck.ui.screens.medication.S06MedicationListScreen
 import com.cau.medicheck.ui.screens.medication.S07MedicationDetailScreen
 import com.cau.medicheck.ui.screens.medication.S08MedicationFormScreen
@@ -71,9 +72,15 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
         OnResume(vm::refresh)
         S06MedicationListScreen(
             state = state,
-            onQueryChange = vm::onQueryChange,
-            onAdd = { go.open(Routes.s08New()) },
-            onOpen = { medId -> go.open(Routes.s07(medId)) }
+            actions = remember(vm, go) {
+                MedicationListActions(
+                    onQueryChange = vm::onQueryChange,
+                    onFilterChange = vm::onFilterChange,
+                    onAdd = { go.open(Routes.s08New()) },
+                    onOpen = { medId -> go.open(Routes.s07(medId)) },
+                    onActiveChange = vm::setActive
+                )
+            }
         )
     }
 
@@ -129,6 +136,7 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
                     onNameChange = vm::onNameChange,
                     onDosageChange = vm::onDosageChange,
                     onMemoChange = vm::onMemoChange,
+                    onStartActiveChange = vm::onStartActiveChange,
                     onTimeChange = vm::onTimeChange,
                     onConditionChange = vm::onConditionChange,
                     onRemoveTime = vm::removeTime,
