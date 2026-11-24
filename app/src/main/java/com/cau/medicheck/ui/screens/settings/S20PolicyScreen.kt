@@ -14,7 +14,6 @@ import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.Kicker
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SettingRow
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -35,7 +34,7 @@ import com.cau.medicheck.ui.theme.SettingDivider
 fun S20PolicyScreen(onBack: () -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s20)) {
         BackLink(stringResource(R.string.s20_back), onBack)
-        ScreenIntro(stringResource(R.string.s20_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         // ----- 상태 세 가지의 뜻 -----
         SurfaceCard(padding = 0.dp) {
@@ -89,6 +88,5 @@ fun S20PolicyScreen(onBack: () -> Unit) {
             )
         }
 
-        Notice(stringResource(R.string.s20_notice), Modifier.padding(top = Gap16))
     }
 }

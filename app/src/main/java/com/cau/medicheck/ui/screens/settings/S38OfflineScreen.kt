@@ -47,7 +47,7 @@ data class OfflineActions(
 fun S38OfflineScreen(online: Boolean, actions: OfflineActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s38)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenIntro(stringResource(R.string.s38_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         // ----- 지금 연결 상태 -----
         SurfaceCard {

@@ -44,15 +44,13 @@ fun S16NotificationCenterScreen(
     onOpenPermissions: () -> Unit
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s16)) {
-        ScreenIntro(stringResource(R.string.s16_subtitle), Modifier.padding(bottom = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(bottom = 16.dp))
 
-        // 안내 상자: 위에서부터 처음 맞는 하나
+        // 알림이 울리지 않는 이유가 있을 때만 경고 한 줄: 위에서부터 처음 맞는 하나
         when {
             !state.reminderEnabled -> Notice(stringResource(R.string.s16_notice_reminder_off), warn = true)
             !notificationsOn -> Notice(stringResource(R.string.s16_notice_permission_off), warn = true)
-            state.hideMedName ->
-                Notice(stringResource(R.string.s16_notice_ok) + " " + stringResource(R.string.s16_notice_name_hidden))
-            else -> Notice(stringResource(R.string.s16_notice_ok))
+            else -> Unit   // 알림이 잘 울리는 상태면 안내 상자를 두지 않는다
         }
 
         SectionTitle(stringResource(R.string.s16_section))

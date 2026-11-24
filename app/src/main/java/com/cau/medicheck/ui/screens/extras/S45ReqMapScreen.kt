@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -89,7 +88,7 @@ fun S45ReqMapScreen(state: ReqMapUiState, onRowClick: (Requirement) -> Unit) {
     val keyboard = LocalSoftwareKeyboardController.current
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s45)) {
-        ScreenIntro(stringResource(R.string.s45_desc), Modifier.padding(bottom = Gap16))
+        ScreenIntro(modifier = Modifier.padding(bottom = Gap16))
 
         if (state.loadFailed) {
             Notice(stringResource(R.string.req_load_failed), warn = true)
@@ -151,7 +150,6 @@ fun S45ReqMapScreen(state: ReqMapUiState, onRowClick: (Requirement) -> Unit) {
             }
         }
 
-        Notice(stringResource(R.string.s45_notice), Modifier.padding(top = Gap16))
     }
 }
 

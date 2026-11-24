@@ -49,7 +49,7 @@ private val FLOW_STEPS = listOf(
 fun S22HelpScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s22)) {
         BackLink(stringResource(R.string.s20_back), onBack)
-        ScreenIntro(stringResource(R.string.s22_subtitle), Modifier.padding(top = Gap16))
+        ScreenIntro(modifier = Modifier.padding(top = Gap16))
 
         // ----- 추천 시연 흐름: 눌리지 않는 안내 줄 -----
         SectionTitle(stringResource(R.string.s22_section_flow))

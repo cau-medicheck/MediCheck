@@ -15,7 +15,6 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSelectField
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -46,7 +45,7 @@ class NotificationSettingsActions(
 fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationSettingsActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s17)) {
         BackLink(stringResource(R.string.s17_back), actions.onBack)
-        ScreenIntro(stringResource(R.string.s17_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard(padding = 0.dp) {
             Column(Modifier.padding(horizontal = 16.dp)) {
@@ -86,7 +85,6 @@ fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationS
             }
         }
 
-        Notice(stringResource(R.string.s17_notice), Modifier.padding(top = 16.dp))
         McButton(
             text = stringResource(R.string.s17_btn_preview),
             onClick = actions.onOpenPreview,

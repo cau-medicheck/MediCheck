@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -19,9 +18,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.WarnBadge
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -55,7 +54,7 @@ fun S09DeleteConfirmScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp, vertical = 26.dp)
             ) {
-                Text(text = Glyph.WARNING, fontSize = 40.sp, modifier = Modifier.clearAndSetSemantics { })
+                WarnBadge()
                 Text(
                     text = stringResource(R.string.s09_title),
                     fontSize = 21.sp,

@@ -16,7 +16,6 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.Pill
 import com.cau.medicheck.ui.components.PillKind
@@ -42,7 +41,7 @@ fun S32ArchiveScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s32)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s32_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         // "보존된 과거 복용 회차"  96건            [시연 데이터]
         SurfaceCard {
@@ -85,6 +84,5 @@ fun S32ArchiveScreen(
             }
         }
 
-        Notice(stringResource(R.string.s32_notice), Modifier.padding(top = 16.dp))
     }
 }

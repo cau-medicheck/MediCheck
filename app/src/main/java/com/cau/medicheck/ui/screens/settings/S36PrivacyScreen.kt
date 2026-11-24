@@ -41,7 +41,7 @@ data class PrivacyActions(
 fun S36PrivacyScreen(settings: UserSettings, actions: PrivacyActions) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s36)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenIntro(stringResource(R.string.s36_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         // ----- 스위치 두 개 -----
         SurfaceCard(padding = 0.dp) {

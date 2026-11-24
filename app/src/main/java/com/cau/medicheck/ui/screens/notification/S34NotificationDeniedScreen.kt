@@ -22,7 +22,6 @@ import com.cau.medicheck.ui.components.GlyphText
 import com.cau.medicheck.ui.components.ListRow
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RowTitle
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SectionTitle
@@ -47,7 +46,7 @@ fun S34NotificationDeniedScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s34)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenIntro(stringResource(R.string.s34_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -98,7 +97,6 @@ fun S34NotificationDeniedScreen(
             }
         }
 
-        Notice(stringResource(R.string.s34_notice), Modifier.padding(top = 14.dp))
     }
 }
 

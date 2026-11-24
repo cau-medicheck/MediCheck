@@ -20,7 +20,6 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Navy
@@ -44,7 +43,7 @@ fun S42PrescriptionSourceScreen(
         if (state.isLoading) return@McScreenColumn
 
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s42_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Row(
@@ -96,6 +95,5 @@ fun S42PrescriptionSourceScreen(
             )
         }
 
-        Notice(stringResource(R.string.s42_notice), Modifier.padding(top = 16.dp))
     }
 }

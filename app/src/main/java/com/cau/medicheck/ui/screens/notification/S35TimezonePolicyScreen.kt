@@ -41,7 +41,7 @@ fun S35TimezonePolicyScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s35)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s35_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Text(stringResource(R.string.s35_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
@@ -79,6 +79,5 @@ fun S35TimezonePolicyScreen(
         }
 
         Notice(stringResource(R.string.s35_notice_warn), Modifier.padding(top = 16.dp), warn = true)
-        Notice(stringResource(R.string.s35_notice), Modifier.padding(top = 14.dp))
     }
 }

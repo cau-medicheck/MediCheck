@@ -34,7 +34,7 @@ import com.cau.medicheck.ui.theme.Gap16
 fun S46SafetyScopeScreen(state: SafetyScopeUiState, onBack: () -> Unit, onOpenMap: () -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s46)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s46_desc), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             // 프로토타입처럼 영문을 대문자로 보여 준다("WON’T"). 한글에는 영향이 없다.

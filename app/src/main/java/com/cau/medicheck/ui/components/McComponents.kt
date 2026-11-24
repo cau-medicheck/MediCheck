@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -744,3 +745,26 @@ fun Dot(color: Color, modifier: Modifier = Modifier, size: Dp = 5.dp) {
             .background(color)
     )
 }
+
+/** 경고 그림: 주황 동그라미 안 경고 아이콘 (삭제 확인·중복 확인). 예전 ⚠️ 이모지 대신. 장식이라 읽지 않는다 */
+@Composable
+fun WarnBadge(modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(60.dp)
+            .clip(CircleShape)
+            .background(WarnBadgeBg)
+            .clearAndSetSemantics { }
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = androidx.compose.material.icons.Icons.Rounded.WarningAmber,
+            contentDescription = null,
+            tint = WarnBadgeTint,
+            modifier = Modifier.size(32.dp)
+        )
+    }
+}
+
+private val WarnBadgeBg = Color(0xFFFFF0DE)
+private val WarnBadgeTint = Color(0xFFE08A2E)

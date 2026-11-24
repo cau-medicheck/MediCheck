@@ -43,7 +43,7 @@ fun S41AppLockScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s41)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s41_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             ToggleRow(
