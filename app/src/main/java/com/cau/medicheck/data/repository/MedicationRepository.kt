@@ -7,7 +7,9 @@ import com.cau.medicheck.data.local.ScheduleDao
 import com.cau.medicheck.data.local.TransactionRunner
 import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.domain.DoseCondition
+import com.cau.medicheck.domain.MedicationColor
 import com.cau.medicheck.domain.MedicationDetail
+import com.cau.medicheck.domain.MedicationShape
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
 import com.cau.medicheck.domain.MedicationValidator
@@ -92,6 +94,8 @@ class MedicationRepository(
             endDate = draft.endDate?.toString(),
             memo = draft.memo.trim().ifEmpty { null },
             createdAt = createdAt,
+            shape = draft.shape.name,
+            color = draft.color.name,
             // "바로 복용 시작"을 끄고 등록하면 쉬는 중으로 만든다. 시작일(이 지났으면 그날)부터 멈춰 두어
             // 기록이 하나도 생기지 않게 한다 → 켜기 전에 '미복용'이 쌓이지 않는다. 켜면 그날부터 일정에 들어간다.
             pausedFrom = if (draft.startActive) null else minOf(draft.startDate, LocalDate.now(clock)).toString()
@@ -162,7 +166,9 @@ class MedicationRepository(
                 dosage = draft.dosage.trim(),
                 startDate = draft.startDate.toString(),
                 endDate = draft.endDate?.toString(),
-                memo = draft.memo.trim().ifEmpty { null }
+                memo = draft.memo.trim().ifEmpty { null },
+                shape = draft.shape.name,
+                color = draft.color.name
             )
             // 바꾸기 전에, 지금까지의 규칙으로 오늘까지의 기록을 먼저 채워 둔다.
             doseRecordGenerator.generateForMedication(existing)
@@ -400,7 +406,9 @@ class MedicationRepository(
         pausedFrom = pausedFrom?.let(LocalDate::parse),
         hospital = hospital.orEmpty(),
         department = department.orEmpty(),
-        sourceMemo = sourceMemo.orEmpty()
+        sourceMemo = sourceMemo.orEmpty(),
+        shape = MedicationShape.parse(shape),
+        color = MedicationColor.parse(color)
     )
 
     private companion object {

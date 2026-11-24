@@ -37,7 +37,10 @@ data class MedicationDetail(
     /** 처방 출처 메모(S42): 의료기관 · 진료과 · 추가 메모. 없으면 "" */
     val hospital: String = "",
     val department: String = "",
-    val sourceMemo: String = ""
+    val sourceMemo: String = "",
+    /** 아이콘 모양·색 (내 약 목록·약 상세) */
+    val shape: MedicationShape = MedicationShape.TABLET,
+    val color: MedicationColor = MedicationColor.TEAL
 )
 
 /**
@@ -60,7 +63,10 @@ data class MedicationDraft(
     val memo: String,
     val schedules: List<ScheduleDraft>,
     /** 등록할 때만: false면 "쉬는 중"으로 등록한다(일정에 넣지 않고 등록만). 수정할 때는 쓰지 않는다 */
-    val startActive: Boolean = true
+    val startActive: Boolean = true,
+    /** 아이콘 모양·색 */
+    val shape: MedicationShape = MedicationShape.TABLET,
+    val color: MedicationColor = MedicationColor.TEAL
 )
 
 /**

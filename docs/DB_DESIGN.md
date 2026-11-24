@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | 작성자 | 전수환 (Database & Authentication) |
-| 작성일 | 2026-11-05 (4개 표 초판) → **2026-11-17 개정** (v3 프로토타입 47개 화면 기준, Room version 5) → **2026-11-23** 복용 조건 칸 추가 (Room version 6) |
+| 작성일 | 2026-11-05 (4개 표 초판) → **2026-11-17 개정** (v3 프로토타입 47개 화면 기준, Room version 5) → **2026-11-23** 복용 조건 칸 추가 (Room version 6) → **2026-11-24** 약 아이콘 모양·색 (Room version 7) |
 | 상태 | **개정판 — 1단계 PR(Issue #22)에서 코드와 함께 반영** |
 | 근거 | 구현 명세 `00_공통`~`07`, DB 개정안 `08_DB_설계_개정안.md`, 2026-11-17 전수환 결정 1~9 |
 | 관련 결정 | Issue #3 (인증 방식: Room 기반 로컬 인증) |
@@ -50,6 +50,7 @@
 | 15 | 주간 통계 | 월요일~일요일 한 주 | **오늘 포함 최근 7일** | 결정 6 | S13, S20 |
 | 16 | 패턴 분석 | 대상 = 깜빡함 | **건너뜀**을 시간대 4구간으로 + 기한 경과 미기록은 따로 숫자 | 결정 6 | S15 |
 | 17 | `AppDatabase.version` | 3 (저장소 main), 4 (1단계 작업 중간) | **5** (적용함) | 표 구조 변경 | — |
+| 19 | 약 아이콘 (2026-11-24) | "＋" 하나로 모든 약이 같음 | **NEW** `medications.shape`·`color`, version **7**, `MIGRATION_6_7`(데이터 유지). 등록할 때 고르고 백업에 포함(옛 백업은 알약·청록) | 약을 한눈에 구분 | S06, S07, S08 |
 | 18 | 복용 조건 (2026-11-23) | 없음 (메모에 "아침 식후"처럼 적음) | **NEW** `schedules.dose_condition` + `dose_records.dose_condition` 스냅샷, version **6**. 데이터를 지우지 않는 Migration(5→6) | 같은 시각에 식전·식후 약이 섞여도 화면이 부딪히지 않게(시간대는 시각으로 자동) | S08, S04, S05, S06, S07 |
 
 ---
@@ -137,6 +138,8 @@ erDiagram
 | hospital | String | NULL 허용 | **NEW** 처방 의료기관 (S42) |
 | department | String | NULL 허용 | **NEW** 진료과 (S42) |
 | source_memo | String | NULL 허용 | **NEW** 처방 출처 메모. `memo`(복용 메모)와 다른 칸. S42에서만 보인다 |
+| shape | String | NOT NULL, DEFAULT `'TABLET'` | **NEW (v7)** 아이콘 모양: `TABLET`(알약) / `CAPSULE`(캡슐) / `LIQUID`(물약) / `POWDER`(가루). `domain/MedicationShape` |
+| color | String | NOT NULL, DEFAULT `'TEAL'` | **NEW (v7)** 아이콘 색: `TEAL`·`ORANGE`·`BLUE`·`PURPLE`·`PINK`·`GRAY`. `domain/MedicationColor`. 화면 색 값은 `ui/components/McMedIcon` |
 
 - 복용 **시간**과 **반복 요일**은 이 표에 없다. 약 하나에 시간이 여러 개일 수 있으므로 `schedules`에 한 줄씩 둔다.
 - 글자 칸(`memo`·`hospital`·`department`·`source_memo`)은 앞뒤 공백을 없앤 뒤 빈 글자면 **NULL로 저장**한다. 화면·domain에서는 NULL을 `""`로 바꿔 쓴다(03 부록 A-2).

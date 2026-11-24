@@ -43,11 +43,11 @@ import com.cau.medicheck.R
 import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.MedicationFilter
 import com.cau.medicheck.domain.MedicationStatus
-import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSwitch
 import com.cau.medicheck.ui.components.Pill
@@ -152,6 +152,11 @@ fun S06MedicationListScreen(state: MedicationListUiState, actions: MedicationLis
 /** (전체 6) (복용 중 5) (쉬는 중 1) (종료 0) — 하나만 고른다 */
 @Composable
 private fun FilterChips(state: MedicationListUiState, onChange: (MedicationFilter) -> Unit) {
+    // 불러오는 동안에는 "전체 0"처럼 틀린 숫자가 잠깐 보이지 않게 자리만 둔다
+    if (state.isLoading) {
+        Spacer(Modifier.padding(top = 12.dp).height(36.dp))
+        return
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(top = 12.dp).horizontalScroll(rememberScrollState()).selectableGroup()
@@ -199,7 +204,7 @@ private fun MedicationCard(row: MedicationRowUi, actions: MedicationListActions)
             .clickable(onClickLabel = stringResource(R.string.common_detail), role = Role.Button) { actions.onOpen(med.id) }
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Avatar(Glyph.DOSE, modifier = Modifier.alpha(dim))
+        McMedIcon(med.shape, med.color, Modifier.alpha(dim))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             // 이름 1 tab                 (쉬는 중) [스위치]

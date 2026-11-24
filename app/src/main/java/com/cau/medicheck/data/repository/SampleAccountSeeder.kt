@@ -86,7 +86,8 @@ class SampleAccountSeeder(
             val medicationId = medicationDao.insert(
                 Medication(
                     userId = userId, name = med.name, dosage = med.dosage,
-                    startDate = startDate, endDate = null, memo = null, createdAt = now
+                    startDate = startDate, endDate = null, memo = null, createdAt = now,
+                    shape = med.shape.name, color = med.color.name
                 )
             )
             val scheduleId = scheduleDao.insert(

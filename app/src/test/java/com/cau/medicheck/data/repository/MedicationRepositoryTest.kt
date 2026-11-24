@@ -2,7 +2,9 @@ package com.cau.medicheck.data.repository
 
 import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.domain.DoseCondition
+import com.cau.medicheck.domain.MedicationColor
 import com.cau.medicheck.domain.MedicationDraft
+import com.cau.medicheck.domain.MedicationShape
 import com.cau.medicheck.domain.MedicationError
 import com.cau.medicheck.domain.RepeatDays
 import com.cau.medicheck.domain.ScheduleDraft
@@ -109,6 +111,19 @@ class MedicationRepositoryTest {
     }
 
     // ---------- 등록 ----------
+
+    @Test
+    fun `모양과 색을 저장하고 수정할 수 있다`() = runBlocking<Unit> {
+        val id = (repository.addMedication(me, draft().copy(shape = MedicationShape.CAPSULE, color = MedicationColor.BLUE)) as MedicationResult.Success).medicationId
+        assertEquals("CAPSULE" to "BLUE", medicationDao.medications.value.single().let { it.shape to it.color })
+
+        val detail = repository.getMedication(me, id)!!
+        assertEquals(MedicationShape.CAPSULE, detail.shape)
+        val schedules = detail.schedules.map { ScheduleDraft(id = it.id, time = it.time, days = it.days) }
+        repository.updateMedication(me, id, draft(schedules = schedules).copy(shape = MedicationShape.LIQUID, color = MedicationColor.PINK))
+        assertEquals("LIQUID" to "PINK", medicationDao.medications.value.single().let { it.shape to it.color })
+    }
+
 
     @Test
     fun `바로 복용 시작을 끄고 등록하면 쉬는 중이고 기록이 하나도 생기지 않는다`() = runBlocking<Unit> {

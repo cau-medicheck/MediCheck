@@ -70,6 +70,20 @@ class BackupJsonTest {
     }
 
     @Test
+    fun `약 모양과 색은 그대로 오가고, 없는 옛 백업은 알약 청록으로 읽는다`() {
+        val withLook = validBackup.copy(medications = validBackup.medications.map { it.copy(shape = "CAPSULE", color = "BLUE") })
+        assertEquals(withLook, BackupJson.decode(BackupJson.encode(withLook)))
+
+        val old = """
+            {"format":"MediCheck-backup","version":1,
+             "medications":[{"id":1,"name":"비타민 D","dosage":"1정","startDate":"2026-10-10","shape":"모르는 값"}],
+             "schedules":[],"doseRecords":[]}
+        """.trimIndent()
+        val med = BackupJson.decode(old)!!.medications.single()
+        assertEquals("TABLET" to "TEAL", med.shape to med.color)
+    }
+
+    @Test
     fun `JSON이 아니면 읽지 못한다`() {
         assertNull(BackupJson.decode("이것은 백업 파일이 아닙니다"))
         assertNull(BackupJson.decode(""))
