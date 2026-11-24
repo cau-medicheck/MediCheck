@@ -37,6 +37,7 @@ val Teal = Color(0xFF128B94)
 val TealDark = Color(0xFF096E7A)
 val Mint = Color(0xFFE9F8F5)               // 옅은 청록 바탕 (아이콘 상자, 보조 버튼)
 val MintText = Color(0xFF117E86)
+val LogoUnderlineMint = Color(0xFFCDEDEA)  // 머리말 로고 "Check" 밑 캡슐 밑줄의 옅은 반쪽
 val HeroStart = Color(0xFF147C93)          // 홈 큰 카드의 그라데이션 시작
 val HeroEnd = Color(0xFF31B4A2)            // 홈 큰 카드의 그라데이션 끝
 val ProgressTrack = Color(0xFFE7F0F2)      // 진행 막대의 빈 부분
