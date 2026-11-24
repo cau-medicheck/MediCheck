@@ -22,6 +22,8 @@ val TimelineDotMissed = Color(0xFFE08A2E); val TimelineDotSkipped = Color(0xFF3E
 val TimelineDotWait = Color(0xFFA3B1B9)                                                   // 시간표 점: 예정(회색)
 val HomeChipWaitBg = Color(0xFFE2E8EC); val HomeChipWaitText = Color(0xFF4F626D)       // 예정
 val ConditionTagBg = Color(0xFFE2F4F1); val ConditionTagText = Color(0xFF0F6E7A)     // 복용 조건 꼬리표 [식후]
+// 내 약 카드의 최근 7일 복용률 막대: 80% 이상 / 50~79% / 50% 미만
+val RateGood = Color(0xFF34B7A0); val RateFair = Color(0xFFE9A04F); val RateLow = Color(0xFFE07070)
 val TimelineGroupBg = Color(0xFFF3F8F9); val TimelineGroupDivider = Color(0xFFE3ECEE)   // 홈 시간표: 같은 시각 약 묶음 상자 / 상자 안 구분선
 val HeroDeepStart = Color(0xFF0C5F6D); val HeroDeepEnd = Color(0xFF14808C)   // 홈 맨 위 카드의 짙은 청록 바탕
 val HeroPastStart = Color(0xFF2E5560); val HeroPastEnd = Color(0xFF3E6E78)   // 홈 맨 위 카드: 지난 시각으로 넘겼을 때(조금 어둡게)

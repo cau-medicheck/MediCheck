@@ -12,6 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -28,6 +30,8 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.LinkText
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McSwitch
+import com.cau.medicheck.ui.components.SettingRow
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
@@ -45,6 +49,7 @@ class MedicationFormActions(
     val onNameChange: (String) -> Unit,
     val onDosageChange: (String) -> Unit,
     val onMemoChange: (String) -> Unit,
+    val onStartActiveChange: (Boolean) -> Unit,
     val onTimeChange: (key: Int, LocalTime) -> Unit,
     val onConditionChange: (key: Int, DoseCondition) -> Unit,
     val onRemoveTime: (key: Int) -> Unit,
@@ -174,6 +179,22 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
             singleLine = false,
             minLines = 2
         )
+
+        // 등록할 때만: "바로 복용 시작" — 끄고 등록하면 쉬는 중(일정에 넣지 않고 등록만. 내 약 목록에서 켜면 그날부터 일정에)
+        if (state.isNew) {
+            SettingRow(
+                title = stringResource(R.string.s08_start_now),
+                description = stringResource(R.string.s08_start_now_desc),
+                // 줄 전체가 스위치다(onClick을 쓰면 '›'가 붙어 다른 화면으로 가는 것처럼 보인다)
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .toggleable(value = state.startActive, role = Role.Switch, onValueChange = actions.onStartActiveChange),
+                showDivider = false
+            ) {
+                // 스위치는 보여 주기만(안쪽 누름이 줄의 누름을 가로채지 않게 — 3단계 메모)
+                McSwitch(checked = state.startActive, onCheckedChange = null)
+            }
+        }
 
         McButton(
             text = stringResource(if (state.isNew) R.string.s08_btn_register else R.string.s08_btn_save),

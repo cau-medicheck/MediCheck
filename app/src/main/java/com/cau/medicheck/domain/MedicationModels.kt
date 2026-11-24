@@ -58,7 +58,9 @@ data class MedicationDraft(
     val startDate: LocalDate,
     val endDate: LocalDate?,
     val memo: String,
-    val schedules: List<ScheduleDraft>
+    val schedules: List<ScheduleDraft>,
+    /** 등록할 때만: false면 "쉬는 중"으로 등록한다(일정에 넣지 않고 등록만). 수정할 때는 쓰지 않는다 */
+    val startActive: Boolean = true
 )
 
 /**

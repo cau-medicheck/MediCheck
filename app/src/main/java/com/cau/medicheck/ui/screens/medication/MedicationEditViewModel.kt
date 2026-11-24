@@ -72,6 +72,8 @@ data class MedicationEditUiState(
     val days: Set<DayOfWeek> = RepeatDays.EVERY_DAY,
     val isMixedDays: Boolean = false,
     val isSaving: Boolean = false,
+    /** 등록 화면의 "바로 복용 시작" (끄면 쉬는 중으로 등록) */
+    val startActive: Boolean = true,
     val scope: ApplyScope = ApplyScope.FROM_TODAY,
     val hasPendingEdit: Boolean = false,
     val pendingNew: PendingNew? = null
@@ -179,6 +181,8 @@ class MedicationEditViewModel(
 
     fun onStartDateChange(date: LocalDate) = _uiState.update { it.copy(startDate = date) }
 
+    fun onStartActiveChange(value: Boolean) = _uiState.update { it.copy(startActive = value) }
+
     /** null을 넘기면 "종료일 없음"이 된다. */
     fun onEndDateChange(date: LocalDate?) = _uiState.update { it.copy(endDate = date) }
 
@@ -222,7 +226,8 @@ class MedicationEditViewModel(
             startDate = state.startDate,
             endDate = state.endDate,
             memo = state.memo,
-            schedules = toScheduleDrafts(state.times.map { FormTimeRow(it.id, it.time, it.condition) }, state.days, originalDays)
+            schedules = toScheduleDrafts(state.times.map { FormTimeRow(it.id, it.time, it.condition) }, state.days, originalDays),
+            startActive = state.startActive
         )
     }
 
