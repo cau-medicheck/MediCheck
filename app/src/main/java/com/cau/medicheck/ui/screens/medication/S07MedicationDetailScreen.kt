@@ -33,25 +33,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.DangerTitle
+import com.cau.medicheck.ui.components.timeWithCondition
+import com.cau.medicheck.ui.components.McSwitch
+import androidx.compose.foundation.selection.toggleable
 import com.cau.medicheck.domain.DayMark
-import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.RecentDay
 import com.cau.medicheck.ui.components.BackLink
-import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.ConditionTag
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.OptionRow
-import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
-import com.cau.medicheck.ui.components.ToggleRow
-import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.daysText
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
@@ -78,15 +75,15 @@ class MedicationDetailActions(
     val onPausedChange: (Boolean) -> Unit,
     val onEdit: () -> Unit,
     val onDelete: () -> Unit,
-    val onOpenSource: () -> Unit,
-    val onOpenArchive: () -> Unit
+    val onOpenSource: () -> Unit
 )
 
 /**
  * S07 약 상세 (v3 medDetail()).
  *
- * 이름·요약, 다음 복용 띠, 최근 7일 요일 동그라미, 복용 시간표, 정보(기간·메모·처방 출처),
- * 비활성화 스위치, 수정·삭제 버튼, 지난 기록으로 가는 줄. (2026-11-24 개편, 시안: 04_화면캡처/약상세_시안/시안.html B)
+ * 카드 두 장: 위 카드(이름·상태·복용 시각 / 다음 복용 / 최근 7일 요일 동그라미),
+ * 아래 목록(복용 기간·메모·처방 출처·비활성화). 그 아래 "약 수정" 버튼과 "이 약 삭제" 글자.
+ * (2026-11-24, 시안: 04_화면캡처/약상세_시안/시안2.html A — 덩어리가 많아 어지럽다는 의견으로 줄였다)
  * 일시중지를 켜면 오늘 아직 시각 전인 회차와 내일 이후 회차가 사라지고, 끄면 오늘 회차부터 다시 생긴다.
  */
 @Composable
@@ -117,157 +114,158 @@ fun MedicationNotFound(onBackToList: () -> Unit) {
 private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailUiState, actions: MedicationDetailActions) {
     BackLink(stringResource(R.string.s07_back), actions.onBackToList)
 
-    // ----- 큰 아이콘 + 이름 + 상태 배지 + "1 cap · 하루 1번" -----
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
-        McMedIcon(med.shape, med.color, size = 58.dp)
-        Spacer(Modifier.width(13.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = med.name,
-                fontSize = 23.sp,
-                lineHeight = 31.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.9).sp,
-                color = Navy,
-                modifier = Modifier.semantics { heading() }
-            )
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 5.dp)) {
-                MedicationStatusPill(state.status, showActive = true)
+    // ----- 위 카드: 이름·상태·복용 시각 / 다음 복용 / 최근 7일 -----
+    SurfaceCard(Modifier.padding(top = 16.dp), padding = 18.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            McMedIcon(med.shape, med.color, size = 56.dp)
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = med.name,
+                        fontSize = 23.sp,
+                        lineHeight = 31.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.9).sp,
+                        color = Navy,
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .semantics { heading() }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    MedicationStatusPill(state.status, showActive = true)
+                }
                 Text(
-                    text = stringResource(R.string.s07_summary, med.dosage, med.schedules.size),
-                    fontSize = 12.sp,
-                    color = Muted,
-                    modifier = Modifier.padding(start = 7.dp)
+                    text = whenText(med) + " · " + med.dosage,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Navy,
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
-    }
 
-    // ----- 다음 복용 띠 (보기 전용) -----
-    state.nextDose?.let { NextDoseBand(it) }
-
-    // ----- 최근 7일: 요일 동그라미 -----
-    RecentWeekCard(state.recentDays, state.recentCounts)
-
-    // ----- 복용 시간: 시간표처럼 한 줄에 하나 -----
-    SectionTitle(stringResource(R.string.s07_section_times))
-    SurfaceCard(padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 16.dp)) {
-            val dayLabels = stringArrayResource(R.array.common_weekdays).toList()
-            val everyDay = stringResource(R.string.common_every_day)
-            med.schedules.sortedBy { it.time }.forEachIndexed { i, schedule ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
-                    Text(timeText(schedule.time), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Navy)
-                    ConditionTag(schedule.condition, Modifier.padding(start = 10.dp))
-                    Spacer(Modifier.weight(1f))
-                    Text(daysText(schedule.days, everyDay, dayLabels), fontSize = 12.sp, color = Muted)
-                }
-                if (i < med.schedules.lastIndex) HorizontalDivider(color = Line)
-            }
+        // 다음 복용 (비활성화·종료면 없다)
+        state.nextDose?.let { dose ->
+            HorizontalDivider(color = Line, modifier = Modifier.padding(vertical = 16.dp))
+            NextDoseLine(dose)
         }
+
+        HorizontalDivider(color = Line, modifier = Modifier.padding(vertical = 16.dp))
+        RecentWeek(state.recentDays, state.recentCounts)
     }
 
-    // ----- 정보: 복용 기간 · 메모 · 처방 출처 -----
-    SectionTitle(stringResource(R.string.s07_section_info))
+    // ----- 아래 목록: 복용 기간 · 메모 · 처방 출처 · 비활성화 -----
     val source = listOf(med.hospital, med.department).filter { it.isNotBlank() }.joinToString(" · ")
-    SurfaceCard(padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 16.dp)) {
+    SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
+        Column(Modifier.padding(horizontal = 18.dp)) {
             InfoRow(stringResource(R.string.s07_label_period), periodText(med))
             InfoRow(stringResource(R.string.s07_label_memo), med.memo.ifBlank { stringResource(R.string.s07_no_memo) })
             // 처방 출처(S42): 적어 둔 값이 있으면 그 값, 없으면 "적기 ›". 줄을 누르면 S42로 간다.
             InfoRow(
                 label = stringResource(R.string.s07_label_source),
                 value = if (source.isNotEmpty()) "$source ›" else stringResource(R.string.s07_source_add),
-                onClick = actions.onOpenSource,
-                showDivider = false
+                onClick = actions.onOpenSource
             )
+            // 비활성화 (켜짐 = 오늘 이후 일정·알림에서 빠짐). 줄 어디를 눌러도 켜고 끈다.
+            val pauseLabel = stringResource(R.string.s07_pause_title)
+            val paused = med.pausedFrom != null
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(value = paused, enabled = !state.isBusy, role = Role.Switch, onValueChange = actions.onPausedChange)
+                    .padding(vertical = 12.dp)
+            ) {
+                Text(pauseLabel, fontSize = 12.sp, color = Muted, modifier = Modifier.weight(1f))
+                McSwitch(checked = paused, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { })
+            }
         }
     }
 
-    // ----- 비활성화 스위치 (켜짐 = 일정·알림에서 빠짐) -----
-    SurfaceCard(Modifier.padding(top = 16.dp)) {
-        ToggleRow(
-            title = stringResource(R.string.s07_pause_title),
-            description = stringResource(R.string.s07_pause_body),
-            checked = med.pausedFrom != null,
-            onCheckedChange = actions.onPausedChange,
-            enabled = !state.isBusy
-        )
-    }
+    McButton(stringResource(R.string.s07_btn_edit), actions.onEdit, Modifier.padding(top = 14.dp), full = true)
+    Text(
+        text = stringResource(R.string.s07_btn_delete),
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = DangerTitle,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .padding(top = 6.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = actions.onDelete)
+            .padding(vertical = 14.dp)
+    )
+}
 
-    Row(modifier = Modifier.padding(top = 16.dp)) {
-        McButton(stringResource(R.string.s07_btn_edit), actions.onEdit, Modifier.weight(1f), full = true)
-        Spacer(Modifier.width(10.dp))
-        McButton(stringResource(R.string.s07_btn_delete), actions.onDelete, Modifier.weight(1f), ButtonKind.RED, full = true)
-    }
-
-    SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 16.dp)) {
-            OptionRow(
-                title = stringResource(R.string.s07_row_archive_title),
-                description = stringResource(R.string.s07_row_archive_desc),
-                onClick = actions.onOpenArchive,
-                showDivider = false
-            )
-        }
+/** "매일 12:30 식후" / "매일 08:00 식전 · 20:00" / 시간마다 요일이 다르면 "월·수·금 08:00, 매일 20:00" */
+@Composable
+private fun whenText(med: MedicationDetail): String {
+    val dayLabels = stringArrayResource(R.array.common_weekdays).toList()
+    val everyDay = stringResource(R.string.common_every_day)
+    val schedules = med.schedules.sortedBy { it.time }
+    val times = schedules.map { timeWithCondition(it) }
+    return if (schedules.map { it.days }.distinct().size <= 1) {
+        daysText(schedules.firstOrNull()?.days.orEmpty(), everyDay, dayLabels) + " " + times.joinToString(" · ")
+    } else {
+        schedules.indices.joinToString(", ") { daysText(schedules[it].days, everyDay, dayLabels) + " " + times[it] }
     }
 }
 
-/** 청록 띠: "다음 복용 / 내일 12:30 · 식후" */
+/** "다음 복용  내일 12:30" */
 @Composable
-private fun NextDoseBand(dose: DoseItem) {
+private fun NextDoseLine(dose: DoseItem) {
     val today = LocalDate.now()
     val day = when (dose.date) {
         today -> stringResource(R.string.s07_day_today)
         today.plusDays(1) -> stringResource(R.string.s07_day_tomorrow)
         else -> fullDateText(dose.date)
     }
-    val condition = if (dose.condition == DoseCondition.NONE) "" else " · " + conditionLabel(dose.condition)
-    val value = "$day ${timeText(dose.time)}$condition"
     val label = stringResource(R.string.s07_next_label)
-    Column(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Teal)
-            .padding(horizontal = 15.dp, vertical = 12.dp)
-            .clearAndSetSemantics { contentDescription = "$label, $value" }
+    val value = "$day ${timeText(dose.time)}"
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "$label, $value" }
     ) {
-        Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
-        Text(value, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+        Text(label, fontSize = 13.sp, color = Muted)
+        Text(value, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
-/** "최근 7일   7번 중 2번 먹음 · 29%" + 요일 동그라미 7개 + 범례 */
+/** "최근 7일   7번 중 2번 · 29%" + 요일 동그라미 7개 (범례 없음 — ✓ ! – ○ 기호로 구분) */
 @Composable
-private fun RecentWeekCard(days: List<RecentDay>, counts: DoseCounts) {
-    SurfaceCard(Modifier.padding(top = 12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+private fun RecentWeek(days: List<RecentDay>, counts: DoseCounts) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = stringResource(R.string.s07_recent_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Navy,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
+        )
+        val rate = counts.completionRate
+        if (rate == null) {
+            Text(stringResource(R.string.s07_recent_none), fontSize = 12.sp, color = Muted)
+        } else {
+            Text(stringResource(R.string.s07_recent_count, counts.due, counts.taken), fontSize = 12.sp, color = Muted)
             Text(
-                text = stringResource(R.string.s07_recent_title),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Navy,
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics { heading() }
-            )
-            val rate = counts.completionRate
-            Text(
-                text = if (rate == null) stringResource(R.string.s07_recent_none)
-                else stringResource(R.string.s07_recent_summary, counts.due, counts.taken, rate),
+                text = stringResource(R.string.s07_recent_rate, rate),
                 fontSize = 12.sp,
-                color = Muted
+                fontWeight = FontWeight.ExtraBold,
+                color = when {
+                    rate >= 80 -> HomeChipDoneText
+                    rate >= 50 -> HomeChipMissedText
+                    else -> DangerTitle
+                }
             )
         }
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-            val today = days.lastOrNull()?.date
-            days.forEach { day -> DayCircle(day, isToday = day.date == today) }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 12.dp)) {
-            DayMark.entries.filter { it != DayMark.NONE }.forEach { Legend(it) }
-        }
+    }
+    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        val today = days.lastOrNull()?.date
+        days.forEach { day -> DayCircle(day, isToday = day.date == today) }
     }
 }
 
@@ -301,7 +299,7 @@ private fun DayCircle(day: RecentDay, isToday: Boolean) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(32.dp)
+                .size(34.dp)
                 .markCircle(day.mark)
         ) {
             Text(symbol, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = fg)
@@ -316,22 +314,14 @@ private fun DayCircle(day: RecentDay, isToday: Boolean) {
     }
 }
 
-/** 범례 하나: 동그라미를 작게 줄인 것 + 이름 */
-@Composable
-private fun Legend(mark: DayMark) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(11.dp).markCircle(mark))
-        Text(markName(mark), fontSize = 11.sp, color = Muted, modifier = Modifier.padding(start = 4.dp))
-    }
-}
 
 @Composable
 private fun markName(mark: DayMark): String = stringResource(
     when (mark) {
-        DayMark.TAKEN -> R.string.s07_legend_taken
-        DayMark.MISSED -> R.string.s07_legend_missed
-        DayMark.SKIPPED -> R.string.s07_legend_skipped
-        DayMark.UPCOMING -> R.string.s07_legend_upcoming
+        DayMark.TAKEN -> R.string.s07_mark_taken
+        DayMark.MISSED -> R.string.s07_mark_missed
+        DayMark.SKIPPED -> R.string.s07_mark_skipped
+        DayMark.UPCOMING -> R.string.s07_mark_upcoming
         DayMark.NONE -> R.string.s07_mark_none
     }
 )

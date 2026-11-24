@@ -437,20 +437,18 @@
     <!-- ===== S07 약 상세 ===== -->
     <string name="s07_back">내 약 관리</string>
     <string name="s07_label_memo">메모</string>
-    <string name="s07_summary">%1$s · 하루 %2$d번</string>
     <string name="s07_next_label">다음 복용</string>
     <string name="s07_day_today">오늘</string>
     <string name="s07_day_tomorrow">내일</string>
     <string name="s07_recent_title">최근 7일</string>
-    <string name="s07_recent_summary">%1$d번 중 %2$d번 먹음 · %3$d%%</string>
+    <string name="s07_recent_count">%1$d번 중 %2$d번 ·\u0020</string>
+    <string name="s07_recent_rate">%1$d%%</string>
+    <string name="s07_mark_taken">먹음</string>
+    <string name="s07_mark_missed">미복용</string>
+    <string name="s07_mark_skipped">건너뜀</string>
+    <string name="s07_mark_upcoming">예정</string>
     <string name="s07_recent_none">아직 기록 없음</string>
-    <string name="s07_legend_taken">먹음</string>
-    <string name="s07_legend_missed">미복용</string>
-    <string name="s07_legend_skipped">건너뜀</string>
-    <string name="s07_legend_upcoming">예정</string>
     <string name="s07_mark_none">복용일 아님</string>
-    <string name="s07_section_times">복용 시간</string>
-    <string name="s07_section_info">정보</string>
     <string name="s07_label_period">복용 기간</string>
     <string name="s07_period_open">%1$d월 %2$d일부터 · %3$d일째</string>
     <string name="s07_period_range">%1$d월 %2$d일 ~ %3$d월 %4$d일 · %5$d일째</string>
@@ -460,11 +458,8 @@
     <string name="s07_label_source">처방 출처</string>
     <string name="s07_no_memo">없음</string>
     <string name="s07_pause_title">비활성화</string>
-    <string name="s07_pause_body">켜 두면 오늘 이후 일정과 알림에서 빠져요.</string>
     <string name="s07_btn_edit">✎ 약 수정</string>
-    <string name="s07_btn_delete">삭제</string>
-    <string name="s07_row_archive_title">지난 복용 기록</string>
-    <string name="s07_row_archive_desc">날짜별로 남겨 둔 기록 보기</string>
+    <string name="s07_btn_delete">이 약 삭제</string>
     <string name="s07_empty_body">약 목록에서 다시 선택해주세요.</string>
     <string name="s07_empty_action">목록 보기</string>
 
