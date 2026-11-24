@@ -99,7 +99,8 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
                 onEdit = { medId?.let { go.open(Routes.s08Edit(it)) } },
                 onDelete = { medId?.let { go.open(Routes.s09(it)) } },
                 onOpenSource = { medId?.let { go.open(Routes.s42(it)) } },
-                onOpenArchive = { go.open(Routes.S32) }
+                onOpenArchive = { go.open(Routes.S32) },
+                onOpenDose = { key -> go.open(Routes.s10(key)) }
             )
         )
     }
