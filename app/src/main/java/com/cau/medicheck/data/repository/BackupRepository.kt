@@ -156,7 +156,7 @@ class BackupRepository(
     // ----- 표의 줄 ↔ 파일의 줄 -----
 
     private fun Medication.toBackup() = BackupMedication(
-        id, name, dosage, startDate, endDate, memo, createdAt, deletedAt, pausedFrom, hospital, department, sourceMemo
+        id, name, dosage, startDate, endDate, memo, createdAt, deletedAt, pausedFrom, hospital, department, sourceMemo, shape, color
     )
 
     private fun Schedule.toBackup() =
@@ -174,7 +174,7 @@ class BackupRepository(
     private fun BackupMedication.toEntity(userId: Long) = Medication(
         userId = userId, name = name, dosage = dosage, startDate = startDate, endDate = endDate, memo = memo,
         createdAt = createdAt, deletedAt = deletedAt, pausedFrom = pausedFrom,
-        hospital = hospital, department = department, sourceMemo = sourceMemo
+        hospital = hospital, department = department, sourceMemo = sourceMemo, shape = shape, color = color
     )
 
     private fun BackupSchedule.toEntity(medicationId: Long) = Schedule(

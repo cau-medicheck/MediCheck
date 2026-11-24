@@ -69,5 +69,13 @@ data class Medication(
     val department: String? = null,
 
     @ColumnInfo(name = "source_memo")
-    val sourceMemo: String? = null
+    val sourceMemo: String? = null,
+
+    /** 아이콘 모양 (domain/MedicationShape 이름 글자, version 7) */
+    @ColumnInfo(name = "shape", defaultValue = "TABLET")
+    val shape: String = "TABLET",
+
+    /** 아이콘 색 (domain/MedicationColor 이름 글자, version 7) */
+    @ColumnInfo(name = "color", defaultValue = "TEAL")
+    val color: String = "TEAL"
 )

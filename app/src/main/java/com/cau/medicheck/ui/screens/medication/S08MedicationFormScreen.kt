@@ -20,6 +20,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.domain.DoseCondition
+import com.cau.medicheck.ui.components.ShapePicker
+import com.cau.medicheck.ui.components.ColorPicker
+import com.cau.medicheck.domain.MedicationShape
+import com.cau.medicheck.domain.MedicationColor
 import com.cau.medicheck.ui.components.ConditionChips
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
@@ -50,6 +54,8 @@ class MedicationFormActions(
     val onDosageChange: (String) -> Unit,
     val onMemoChange: (String) -> Unit,
     val onStartActiveChange: (Boolean) -> Unit,
+    val onShapeChange: (MedicationShape) -> Unit,
+    val onColorChange: (MedicationColor) -> Unit,
     val onTimeChange: (key: Int, LocalTime) -> Unit,
     val onConditionChange: (key: Int, DoseCondition) -> Unit,
     val onRemoveTime: (key: Int) -> Unit,
@@ -103,6 +109,11 @@ fun S08MedicationFormScreen(state: MedicationEditUiState, actions: MedicationFor
             label = stringResource(R.string.s08_label_name),
             keyboardOptions = next
         )
+        // 아이콘 모양·색: 내 약 목록과 약 상세에 이 모양으로 보인다 (2026-11-24)
+        FieldLabel(stringResource(R.string.s08_label_look))
+        ShapePicker(state.shape, state.color, actions.onShapeChange)
+        ColorPicker(state.color, actions.onColorChange, Modifier.padding(top = 10.dp))
+
         FieldLabel(stringResource(R.string.s08_label_dosage))
         FormField(
             value = state.dosage,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -16,8 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.domain.MedicationDetail
-import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
@@ -30,7 +29,6 @@ import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.ToggleRow
 import com.cau.medicheck.ui.components.scheduleDaysText
-import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.components.timeWithCondition
 import com.cau.medicheck.ui.theme.Navy
 
@@ -80,7 +78,7 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
 
     // ----- 큰 아이콘 + 이름 + 상태 배지 -----
     Row(modifier = Modifier.padding(top = 16.dp)) {
-        Avatar(Glyph.DOSE, size = 58.dp, fontSize = 30)
+        McMedIcon(med.shape, med.color, size = 58.dp)
         Spacer(Modifier.width(13.dp))
         Column(Modifier.weight(1f)) {
             Text(

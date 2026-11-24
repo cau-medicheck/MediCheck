@@ -13,6 +13,8 @@ import com.cau.medicheck.data.repository.MedicationResult
 import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.FormTimeRow
+import com.cau.medicheck.domain.MedicationShape
+import com.cau.medicheck.domain.MedicationColor
 import com.cau.medicheck.domain.MedicationDetail
 import com.cau.medicheck.domain.MedicationDraft
 import com.cau.medicheck.domain.MedicationError
@@ -74,6 +76,9 @@ data class MedicationEditUiState(
     val isSaving: Boolean = false,
     /** 등록 화면의 "바로 복용 시작" (끄면 쉬는 중으로 등록) */
     val startActive: Boolean = true,
+    /** 아이콘 모양·색 */
+    val shape: MedicationShape = MedicationShape.TABLET,
+    val color: MedicationColor = MedicationColor.TEAL,
     val scope: ApplyScope = ApplyScope.FROM_TODAY,
     val hasPendingEdit: Boolean = false,
     val pendingNew: PendingNew? = null
@@ -154,6 +159,8 @@ class MedicationEditViewModel(
                     name = medication.name,
                     dosage = medication.dosage,
                     memo = medication.memo,
+                    shape = medication.shape,
+                    color = medication.color,
                     startDate = medication.startDate,
                     endDate = medication.endDate,
                     times = medication.schedules.map { s -> TimeRow(key = nextKey++, id = s.id, time = s.time, condition = s.condition) },
@@ -182,6 +189,10 @@ class MedicationEditViewModel(
     fun onStartDateChange(date: LocalDate) = _uiState.update { it.copy(startDate = date) }
 
     fun onStartActiveChange(value: Boolean) = _uiState.update { it.copy(startActive = value) }
+
+    fun onShapeChange(value: MedicationShape) = _uiState.update { it.copy(shape = value) }
+
+    fun onColorChange(value: MedicationColor) = _uiState.update { it.copy(color = value) }
 
     /** null을 넘기면 "종료일 없음"이 된다. */
     fun onEndDateChange(date: LocalDate?) = _uiState.update { it.copy(endDate = date) }
@@ -227,7 +238,9 @@ class MedicationEditViewModel(
             endDate = state.endDate,
             memo = state.memo,
             schedules = toScheduleDrafts(state.times.map { FormTimeRow(it.id, it.time, it.condition) }, state.days, originalDays),
-            startActive = state.startActive
+            startActive = state.startActive,
+            shape = state.shape,
+            color = state.color
         )
     }
 

@@ -23,6 +23,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  *        medications.paused_from·hospital·department·source_memo, schedules.effective_from,
  *        dose_records 스냅샷(medication_name·dosage·memo), 새 표 dose_status_events·user_settings
  *     6: 복용 조건 — schedules.dose_condition, dose_records.dose_condition(스냅샷). 데이터를 지우지 않고 칸만 더한다(MIGRATION_5_6)
+ *     7: 약 아이콘 — medications.shape, medications.color (MIGRATION_6_7, 데이터 유지)
  * - 표마다 DAO(창구)를 하나씩 꺼낼 수 있게 함수를 적어 둔다. 몸통은 Room이 만든다.
  */
 @Database(
@@ -34,7 +35,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         DoseStatusEvent::class,
         UserSettingsEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -60,13 +61,13 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * DB를 연다. 앱 전체에서 한 번만 호출한다 (AppContainer 참고).
          *
-         * addMigrations: 5 → 6은 칸 두 개를 더하기만 하면 되므로 데이터를 지우지 않고 옮긴다(MIGRATION_5_6).
+         * addMigrations: 5 → 6, 6 → 7은 칸을 더하기만 하면 되므로 데이터를 지우지 않고 옮긴다.
          * fallbackToDestructiveMigration:
          *   그 밖의 옛 버전(1~4)에서 올라오면 기존 데이터를 지우고 새로 만든다. 개발 단계라 단순한 쪽을 택했다.
          */
         fun create(context: Context): AppDatabase {
             val builder = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DB_NAME)
-                .addMigrations(MIGRATION_5_6)
+                .addMigrations(MIGRATION_5_6, MIGRATION_6_7)
                 .fallbackToDestructiveMigration(dropAllTables = true)
 
             // 디버그 빌드(개발용 APK)에서만: DB를 열 때 외래 키 검사가 켜져 있는지 로그로 남긴다.
@@ -86,6 +87,14 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE schedules ADD COLUMN dose_condition TEXT NOT NULL DEFAULT 'NONE'")
                 db.execSQL("ALTER TABLE dose_records ADD COLUMN dose_condition TEXT NOT NULL DEFAULT 'NONE'")
+            }
+        }
+
+        /** 6 → 7: 약 아이콘의 모양·색 칸을 더한다. 이미 있는 약은 알약 + 청록이 된다. */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medications ADD COLUMN shape TEXT NOT NULL DEFAULT 'TABLET'")
+                db.execSQL("ALTER TABLE medications ADD COLUMN color TEXT NOT NULL DEFAULT 'TEAL'")
             }
         }
 

@@ -42,7 +42,10 @@ data class BackupMedication(
     val pausedFrom: String?,
     val hospital: String?,
     val department: String?,
-    val sourceMemo: String?
+    val sourceMemo: String?,
+    /** 아이콘 모양·색. 아이콘이 생기기 전(version 7 전)에 만든 백업에는 없으므로 기본값 */
+    val shape: String = "TABLET",
+    val color: String = "TEAL"
 )
 
 /** 복용 규칙 한 줄 (schedules 표) */

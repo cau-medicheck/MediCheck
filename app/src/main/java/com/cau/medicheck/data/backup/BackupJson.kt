@@ -1,6 +1,8 @@
 package com.cau.medicheck.data.backup
 
 import com.cau.medicheck.domain.DoseCondition
+import com.cau.medicheck.domain.MedicationColor
+import com.cau.medicheck.domain.MedicationShape
 import com.cau.medicheck.domain.backup.BackupData
 import com.cau.medicheck.domain.backup.BackupDoseRecord
 import com.cau.medicheck.domain.backup.BackupMedication
@@ -76,6 +78,7 @@ object BackupJson {
         put("createdAt", m.createdAt); putOrNull("deletedAt", m.deletedAt)
         putOrNull("pausedFrom", m.pausedFrom); putOrNull("hospital", m.hospital)
         putOrNull("department", m.department); putOrNull("sourceMemo", m.sourceMemo)
+        put("shape", m.shape); put("color", m.color)
     }
 
     private fun scheduleToJson(s: BackupSchedule) = JSONObject().apply {
@@ -116,7 +119,9 @@ object BackupJson {
         pausedFrom = o.stringOrNull("pausedFrom"),
         hospital = o.stringOrNull("hospital"),
         department = o.stringOrNull("department"),
-        sourceMemo = o.stringOrNull("sourceMemo")
+        sourceMemo = o.stringOrNull("sourceMemo"),
+        shape = MedicationShape.parse(o.stringOrNull("shape")).name,
+        color = MedicationColor.parse(o.stringOrNull("color")).name
     )
 
     private fun scheduleFromJson(o: JSONObject) = BackupSchedule(

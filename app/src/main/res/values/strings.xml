@@ -410,6 +410,17 @@
     <string name="s06_toast_activated">%1$s: 오늘부터 일정에 넣었어요.</string>
     <string name="s06_toast_resting">%1$s: 쉬는 중으로 바꿨어요.</string>
     <string name="s08_start_now">바로 복용 시작</string>
+    <string name="s08_label_look">모양 · 색</string>
+    <string name="shape_tablet">알약</string>
+    <string name="shape_capsule">캡슐</string>
+    <string name="shape_liquid">물약</string>
+    <string name="shape_powder">가루</string>
+    <string name="color_teal">청록</string>
+    <string name="color_orange">주황</string>
+    <string name="color_blue">파랑</string>
+    <string name="color_purple">보라</string>
+    <string name="color_pink">분홍</string>
+    <string name="color_gray">회색</string>
     <string name="s08_start_now_desc">끄면 등록만 해 두고 일정에는 넣지 않아요</string>
     <string name="med_status_ended">종료</string>
     <string name="mark_could">Could</string>
