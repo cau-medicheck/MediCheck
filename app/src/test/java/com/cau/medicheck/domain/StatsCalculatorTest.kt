@@ -9,7 +9,7 @@ import java.time.LocalTime
 import java.time.YearMonth
 
 /**
- * 통계 계산 테스트: 완료율, 최근 7일, 월간, 건너뜀 패턴. (docs/DB_DESIGN.md ⑩)
+ * 통계 계산 테스트: 완료율, 최근 7일, 주간(월~일)·주차, 월간, 시간대별, 연속 기록. (docs/DB_DESIGN.md ⑩)
  * 기준: "지금"은 2026-11-18(수) 12:00.
  */
 class StatsCalculatorTest {
@@ -216,60 +216,100 @@ class StatsCalculatorTest {
         assertNull(StatsCalculator.month(doses, december, now).total.completionRate)
     }
 
-    // ---------- 건너뜀 패턴 (S15) ----------
+    // ---------- 주간(월~일)·주차 (S13·S14) ----------
 
     @Test
-    fun `패턴은 오늘에서 29일 전까지 세고 30일 전은 세지 않는다`() {
-        val doses = listOf(
-            doseOn(today.minusDays(29), 8, 0, DoseStatus.SKIPPED),
-            doseOn(today.minusDays(30), 8, 0, DoseStatus.SKIPPED),
-            doseOn(today, 8, 0, DoseStatus.SKIPPED)
-        )
-
-        assertEquals(2, StatsCalculator.skipPattern(doses, today, now).totalSkipped)
+    fun `한 주는 월요일부터 일요일까지다`() {
+        assertEquals(LocalDate.of(2026, 11, 16), StatsCalculator.weekStartOf(today))           // 수 → 그 주 월요일
+        assertEquals(LocalDate.of(2026, 11, 16), StatsCalculator.weekStartOf(LocalDate.of(2026, 11, 22)))  // 일요일도 같은 주
+        val days = StatsCalculator.week(emptyList(), LocalDate.of(2026, 11, 16), now).days
+        assertEquals(7, days.size)
+        assertEquals(LocalDate.of(2026, 11, 22), days.last().date)
     }
 
     @Test
-    fun `건너뜀은 예정 시각의 시간대로 나눈다`() {
-        val yesterday = today.minusDays(1)
-        val doses = listOf(
-            doseOn(yesterday, 0, 0, DoseStatus.SKIPPED),                                                  // 새벽
-            doseOn(yesterday, 5, 0, DoseStatus.SKIPPED), doseOn(yesterday, 10, 59, DoseStatus.SKIPPED),   // 아침
-            doseOn(yesterday, 11, 0, DoseStatus.SKIPPED), doseOn(yesterday, 15, 59, DoseStatus.SKIPPED),  // 점심
-            doseOn(yesterday, 16, 0, DoseStatus.SKIPPED), doseOn(yesterday, 20, 59, DoseStatus.SKIPPED),  // 저녁
-            doseOn(yesterday, 21, 0, DoseStatus.SKIPPED)                                                  // 밤
-        )
+    fun `주차는 목요일이 있는 달로 센다`() {
+        // 2026-11-01(일)이 든 주(10/26~11/1)는 목요일 10/29가 10월이라 10월 5주차
+        assertEquals(WeekOfMonth(YearMonth.of(2026, 10), 5), StatsCalculator.weekOfMonth(LocalDate.of(2026, 10, 26)))
+        assertEquals(WeekOfMonth(YearMonth.of(2026, 11), 1), StatsCalculator.weekOfMonth(LocalDate.of(2026, 11, 2)))
+        assertEquals(WeekOfMonth(YearMonth.of(2026, 11), 4), StatsCalculator.weekOfMonth(LocalDate.of(2026, 11, 23)))
+        // 11/30~12/6은 목요일 12/3이라 12월 1주차
+        assertEquals(WeekOfMonth(YearMonth.of(2026, 12), 1), StatsCalculator.weekOfMonth(LocalDate.of(2026, 11, 30)))
+    }
 
-        val pattern = StatsCalculator.skipPattern(doses, today, now)
-
+    @Test
+    fun `그 달의 주차 목록은 1주차부터 마지막 주차까지다`() {
+        val weeks = StatsCalculator.weeksOfMonth(YearMonth.of(2026, 11))
         assertEquals(
-            mapOf(DayPeriod.DAWN to 1, DayPeriod.MORNING to 2, DayPeriod.LUNCH to 2, DayPeriod.EVENING to 2, DayPeriod.NIGHT to 1),
-            pattern.skippedByPeriod
+            listOf(2, 9, 16, 23).map { LocalDate.of(2026, 11, it) },
+            weeks
         )
+        // 2026년 10월은 1일이 목요일 → 9/28이 든 주부터, 목요일이 10/29인 주까지 5주
+        val october = StatsCalculator.weeksOfMonth(YearMonth.of(2026, 10))
+        assertEquals(LocalDate.of(2026, 9, 28), october.first())
+        assertEquals(5, october.size)
     }
 
+    // ---------- 패턴: 시간대별 (S15) ----------
+
     @Test
-    fun `기한 경과 미기록은 건너뜀과 따로 세고 시각 전인 것은 어디에도 넣지 않는다`() {
+    fun `시간대별은 최근 7일을 예정 시각의 시간대로 나눠 센다`() {
         val doses = listOf(
-            doseOn(today.minusDays(1), 8, 0, DoseStatus.PENDING),   // 어제 미기록 → 기한 경과
-            doseOn(today, 8, 0, DoseStatus.PENDING),                // 오늘 08:00 미기록 → 기한 경과 (지금 12:00)
-            doseOn(today, 20, 0, DoseStatus.PENDING),               // 오늘 20:00 → 아직
-            doseOn(today, 20, 0, DoseStatus.SKIPPED),               // 미리 건너뜀으로 눌러도 20:00 전에는 세지 않는다
+            doseOn(today.minusDays(1), 8, 0, DoseStatus.TAKEN),
             doseOn(today.minusDays(1), 8, 0, DoseStatus.SKIPPED),
-            doseOn(today.minusDays(1), 8, 0, DoseStatus.TAKEN)
+            doseOn(today.minusDays(1), 12, 30, DoseStatus.PENDING),   // 어제 점심 → 미복용
+            doseOn(today.minusDays(7), 8, 0, DoseStatus.TAKEN)        // 8일 전 → 빠짐
         )
+        val slots = StatsCalculator.slotRates(doses, today, now).associateBy { it.period }
 
-        val pattern = StatsCalculator.skipPattern(doses, today, now)
-
-        assertEquals(1, pattern.totalSkipped)
-        assertEquals(2, pattern.overdueUnrecorded)
+        assertEquals(50, slots.getValue(DayPeriod.MORNING).counts.completionRate)
+        assertEquals(0, slots.getValue(DayPeriod.LUNCH).counts.completionRate)
+        assertEquals(false, slots.getValue(DayPeriod.EVENING).hasSchedule)
     }
 
     @Test
-    fun `기록이 없으면 네 시간대 모두 0이다`() {
-        val pattern = StatsCalculator.skipPattern(emptyList(), today, now)
+    fun `새벽은 회차가 있을 때만 줄이 생긴다`() {
+        assertEquals(
+            listOf(DayPeriod.MORNING, DayPeriod.LUNCH, DayPeriod.EVENING, DayPeriod.NIGHT),
+            StatsCalculator.slotRates(emptyList(), today, now).map { it.period }
+        )
+        val withDawn = StatsCalculator.slotRates(listOf(doseOn(today.minusDays(1), 2, 0, DoseStatus.TAKEN)), today, now)
+        assertEquals(DayPeriod.DAWN, withDawn.first().period)
+    }
 
-        assertEquals(DayPeriod.entries.associateWith { 0 }, pattern.skippedByPeriod)
-        assertEquals(0, pattern.overdueUnrecorded)
+    // ---------- 패턴: 연속 기록 (S15) ----------
+
+    /** 그날 08:00 한 번 */
+    private fun day(daysAgo: Long, status: DoseStatus, hour: Int = 8) = doseOn(today.minusDays(daysAgo), hour, 0, status)
+
+    @Test
+    fun `모두 먹은 날이 이어진 만큼 센다`() {
+        val doses = listOf(day(3, DoseStatus.TAKEN), day(2, DoseStatus.TAKEN), day(1, DoseStatus.TAKEN), day(0, DoseStatus.TAKEN))
+        assertEquals(Streaks(current = 4, best = 4), StatsCalculator.streaks(doses, today, now))
+    }
+
+    @Test
+    fun `건너뜀이나 미복용이 있는 날에서 끊기고 가장 긴 기록은 남는다`() {
+        val doses = listOf(
+            day(6, DoseStatus.TAKEN), day(5, DoseStatus.TAKEN), day(4, DoseStatus.TAKEN),
+            day(3, DoseStatus.SKIPPED),
+            day(2, DoseStatus.TAKEN), day(1, DoseStatus.PENDING)   // 어제 미기록 → 미복용
+        )
+        assertEquals(Streaks(current = 0, best = 3), StatsCalculator.streaks(doses, today, now))
+    }
+
+    @Test
+    fun `오늘 아직 남은 회차가 있으면 끊지 않는다`() {
+        val doses = listOf(
+            day(1, DoseStatus.TAKEN),
+            day(0, DoseStatus.TAKEN), day(0, DoseStatus.PENDING, hour = 20)   // 오늘 20:00은 아직
+        )
+        assertEquals(Streaks(current = 1, best = 1), StatsCalculator.streaks(doses, today, now))
+    }
+
+    @Test
+    fun `회차가 없는 날은 건너뛴다`() {
+        val doses = listOf(day(3, DoseStatus.TAKEN), day(1, DoseStatus.TAKEN))   // 2일 전은 회차 없음
+        assertEquals(Streaks(current = 2, best = 2), StatsCalculator.streaks(doses, today, now))
     }
 }

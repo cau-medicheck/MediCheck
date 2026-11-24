@@ -570,9 +570,31 @@
     <string name="common_count_taken">완료</string>
     <string name="common_count_skipped">건너뜀</string>
     <string name="common_count_missed">미복용</string>
+    <!-- 통계 공통 (2026-11-24 개편) -->
+    <string name="stats_range">%1$d.%2$d ~ %3$d.%4$d</string>
+    <string name="stats_count">%1$d / %2$d회</string>
+    <string name="stats_week_title">%1$d월 %2$d주차</string>
+    <string name="stats_week_index">%1$d주차</string>
+    <string name="stats_delta_week">지난주 %1$s %2$d%%p</string>
+    <string name="stats_delta_month">지난달 %1$s %2$d%%p</string>
+    <string name="stats_cd_prev_week">이전 주</string>
+    <string name="stats_cd_next_week">다음 주</string>
+    <string name="stats_section_weekday">요일별</string>
+    <string name="stats_section_calendar">날짜별</string>
+    <string name="stats_section_weeks">주차별</string>
+    <string name="stats_cd_day">%1$d일 %2$d%%</string>
+    <string name="stats_cd_day_none">%1$d일 기록 없음</string>
+    <string name="s15_title">자주 빠뜨리는 때</string>
+    <string name="s15_section_slots">시간대별</string>
+    <string name="s15_recent">최근 7일</string>
+    <string name="s15_no_schedule">일정 없음</string>
+    <string name="s15_section_streak">연속 기록</string>
+    <string name="s15_streak_current">현재</string>
+    <string name="s15_streak_best">최고</string>
+    <string name="s15_days_unit">일</string>
     <string name="stats_tab_week">주간</string>
     <string name="stats_tab_month">월간</string>
-    <string name="stats_tab_pattern">누락 분석</string>
+    <string name="stats_tab_pattern">패턴</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
     <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d</string>
@@ -588,27 +610,8 @@
     <string name="s12_empty_title">기록이 없어요</string>
     <string name="s12_empty_body">해당 날짜에 예정된 복용 일정이 없습니다.</string>
 
-    <!-- ===== S13 주간 통계 ===== -->
-    <string name="s13_rate_label">최근 7일 복약 완료율</string>
-    <string name="s13_section_daily">요일별 완료율</string>
-    <string name="s13_cd_bar">%1$s %2$s</string>
-    <!-- 프로토타입 원문("…전체 예정 복용 중 완료한 비율입니다. 이는 임시 산식입니다.")은 실제 계산과 달라 실제 계산대로 썼다 -->
-    <string name="s13_notice">완료율은 오늘을 포함한 최근 7일 동안 예정 시각이 된 복용 중 ‘복용 완료’로 기록한 비율입니다. 건너뜀과 미복용은 분모에 포함하고, 아직 예정 시각이 되지 않은 복용은 미리 복용 완료로 기록했더라도 제외합니다. 계산할 복용이 없으면 N/A로 표시합니다.</string>
 
-    <!-- ===== S14 월간 통계 ===== -->
-    <string name="s14_rate_label">월간 완료율</string>
-    <string name="s14_counts">완료 %1$d회 · 건너뜀 %2$d회 · 미복용 %3$d회</string>
-    <string name="s14_section_daily">일자별 복약 완료율</string>
-    <string name="s14_first_day">1일</string>
-    <string name="s14_last_day">%1$d일</string>
-    <string name="s14_cd_bar">%1$s: %2$s</string>
 
-    <!-- ===== S15 건너뜀 패턴 ===== -->
-    <string name="s15_total_label">최근 30일 건너뜀 횟수</string>
-    <string name="s15_unit">회</string>
-    <string name="s15_section_periods">시간대별 분포</string>
-    <string name="s15_count">%1$d회</string>
-    <string name="s15_notice">미복용은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미복용을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
 
     <!-- ===== S43 복약 기록 내보내기 ===== -->
     <string name="s43_subtitle">주간·월간 기록을 CSV 파일로 저장합니다.</string>
