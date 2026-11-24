@@ -2,7 +2,6 @@ package com.cau.medicheck.ui.screens.auth
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -10,27 +9,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
-import com.cau.medicheck.ui.components.AuthLogo
-import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.FormField
-import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.McAppFrame
 import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.ScreenTitle
-import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Gap22
 import com.cau.medicheck.ui.theme.MediCheckTheme
@@ -52,49 +42,38 @@ fun S03ForgotPasswordScreen(
 ) {
     var email by rememberSaveable { mutableStateOf("") }
 
-    McAppFrame(screenId = Routes.S03, loggedIn = false) {
-        McScreenColumn(paneTitle = stringResource(R.string.screen_title_s03)) {
-            BackLink(label = stringResource(R.string.s03_back), onClick = onBack)
-            Spacer(Modifier.height(Gap22))
-            AuthLogo(
-                symbol = Glyph.MAIL,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 24.dp, bottom = 16.dp)
-            )
-            // 제목은 왼쪽 정렬 (v3 header())
-            ScreenTitle(
-                title = stringResource(R.string.screen_title_s03),   // v3: 머리말 제목과 같은 글자
-                subtitle = stringResource(R.string.s03_subtitle)
-            )
-            Spacer(Modifier.height(Gap22))
+    AuthFrame(
+        paneTitle = stringResource(R.string.screen_title_s03),
+        tagline = stringResource(R.string.s03_tagline),
+        onBack = onBack,
+        backLabel = stringResource(R.string.s03_back)
+    ) {
+        AuthCardTitle(stringResource(R.string.screen_title_s03))
+        val emailLabel = stringResource(R.string.s03_label_email)
+        FieldLabel(emailLabel)
+        FormField(
+            value = email,
+            onValueChange = { email = it },
+            placeholder = stringResource(R.string.auth_hint_email),
+            label = emailLabel,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = { onRequest(email) })
+        )
 
-            val emailLabel = stringResource(R.string.s03_label_email)
-            FieldLabel(emailLabel)
-            FormField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = stringResource(R.string.auth_hint_email),
-                label = emailLabel,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { onRequest(email) })
-            )
-
-            Spacer(Modifier.height(Gap22))
-            McButton(
-                text = stringResource(R.string.s03_submit),
-                onClick = { onRequest(email) },
-                kind = ButtonKind.PRIMARY,
-                full = true
-            )
-            Spacer(Modifier.height(Gap16))
-            Notice(stringResource(R.string.s03_notice), warn = true)
-        }
+        Spacer(Modifier.height(Gap22))
+        McButton(
+            text = stringResource(R.string.s03_submit),
+            onClick = { onRequest(email) },
+            kind = ButtonKind.PRIMARY,
+            full = true
+        )
+        Spacer(Modifier.height(Gap16))
+        Notice(stringResource(R.string.s03_notice), warn = true)
     }
 }
 

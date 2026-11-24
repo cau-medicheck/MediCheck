@@ -54,7 +54,12 @@
     <string name="screen_title_s46">안전 고지</string>
 
     <!-- ===== S00 시작/온보딩 (v3 welcome()) ===== -->
-    <string name="s00_subtitle">건강한 일상을 위한 복약 일정 관리</string>
+    <string name="auth_tagline">복약 일정 관리</string>
+    <string name="s01_tagline">다시 오셨네요</string>
+    <string name="s01_no_account">계정이 없나요?</string>
+    <string name="s02_tagline">복약 관리를 시작해요</string>
+    <string name="s02_have_account">이미 계정이 있나요?</string>
+    <string name="s03_tagline">비밀번호를 잊으셨나요?</string>
     <string name="s00_slide1_title">약을 잊지 않고</string>
     <string name="s00_slide1_body">매일 복용할 약과 시간을 한눈에 관리해요.</string>
     <string name="s00_slide2_title">정해진 시간에</string>
@@ -67,8 +72,6 @@
     <!-- NEW: TalkBack이 진행 점을 읽는 글 (화면에는 보이지 않음) -->
     <string name="s00_page_desc">3장 중 %1$d장</string>
 
-    <!-- ===== S01 로그인 · S02 회원가입 (v3 login(), signup()) ===== -->
-    <string name="s01_subtitle">내 복약 일정과 기록을 안전하게 관리하세요.</string>
     <string name="auth_tab_login">로그인</string>
     <string name="auth_tab_signup">회원가입</string>
     <string name="auth_label_email">이메일</string>
@@ -78,26 +81,19 @@
     <string name="s01_forgot">비밀번호를 잊으셨나요?</string>
     <string name="s01_submit">로그인</string>
     <string name="s01_sample">샘플 계정으로 체험하기</string>
-    <!-- 앱(교체): v3 "데모 로그인입니다. 실제 비밀번호 인증·서버 연결은 구현되지 않았습니다." → 실제 앱에 맞는 사실 -->
-    <string name="s01_notice">계정과 복약 기록은 서버 없이 이 기기 안에만 저장됩니다. 샘플 계정은 날마다 처음 들어갈 때 예시 약 3개와 지난 기록으로 새로 채워집니다.</string>
-    <string name="s02_subtitle">새로운 복약 관리 계정을 만들어보세요.</string>
     <string name="auth_label_name">이름</string>
     <string name="auth_hint_name">표시할 이름</string>
     <string name="auth_label_password_confirm">비밀번호 확인</string>
     <string name="auth_hint_password_confirm">동일한 비밀번호 입력</string>
     <string name="s02_submit">계정 만들기</string>
-    <!-- 앱(교체): v3 "사용자 정보 입력 UI만 구현한 시연입니다. 실제 회원 정보 보관 기능은 미연결입니다." -->
-    <string name="s02_notice">계정 정보는 서버 없이 이 기기 안에만 저장됩니다. 비밀번호는 그대로 저장하지 않고 알아볼 수 없는 형태로 바꿔 저장합니다.</string>
 
     <!-- ===== S03 비밀번호 재설정 (v3 forgot()) ===== -->
     <!-- BackLink 부품이 앞에 "‹ "를 붙인다 -->
     <string name="s03_back">로그인 화면</string>
-    <!-- 앱(교체): v3 "계정의 이메일로 복구 안내를 보내는 화면입니다." -->
-    <string name="s03_subtitle">비밀번호를 잊었을 때 할 수 있는 방법을 안내합니다.</string>
     <string name="s03_label_email">가입 이메일</string>
     <string name="s03_submit">복구 안내 요청</string>
     <!-- 앱(교체): v3 "인증 서비스가 정해지기 전까지 실제 재설정 메일은 발송하지 않습니다." -->
-    <string name="s03_notice">MediCheck 계정은 서버 없이 이 기기 안에만 저장되어 재설정 메일을 보낼 수 없습니다. 비밀번호가 기억나지 않으면 로그인 화면의 \'회원가입\'에서 다른 이메일로 새 계정을 만들어 주세요. 기존 계정의 기록은 원래 비밀번호로만 볼 수 있습니다.</string>
+    <string name="s03_notice">계정이 이 기기 안에만 있어 재설정 메일을 보낼 수 없어요. 다른 이메일로 새로 가입해 주세요.</string>
 
     <!-- ===== 로그인 전후 토스트 ===== -->
     <!-- 앱(교체): v3 "데모 모드로 로그인했어요." -->
