@@ -98,8 +98,7 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
                 onPausedChange = vm::setPaused,
                 onEdit = { medId?.let { go.open(Routes.s08Edit(it)) } },
                 onDelete = { medId?.let { go.open(Routes.s09(it)) } },
-                onOpenSource = { medId?.let { go.open(Routes.s42(it)) } },
-                onOpenArchive = { go.open(Routes.S32) }
+                onOpenSource = { medId?.let { go.open(Routes.s42(it)) } }
             )
         )
     }
