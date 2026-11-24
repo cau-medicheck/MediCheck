@@ -26,8 +26,6 @@ import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.MetricNumber
 import com.cau.medicheck.ui.components.MonthSwitcher
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.Pill
-import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ProgressBar
 import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SegmentedTabs
@@ -196,7 +194,6 @@ fun S14MonthStatsScreen(state: MonthStatsUiState, onTab: (Int) -> Unit, onShiftM
             }
         }
 
-        Pill(stringResource(R.string.stats_badge_extra), PillKind.ORANGE, Modifier.padding(top = 16.dp))
     }
 }
 
@@ -262,7 +259,6 @@ fun S15SkipPatternScreen(state: SkipPatternUiState, onTab: (Int) -> Unit) {
             Modifier.padding(top = 16.dp),
             warn = true
         )
-        Pill(stringResource(R.string.stats_badge_extra), PillKind.ORANGE, Modifier.padding(top = 16.dp))
     }
 }
 

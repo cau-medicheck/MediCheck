@@ -173,7 +173,7 @@
     <string name="s17_vibrate_title">진동</string>
     <string name="s17_vibrate_desc">알림이 울릴 때 기기가 진동합니다.</string>
     <string name="s17_realert_title">재알림</string>
-    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다. (추가 기능)</string>
+    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다.</string>
     <string name="s17_realert_interval">재알림 간격</string>
     <string name="s17_minutes">%1$d분</string>
     <string name="s17_realert_changed">재알림 간격을 변경했어요.</string>
@@ -259,10 +259,10 @@
     <string name="status_pill_upcoming">○ 복용 예정</string>
     <string name="common_status_word_taken">복용 완료</string>
     <string name="common_status_word_skipped">건너뜀</string>
-    <string name="common_status_word_pending">미기록</string>
+    <string name="common_status_word_pending">기록 전</string>
     <string name="common_toast_marked_taken">복용 완료로 기록했어요.</string>
     <string name="common_toast_marked_skipped">건너뜀으로 기록했어요.</string>
-    <string name="common_toast_marked_pending">미기록 상태로 변경했어요.</string>
+    <string name="common_toast_marked_pending">기록 전으로 되돌렸어요.</string>
     <string name="common_toast_dose_not_found">해당 회차를 찾을 수 없습니다.</string>
 
     <!-- 알림 꺼짐 카드 (S04에 보임. 문구는 S34의 것 — 5단계가 같은 키를 쓴다) -->
@@ -342,17 +342,16 @@
     <string name="s10_section_state">이번 회차 상태</string>
     <string name="s10_btn_taken">✓ 복용 완료</string>
     <string name="s10_btn_skipped">↷ 건너뜀</string>
-    <string name="s10_btn_pending">○ 미기록으로</string>
+    <string name="s10_btn_pending">○ 기록 전으로</string>
     <string name="s10_current_suffix">· 현재 상태</string>
     <!-- 프로토타입 원문의 둘째 문장("이 상태 정의는 팀 논의 전 임시안입니다.")은 정의가 확정되어 사실이 아니라 뺐다 -->
-    <string name="s10_notice_pending">‘미기록’은 자동으로 ‘건너뜀’이 되지 않습니다.</string>
+    <string name="s10_notice_pending">기록 전으로 되돌리면 시각에 따라 ‘예정’이나 ‘미복용’으로 보여요. 자동으로 ‘건너뜀’이 되지는 않아요.</string>
     <string name="s10_notice_future">아직 오지 않은 날짜의 회차는 그날부터 기록할 수 있어요.</string>
     <string name="s10_actual_time">실제 복용 %1$s</string>
     <string name="s10_row_actual_title">실제 복용 시각 기록</string>
     <string name="s10_row_actual_desc">예정 시각과 실제 시각 구분</string>
     <string name="s10_row_history_title">상태 변경 이력</string>
     <string name="s10_row_history_desc">기록 정정 사항 확인</string>
-    <string name="s10_mark_should">Should</string>
     <string name="s10_btn_undo">마지막 변경 실행취소</string>
     <string name="s10_no_memo">등록된 복용 메모가 없습니다.</string>
     <string name="s10_empty_title">복용 회차가 없어요</string>
@@ -423,9 +422,7 @@
     <string name="color_gray">회색</string>
     <string name="s08_start_now_desc">끄면 등록만 해 두고 일정에는 넣지 않아요</string>
     <string name="med_status_ended">종료</string>
-    <string name="mark_could">Could</string>
-    <string name="mark_must">Must</string>
-    <string name="extra_notice_future">ⓘ 이 화면은 디자인 검토용입니다. 해당 기능은 이번 수업 릴리스에서 구현하지 않는 Won’t 항목입니다.</string>
+    <string name="extra_notice_future">ⓘ 아직 준비 중인 기능이에요. 지금은 화면 모양만 미리 볼 수 있고, 입력한 내용은 저장되지 않아요.</string>
 
     <!-- ===== S06 내 약 목록 ===== -->
     <string name="s06_search_hint">약 이름으로 검색</string>
@@ -464,7 +461,6 @@
     <string name="s08_title_new">새 약 등록</string>
     <string name="s08_title_edit">약 정보 수정</string>
     <string name="s08_subtitle">복용 정보와 일정을 설정하세요.</string>
-    <string name="s08_link_photo">사진으로 등록 (준비 중)</string>
     <string name="s08_label_name">약 이름 *</string>
     <string name="s08_hint_name">예: 비타민 C</string>
     <string name="s08_label_dosage">1회 복용량 *</string>
@@ -548,7 +544,6 @@
 
     <!-- ===== S42 처방 출처·진료과 ===== -->
     <string name="s42_subtitle">어느 병원에서 받은 약인지 개인 메모를 남길 수 있어요.</string>
-    <string name="s42_badge_optional">선택 기능</string>
     <string name="s42_label_hospital">의료기관</string>
     <string name="s42_hint_hospital">예: ○○병원</string>
     <string name="s42_label_department">진료과</string>
@@ -569,7 +564,6 @@
     <string name="stats_tab_week">주간</string>
     <string name="stats_tab_month">월간</string>
     <string name="stats_tab_pattern">누락 분석</string>
-    <string name="stats_badge_extra">추가 기능</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
     <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d</string>
@@ -605,7 +599,7 @@
     <string name="s15_unit">회</string>
     <string name="s15_section_periods">시간대별 분포</string>
     <string name="s15_count">%1$d회</string>
-    <string name="s15_notice">미복용은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+    <string name="s15_notice">미복용은 %1$d회이며 위 건너뜀 %2$d회와 별도로 집계했습니다. 미복용을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
 
     <!-- ===== S43 복약 기록 내보내기 ===== -->
     <string name="s43_subtitle">주간·월간 기록을 CSV 파일로 저장합니다.</string>
@@ -633,7 +627,7 @@
     <string name="s19_row_perm_title">알림 권한·OS</string>
     <string name="s19_row_perm_desc">Android 알림 제한 확인</string>
     <string name="s19_row_policy_title">복약률 계산 정책</string>
-    <string name="s19_row_policy_desc">미기록/건너뜀 기준</string>
+    <string name="s19_row_policy_desc">미복용/건너뜀 기준</string>
     <!-- 프로토타입 원문 "도움말·프로토타입": 실제 앱은 프로토타입이 아니라서 S22 본문 제목과 같은 말로 바꿨다 -->
     <string name="s19_row_help_title">도움말·구현 범위</string>
     <string name="s19_row_help_desc">사용법 및 기능 범위</string>
@@ -652,6 +646,8 @@
     <!-- 프로토타입에는 S23으로 들어가는 길이 없어서 더한 줄 -->
     <string name="s19_row_family_title">가족·보호자 (준비 중)</string>
     <string name="s19_row_family_desc">보호할 가족의 프로필 전환 시안</string>
+    <string name="s19_row_photo_title">사진으로 약 등록 (준비 중)</string>
+    <string name="s19_row_photo_desc">약 봉투 사진으로 등록하는 시안</string>
 
     <!-- ===== S20 통계 계산 정책 ===== -->
     <string name="s20_back">설정</string>
@@ -659,14 +655,14 @@
     <string name="s20_subtitle">통계 화면의 복약 완료율은 이 기준으로 계산합니다. 홈과 일정의 진행률은 시각과 상관없이 기록한 만큼 바로 올라갑니다.</string>
     <string name="s20_taken_desc">사용자가 실제 복용 완료를 눌렀을 때 기록</string>
     <string name="s20_skipped_desc">사용자가 이번 회차를 먹지 않았다고 명시</string>
-    <string name="s20_pending_title">○ 미기록</string>
+    <string name="s20_pending_title">○ 기록 전 (예정 · 미복용)</string>
     <string name="s20_pending_desc">아직 완료/건너뜀을 선택하지 않은 상태</string>
     <string name="s20_pending_display">예정 시각 30분 뒤까지는 ‘예정’, 그 뒤로도 기록이 없으면 ‘미복용’으로 표시합니다.</string>
     <!-- 프로토타입 원문 "현재 데모 산식" -->
     <string name="s20_kicker">현재 산식</string>
     <!-- 프로토타입 원문 "완료율 = 완료 횟수 ÷ 예정 횟수 × 100": 실제 계산(StatsCalculator)과 같게 고쳤다 -->
     <string name="s20_formula">완료율 = 완료 횟수 ÷ 예정 시각이 된 횟수 × 100</string>
-    <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 미복용까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미기록을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
+    <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 미복용까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미복용을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
     <!-- 프로토타입 원문은 "…미확정으로 명시되어 있습니다."(주황). 지금은 정해졌으므로 바꿨다 -->
     <string name="s20_notice">계획서 7장에서 미확정이던 ‘미복용과 명시적 건너뜀 구분’과 ‘복약률 계산 기준’을 위와 같이 정했습니다.</string>
 
@@ -688,7 +684,7 @@
     <string name="s22_step2_title">일정 확인</string>
     <string name="s22_step2_desc">홈 또는 일정에서 등록 확인</string>
     <string name="s22_step3_title">복용 상태 변경</string>
-    <string name="s22_step3_desc">완료/건너뜀/미기록 선택</string>
+    <string name="s22_step3_desc">완료/건너뜀/기록 전으로 선택</string>
     <string name="s22_step4_title">기록과 통계</string>
     <string name="s22_step4_desc">변경된 횟수·비율 확인</string>
     <string name="s22_step5_title">알림 미리보기</string>
@@ -748,7 +744,7 @@
     <string name="s25_row_lunch">점심 복용</string>
     <string name="s25_row_evening">저녁 복용</string>
     <string name="s25_done">완료</string>
-    <string name="s25_pending">미기록</string>
+    <string name="s25_pending">미복용</string>
 
     <string name="s26_desc">대리 복용 기록 시 누가 기록했는지 구분합니다.</string>
     <string name="s26_card_title">오늘 12:30 · 처방약 복용</string>
@@ -839,7 +835,6 @@
     <string name="s36_row_export_desc">CSV 파일 다운로드</string>
     <string name="s36_row_delete_title">계정·데이터 삭제</string>
     <string name="s36_row_delete_desc">데이터 처리 범위 확인</string>
-    <string name="s36_mark_extra">추가</string>
     <!-- 프로토타입 원문 "ⓘ 브라우저 내 데모 데이터만 변경합니다. …": 스위치가 실제 알림과 최근 앱 미리보기를 바꾸므로 고쳤다 -->
     <string name="s36_notice">ⓘ 모든 설정과 기록은 이 기기 안에만 저장되고 서버로 보내지 않습니다. ‘잠금 화면에 약 이름 숨김’은 다음에 뜨는 휴대폰 알림부터, ‘통계 미리보기 숨김’은 최근 앱 목록의 화면 미리보기에 적용됩니다(Android 12 이하에서는 화면 캡처도 막힙니다).</string>
 

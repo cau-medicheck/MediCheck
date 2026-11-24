@@ -132,7 +132,6 @@ fun NavGraphBuilder.medicationGraph(user: User, go: AppNavigator) {
             actions = remember(vm, go) {
                 MedicationFormActions(
                     onBackToList = { go.backTo(Routes.S06) },
-                    onOpenPhoto = { go.open(Routes.S29) },
                     onNameChange = vm::onNameChange,
                     onDosageChange = vm::onDosageChange,
                     onMemoChange = vm::onMemoChange,

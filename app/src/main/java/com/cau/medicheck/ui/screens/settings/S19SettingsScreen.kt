@@ -43,14 +43,15 @@ private val APP_ROWS = listOf(
     HubRow(Glyph.HELP, R.string.s19_row_help_title, R.string.s19_row_help_desc, Routes.S22)
 )
 
-/** "안전·편의 기능" 카드의 줄들. 마지막 줄(가족·보호자)은 프로토타입에 없던 입구라 맨 끝에 붙였다. */
+/** "안전·편의 기능" 카드의 줄들. 마지막 두 줄(가족·보호자, 사진으로 약 등록)은 준비 중인 시안 화면의 입구라 맨 끝에 붙였다. */
 private val SAFETY_ROWS = listOf(
     HubRow(null, R.string.s19_row_a11y_title, R.string.s19_row_a11y_desc, Routes.S37),
     HubRow(null, R.string.s19_row_privacy_title, R.string.s19_row_privacy_desc, Routes.S36),
     HubRow(null, R.string.s19_row_offline_title, R.string.s19_row_offline_desc, Routes.S38),
     HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32),
     HubRow(null, R.string.s19_row_reqmap_title, R.string.s19_row_reqmap_desc, Routes.S45),
-    HubRow(null, R.string.s19_row_family_title, R.string.s19_row_family_desc, Routes.S23)
+    HubRow(null, R.string.s19_row_family_title, R.string.s19_row_family_desc, Routes.S23),
+    HubRow(null, R.string.s19_row_photo_title, R.string.s19_row_photo_desc, Routes.S29)
 )
 
 /**

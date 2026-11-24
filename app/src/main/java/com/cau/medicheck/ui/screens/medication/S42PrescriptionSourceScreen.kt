@@ -2,10 +2,8 @@ package com.cau.medicheck.ui.screens.medication
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +21,6 @@ import com.cau.medicheck.ui.components.FormField
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.Pill
-import com.cau.medicheck.ui.components.PillKind
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Navy
@@ -63,8 +59,6 @@ fun S42PrescriptionSourceScreen(
                     color = Navy,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.width(8.dp))
-                Pill(stringResource(R.string.s42_badge_optional), PillKind.MINT)
             }
 
             val next = KeyboardOptions(imeAction = ImeAction.Next)

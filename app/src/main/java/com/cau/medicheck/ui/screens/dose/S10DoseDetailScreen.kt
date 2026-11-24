@@ -24,6 +24,7 @@ import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.OptionRow
@@ -84,7 +85,11 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp, vertical = 25.dp)
         ) {
-            Avatar(Glyph.DOSE, size = 72.dp, fontSize = 33)
+            // 약 아이콘: 내 약에서 고른 모양·색. 약 정보를 아직 못 읽었으면(또는 없으면) 기본 아이콘
+            val shape = state.shape
+            val color = state.color
+            if (shape != null && color != null) McMedIcon(shape, color, size = 72.dp)
+            else Avatar(Glyph.DOSE, size = 72.dp, fontSize = 33)
             Text(
                 text = dose.medicationName,
                 fontSize = 23.sp,
@@ -147,14 +152,12 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
                 title = stringResource(R.string.s10_row_actual_title),
                 description = stringResource(R.string.s10_row_actual_desc),
                 onClick = actions.onOpenActualTime,
-                mark = stringResource(R.string.s10_mark_should),
                 enabled = !state.isFuture
             )
             OptionRow(
                 title = stringResource(R.string.s10_row_history_title),
                 description = stringResource(R.string.s10_row_history_desc),
                 onClick = actions.onOpenHistory,
-                mark = stringResource(R.string.s10_mark_should),
                 showDivider = false
             )
         }
