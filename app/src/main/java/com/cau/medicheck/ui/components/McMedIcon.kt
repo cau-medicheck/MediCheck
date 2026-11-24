@@ -75,6 +75,12 @@ fun McMedIcon(shape: MedicationShape, color: MedicationColor, modifier: Modifier
     }
 }
 
+/** 바탕 없이 모양만 크게 그린다 (약 상세 머리의 흐린 배경 그림). 장식이라 TalkBack이 읽지 않는다 */
+@Composable
+fun MedShapeArt(shape: MedicationShape, color: MedicationColor, modifier: Modifier = Modifier) {
+    MedShapeDrawing(shape, color.toColor(), modifier.clearAndSetSemantics { })
+}
+
 /** 모양 그림 하나 (바탕 없이) */
 @Composable
 private fun MedShapeDrawing(shape: MedicationShape, c: Color, modifier: Modifier) {

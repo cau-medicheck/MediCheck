@@ -1,5 +1,6 @@
 package com.cau.medicheck.ui.screens.medication
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,18 +10,34 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.LocalHospital
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -30,14 +47,12 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
-import com.cau.medicheck.ui.theme.DangerTitle
-import com.cau.medicheck.ui.components.timeWithCondition
-import com.cau.medicheck.ui.components.McSwitch
-import androidx.compose.foundation.selection.toggleable
 import com.cau.medicheck.domain.DayMark
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseCounts
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.MedicationDetail
@@ -46,13 +61,21 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.McSwitch
+import com.cau.medicheck.ui.components.MedShapeArt
+import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.daysText
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.timeWithCondition
+import com.cau.medicheck.ui.components.toColor
 import com.cau.medicheck.ui.components.weekdayText
+import com.cau.medicheck.ui.theme.CardBackground
+import com.cau.medicheck.ui.theme.CardBorder
+import com.cau.medicheck.ui.theme.DangerTitle
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
 import com.cau.medicheck.ui.theme.HomeChipDoneText
 import com.cau.medicheck.ui.theme.HomeChipMissedBg
@@ -60,10 +83,17 @@ import com.cau.medicheck.ui.theme.HomeChipMissedText
 import com.cau.medicheck.ui.theme.HomeChipSkippedBg
 import com.cau.medicheck.ui.theme.HomeChipSkippedText
 import com.cau.medicheck.ui.theme.HomeChipWaitText
-import com.cau.medicheck.ui.theme.Line
+import com.cau.medicheck.ui.theme.MemoIconBg
+import com.cau.medicheck.ui.theme.MemoIconTint
+import com.cau.medicheck.ui.theme.Mint
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ProgressTrack
+import com.cau.medicheck.ui.theme.RateFair
+import com.cau.medicheck.ui.theme.RateGood
+import com.cau.medicheck.ui.theme.RateLow
+import com.cau.medicheck.ui.theme.SourceIconBg
+import com.cau.medicheck.ui.theme.SourceIconTint
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.TimelineDotWait
 import java.time.LocalDate
@@ -81,9 +111,9 @@ class MedicationDetailActions(
 /**
  * S07 약 상세 (v3 medDetail()).
  *
- * 카드 두 장: 위 카드(이름·상태·복용 시각 / 다음 복용 / 최근 7일 요일 동그라미),
- * 아래 목록(복용 기간·메모·처방 출처·비활성화). 그 아래 "약 수정" 버튼과 "이 약 삭제" 글자.
- * (2026-11-24, 시안: 04_화면캡처/약상세_시안/시안2.html A — 덩어리가 많아 어지럽다는 의견으로 줄였다)
+ * 이름 카드(윗부분은 약 색 머리, 아래는 최근 7일 + 복용률 원 그래프) → 다음 복용 청록 띠 →
+ * 부수 정보 작은 칸 3개(복용 기간·메모·처방 출처) → 비활성화 한 줄 → "약 수정" 버튼과 "이 약 삭제" 글자.
+ * (2026-11-24, 시안: 04_화면캡처/약상세_시안/시안4.html C2)
  * 일시중지를 켜면 오늘 아직 시각 전인 회차와 내일 이후 회차가 사라지고, 끄면 오늘 회차부터 다시 생긴다.
  */
 @Composable
@@ -114,73 +144,117 @@ fun MedicationNotFound(onBackToList: () -> Unit) {
 private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailUiState, actions: MedicationDetailActions) {
     BackLink(stringResource(R.string.s07_back), actions.onBackToList)
 
-    // ----- 위 카드: 이름·상태·복용 시각 / 다음 복용 / 최근 7일 -----
-    SurfaceCard(Modifier.padding(top = 16.dp), padding = 18.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            McMedIcon(med.shape, med.color, size = 56.dp)
-            Spacer(Modifier.width(13.dp))
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = med.name,
-                        fontSize = 23.sp,
-                        lineHeight = 31.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-0.9).sp,
-                        color = Navy,
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .semantics { heading() }
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    MedicationStatusPill(state.status, showActive = true)
+    // ----- 이름 카드: 윗부분은 약 색으로 옅게 칠한 머리, 아래는 최근 7일 -----
+    val medColor = med.color.toColor()
+    val cardShape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .padding(top = 14.dp)
+            .fillMaxWidth()
+            .clip(cardShape)
+            .background(CardBackground)
+            .border(1.dp, CardBorder, cardShape)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(medColor.copy(alpha = 0.16f), medColor.copy(alpha = 0.05f))))
+        ) {
+            // 오른쪽 위의 큰 흐린 그림 (장식)
+            MedShapeArt(
+                med.shape, med.color,
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 14.dp, y = (-14).dp)
+                    .size(110.dp)
+                    .alpha(0.2f)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(18.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(58.dp)
+                        .shadow(3.dp, RoundedCornerShape(17.dp))
+                        .clip(RoundedCornerShape(17.dp))
+                        .background(Color.White)
+                ) {
+                    MedShapeArt(med.shape, med.color, Modifier.size(36.dp))
                 }
-                Text(
-                    text = whenText(med) + " · " + med.dosage,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Navy,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                Spacer(Modifier.width(13.dp))
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = med.name,
+                            fontSize = 23.sp,
+                            lineHeight = 31.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-0.9).sp,
+                            color = Navy,
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .semantics { heading() }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        MedicationStatusPill(state.status, showActive = true)
+                    }
+                    Text(
+                        text = whenText(med) + " · " + med.dosage,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Navy,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
-
-        // 다음 복용 (비활성화·종료면 없다)
-        state.nextDose?.let { dose ->
-            HorizontalDivider(color = Line, modifier = Modifier.padding(vertical = 16.dp))
-            NextDoseLine(dose)
+        Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 16.dp)) {
+            RecentWeek(state.recentDays, state.recentCounts)
         }
-
-        HorizontalDivider(color = Line, modifier = Modifier.padding(vertical = 16.dp))
-        RecentWeek(state.recentDays, state.recentCounts)
     }
 
-    // ----- 아래 목록: 복용 기간 · 메모 · 처방 출처 · 비활성화 -----
+    // ----- 다음 복용: 진한 청록 띠 (보기 전용) -----
+    state.nextDose?.let { NextDoseBand(it) }
+
+    // ----- 부수 정보: 작은 칸 3개 (복용 기간 · 메모 · 처방 출처) -----
     val source = listOf(med.hospital, med.department).filter { it.isNotBlank() }.joinToString(" · ")
-    SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 18.dp)) {
-            InfoRow(stringResource(R.string.s07_label_period), periodText(med))
-            InfoRow(stringResource(R.string.s07_label_memo), med.memo.ifBlank { stringResource(R.string.s07_no_memo) })
-            // 처방 출처(S42): 적어 둔 값이 있으면 그 값, 없으면 "적기 ›". 줄을 누르면 S42로 간다.
-            InfoRow(
-                label = stringResource(R.string.s07_label_source),
-                value = if (source.isNotEmpty()) "$source ›" else stringResource(R.string.s07_source_add),
-                onClick = actions.onOpenSource
-            )
-            // 비활성화 (켜짐 = 오늘 이후 일정·알림에서 빠짐). 줄 어디를 눌러도 켜고 끈다.
-            val pauseLabel = stringResource(R.string.s07_pause_title)
-            val paused = med.pausedFrom != null
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .toggleable(value = paused, enabled = !state.isBusy, role = Role.Switch, onValueChange = actions.onPausedChange)
-                    .padding(vertical = 12.dp)
-            ) {
-                Text(pauseLabel, fontSize = 12.sp, color = Muted, modifier = Modifier.weight(1f))
-                McSwitch(checked = paused, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { })
-            }
-        }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 12.dp)) {
+        InfoTile(Icons.Outlined.CalendarMonth, Teal, Mint, stringResource(R.string.s07_label_period), periodShort(med), Modifier.weight(1f))
+        InfoTile(
+            Icons.Outlined.Description, MemoIconTint, MemoIconBg, stringResource(R.string.s07_label_memo),
+            med.memo.ifBlank { stringResource(R.string.s07_no_memo) }, Modifier.weight(1f)
+        )
+        // 처방 출처(S42): 누르면 적는 화면으로. 적어 둔 값이 없으면 "적기 ›"
+        InfoTile(
+            Icons.Outlined.LocalHospital, SourceIconTint, SourceIconBg, stringResource(R.string.s07_label_source),
+            if (source.isNotEmpty()) source else stringResource(R.string.s07_source_add), Modifier.weight(1f),
+            onClick = actions.onOpenSource
+        )
+    }
+
+    // ----- 비활성화: 작은 한 줄. 줄 어디를 눌러도 켜고 끈다 -----
+    val paused = med.pausedFrom != null
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(top = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(CardBackground)
+            .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
+            .toggleable(value = paused, enabled = !state.isBusy, role = Role.Switch, onValueChange = actions.onPausedChange)
+            .padding(horizontal = 14.dp, vertical = 9.dp)
+    ) {
+        Icon(Icons.Filled.Pause, contentDescription = null, tint = Muted, modifier = Modifier.size(18.dp))
+        Text(
+            text = stringResource(R.string.s07_pause_title),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = Navy,
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .weight(1f)
+        )
+        McSwitch(checked = paused, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { })
     }
 
     McButton(stringResource(R.string.s07_btn_edit), actions.onEdit, Modifier.padding(top = 14.dp), full = true)
@@ -213,59 +287,145 @@ private fun whenText(med: MedicationDetail): String {
     }
 }
 
-/** "다음 복용  내일 12:30" */
+/** 진한 청록 띠: [시계] 다음 복용 / 내일 12:30 · 식후 */
 @Composable
-private fun NextDoseLine(dose: DoseItem) {
+private fun NextDoseBand(dose: DoseItem) {
     val today = LocalDate.now()
     val day = when (dose.date) {
         today -> stringResource(R.string.s07_day_today)
         today.plusDays(1) -> stringResource(R.string.s07_day_tomorrow)
         else -> fullDateText(dose.date)
     }
+    val condition = if (dose.condition == DoseCondition.NONE) "" else " · " + conditionLabel(dose.condition)
+    val value = "$day ${timeText(dose.time)}$condition"
     val label = stringResource(R.string.s07_next_label)
-    val value = "$day ${timeText(dose.time)}"
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clearAndSetSemantics { contentDescription = "$label, $value" }
+        modifier = Modifier
+            .padding(top = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .clearAndSetSemantics { contentDescription = "$label, $value" }
     ) {
-        Text(label, fontSize = 13.sp, color = Muted)
-        Text(value, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.padding(start = 8.dp))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.18f))
+        ) {
+            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp))
+        }
+        Column(Modifier.padding(start = 12.dp)) {
+            Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
+            Text(value, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+        }
     }
 }
 
-/** "최근 7일   7번 중 2번 · 29%" + 요일 동그라미 7개 (범례 없음 — ✓ ! – ○ 기호로 구분) */
+/** 최근 7일: 제목 · "7번 중 2번 먹었어요" · 오른쪽 원 그래프, 아래 요일 동그라미 7개 */
 @Composable
 private fun RecentWeek(days: List<RecentDay>, counts: DoseCounts) {
+    val rate = counts.completionRate
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = stringResource(R.string.s07_recent_title),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Navy,
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() }
-        )
-        val rate = counts.completionRate
-        if (rate == null) {
-            Text(stringResource(R.string.s07_recent_none), fontSize = 12.sp, color = Muted)
-        } else {
-            Text(stringResource(R.string.s07_recent_count, counts.due, counts.taken), fontSize = 12.sp, color = Muted)
+        Column(Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.s07_recent_rate, rate),
-                fontSize = 12.sp,
+                text = stringResource(R.string.s07_recent_title),
+                fontSize = 14.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = when {
-                    rate >= 80 -> HomeChipDoneText
-                    rate >= 50 -> HomeChipMissedText
-                    else -> DangerTitle
-                }
+                color = Navy,
+                modifier = Modifier.semantics { heading() }
+            )
+            Text(
+                text = if (rate == null) stringResource(R.string.s07_recent_none)
+                else stringResource(R.string.s07_recent_sentence, counts.due, counts.taken),
+                fontSize = 12.sp,
+                color = Muted,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
+        if (rate != null) RateRing(rate)
     }
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
         val today = days.lastOrNull()?.date
         days.forEach { day -> DayCircle(day, isToday = day.date == today) }
+    }
+}
+
+/** 복용률 원 그래프 (가운데 "29%"). 80% 이상 초록 · 50% 이상 주황 · 그 아래 빨강 — 내 약 카드의 막대와 같은 기준 */
+@Composable
+private fun RateRing(rate: Int) {
+    val (arc, text) = when {
+        rate >= 80 -> RateGood to HomeChipDoneText
+        rate >= 50 -> RateFair to HomeChipMissedText
+        else -> RateLow to DangerTitle
+    }
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(48.dp)) {
+        Canvas(Modifier.size(48.dp)) {
+            val stroke = 5.dp.toPx()
+            val inset = stroke / 2
+            val arcSize = Size(size.width - stroke, size.height - stroke)
+            drawArc(ProgressTrack, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
+            drawArc(arc, -90f, 360f * rate / 100f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+        }
+        Text(stringResource(R.string.s07_recent_rate, rate), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = text)
+    }
+}
+
+/** 부수 정보 작은 칸: [색 아이콘] / 이름 / 값 (길면 …). onClick이 있으면 칸을 누를 수 있고 값이 청록색 */
+@Composable
+private fun InfoTile(
+    icon: ImageVector,
+    tint: Color,
+    iconBg: Color,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
+) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .background(CardBackground)
+            .border(1.dp, CardBorder, shape)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(horizontal = 11.dp, vertical = 10.dp)
+            .semantics(mergeDescendants = true) { }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(26.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(iconBg)
+        ) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(15.dp))
+        }
+        Text(label, fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 6.dp))
+        Text(
+            text = if (onClick != null && !value.endsWith("›")) "$value ›" else value,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (onClick != null) Teal else Navy,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+}
+
+/** 작은 칸에 들어가는 복용 기간: "39일째" / "12월 1일 시작" / "끝남" */
+@Composable
+private fun periodShort(med: MedicationDetail): String {
+    val today = LocalDate.now()
+    val end = med.endDate
+    return when {
+        today.isBefore(med.startDate) -> stringResource(R.string.s07_period_short_future, med.startDate.monthValue, med.startDate.dayOfMonth)
+        end != null && today.isAfter(end) -> stringResource(R.string.s07_period_short_ended)
+        else -> stringResource(R.string.s07_period_short_day, ChronoUnit.DAYS.between(med.startDate, today).toInt() + 1)
     }
 }
 
@@ -326,40 +486,4 @@ private fun markName(mark: DayMark): String = stringResource(
     }
 )
 
-/** 정보 칸의 한 줄: 왼쪽 이름, 오른쪽 값. onClick이 있으면 줄 전체를 누를 수 있고 값이 청록색이다. */
-@Composable
-private fun InfoRow(label: String, value: String, onClick: (() -> Unit)? = null, showDivider: Boolean = true) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-            .padding(vertical = 13.dp)
-    ) {
-        Text(label, fontSize = 12.sp, color = Muted, modifier = Modifier.padding(end = 12.dp))
-        Text(
-            text = value,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (onClick != null) Teal else Navy,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f)
-        )
-    }
-    if (showDivider) HorizontalDivider(color = Line)
-}
 
-/** 복용 기간: "10월 17일부터 · 39일째" / "11월 12일 ~ 12월 11일 · 13일째" / 시작 전·끝남 */
-@Composable
-private fun periodText(med: MedicationDetail): String {
-    val today = LocalDate.now()
-    val start = med.startDate
-    val end = med.endDate
-    val dayN = ChronoUnit.DAYS.between(start, today).toInt() + 1
-    return when {
-        today.isBefore(start) -> stringResource(R.string.s07_period_future, start.monthValue, start.dayOfMonth)
-        end == null -> stringResource(R.string.s07_period_open, start.monthValue, start.dayOfMonth, dayN)
-        today.isAfter(end) -> stringResource(R.string.s07_period_ended, start.monthValue, start.dayOfMonth, end.monthValue, end.dayOfMonth)
-        else -> stringResource(R.string.s07_period_range, start.monthValue, start.dayOfMonth, end.monthValue, end.dayOfMonth, dayN)
-    }
-}
