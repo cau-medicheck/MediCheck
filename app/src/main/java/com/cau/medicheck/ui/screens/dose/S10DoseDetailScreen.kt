@@ -1,14 +1,33 @@
 package com.cau.medicheck.ui.screens.dose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -16,27 +35,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.DoseStatus
+import com.cau.medicheck.domain.MedicationColor
 import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
-import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.McButton
-import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.OptionRow
-import com.cau.medicheck.ui.components.ProgressBar
-import com.cau.medicheck.ui.components.SectionTitle
+import com.cau.medicheck.ui.components.MedShapeArt
 import com.cau.medicheck.ui.components.StatusPill
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.fullDateText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.toColor
+import com.cau.medicheck.ui.theme.CardBackground
+import com.cau.medicheck.ui.theme.CardBorder
+import com.cau.medicheck.ui.theme.FieldBorder
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
+import com.cau.medicheck.ui.theme.Teal
 
 /** 회차 상세 화면의 버튼들이 부를 함수 묶음 */
 class DoseDetailActions(
@@ -77,124 +99,151 @@ fun S10DoseDetailScreen(state: DoseDetailUiState, actions: DoseDetailActions) {
 private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: DoseDetailActions) {
     BackLink(stringResource(R.string.s10_back), actions.onBack)
 
-    // ----- 회차 카드: 아이콘, 약 이름, "1정 · 11월 16일 월요일 · 08:00", 배지, 진행 막대 -----
-    SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 15.dp, vertical = 25.dp)
-        ) {
-            // 약 아이콘: 내 약에서 고른 모양·색. 약 정보를 아직 못 읽었으면(또는 없으면) 기본 아이콘
-            val shape = state.shape
-            val color = state.color
-            if (shape != null && color != null) McMedIcon(shape, color, size = 72.dp)
-            else Avatar(Glyph.DOSE, size = 72.dp, fontSize = 33)
-            Text(
-                text = dose.medicationName,
-                fontSize = 23.sp,
-                lineHeight = 31.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.9).sp,
-                color = Navy,
-                textAlign = TextAlign.Center,
+    // ----- 머리 카드: 약 색으로 옅게 칠한 바탕 + 아이콘 + 이름·상태 + "1 cap · 11월 24일 화요일 · 12:30 식후" (약 상세와 같은 모양) -----
+    val medColor = (state.color ?: MedicationColor.TEAL).toColor()
+    val cardShape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = Modifier
+            .padding(top = 14.dp)
+            .fillMaxWidth()
+            .clip(cardShape)
+            .background(CardBackground)
+            .border(1.dp, CardBorder, cardShape)
+            .background(Brush.linearGradient(listOf(medColor.copy(alpha = 0.16f), medColor.copy(alpha = 0.05f))))
+    ) {
+        val shape = state.shape
+        val color = state.color
+        if (shape != null && color != null) {
+            MedShapeArt(shape, color, Modifier.align(Alignment.TopEnd).offset(x = 14.dp, y = (-14).dp).size(104.dp).alpha(0.18f))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(18.dp)) {
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .padding(top = 14.dp)
-                    .semantics { heading() }
-            )
-            Text(
-                text = stringResource(R.string.s10_subtitle, dose.dosage, fullDateText(dose.date), timeText(dose.time)),
-                fontSize = 12.sp,
-                lineHeight = 19.sp,
-                color = ParagraphText,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            StatusPill(state.display)
-            if (state.actualTime != null) {
+                    .size(56.dp)
+                    .shadow(3.dp, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+            ) {
+                if (shape != null && color != null) MedShapeArt(shape, color, Modifier.size(34.dp))
+                else Avatar(Glyph.DOSE, size = 56.dp, fontSize = 26)
+            }
+            Column(Modifier.padding(start = 13.dp).weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = dose.medicationName,
+                        fontSize = 22.sp,
+                        lineHeight = 30.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.8).sp,
+                        color = Navy,
+                        modifier = Modifier.weight(1f, fill = false).semantics { heading() }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    StatusPill(state.display)
+                }
+                val condition = if (dose.condition == DoseCondition.NONE) "" else " " + conditionLabel(dose.condition)
                 Text(
-                    text = stringResource(R.string.s10_actual_time, timeText(state.actualTime)),
-                    fontSize = 11.sp,
-                    color = Muted,
-                    modifier = Modifier.padding(top = 6.dp)
+                    text = stringResource(R.string.s10_subtitle, dose.dosage, fullDateText(dose.date), timeText(dose.time)) + condition,
+                    fontSize = 12.5.sp,
+                    color = ParagraphText,
+                    modifier = Modifier.padding(top = 3.dp)
                 )
             }
-            // 진행 막대는 배지와 같은 정보라 TalkBack이 읽지 않게 한다.
-            ProgressBar(
-                fraction = when (dose.status) {
-                    DoseStatus.TAKEN -> 1f
-                    DoseStatus.SKIPPED -> 0.2f
-                    DoseStatus.PENDING -> 0f
-                },
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .clearAndSetSemantics { }
-            )
         }
     }
 
-    // ----- 상태 버튼 3개. 지금 상태인 버튼만 청록이고 뒤에 "· 현재 상태"가 붙는다 -----
-    SectionTitle(stringResource(R.string.s10_section_state))
-    SurfaceCard {
-        StateButton(R.string.s10_btn_taken, DoseStatus.TAKEN, dose.status, !state.isFuture, actions.onMark)
-        StateButton(R.string.s10_btn_skipped, DoseStatus.SKIPPED, dose.status, !state.isFuture, actions.onMark)
-        StateButton(R.string.s10_btn_pending, DoseStatus.PENDING, dose.status, !state.isFuture, actions.onMark)
-        if (state.isFuture) {
-            Notice(stringResource(R.string.s10_notice_future), Modifier.padding(bottom = 9.dp), warn = true)
-        }
-        Notice(stringResource(R.string.s10_notice_pending))
-    }
-
-    // ----- 다른 화면으로 가는 줄 -----
-    SurfaceCard(Modifier.padding(top = 16.dp), padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 16.dp)) {
-            OptionRow(
-                title = stringResource(R.string.s10_row_actual_title),
-                description = stringResource(R.string.s10_row_actual_desc),
-                onClick = actions.onOpenActualTime,
-                enabled = !state.isFuture
-            )
-            OptionRow(
-                title = stringResource(R.string.s10_row_history_title),
-                description = stringResource(R.string.s10_row_history_desc),
-                onClick = actions.onOpenHistory,
-                showDivider = false
-            )
-        }
-    }
-
-    McButton(
-        text = stringResource(R.string.s10_btn_undo),
-        onClick = actions.onUndo,
-        kind = ButtonKind.WHITE,
-        full = true,
-        modifier = Modifier.padding(top = 16.dp)
+    // ----- 상태 단추 3개를 한 줄로. 지금 상태만 청록. 앞날 회차는 복용 완료만 막는다(미리 건너뛰기는 된다) -----
+    Text(
+        text = stringResource(R.string.s10_section_state),
+        fontSize = 14.sp,
+        fontWeight = FontWeight.ExtraBold,
+        color = Navy,
+        modifier = Modifier.padding(start = 2.dp, top = 20.dp, bottom = 10.dp).semantics { heading() }
     )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.selectableGroup()) {
+        StateTile("✓", R.string.s10_tile_taken, DoseStatus.TAKEN, dose.status, enabled = !state.isFuture, onMark = actions.onMark, modifier = Modifier.weight(1f))
+        StateTile("–", R.string.s10_tile_skipped, DoseStatus.SKIPPED, dose.status, enabled = true, onMark = actions.onMark, modifier = Modifier.weight(1f))
+        StateTile("○", R.string.s10_tile_pending, DoseStatus.PENDING, dose.status, enabled = true, onMark = actions.onMark, modifier = Modifier.weight(1f))
+    }
 
-    // 복용 메모 (기록을 만들 때 찍어 둔 메모)
-    Notice(
-        text = dose.memo.ifBlank { stringResource(R.string.s10_no_memo) },
-        modifier = Modifier.padding(top = 16.dp)
+    // ----- 작은 줄: 실제 복용 시각 · 변경 이력 · 메모 -----
+    SurfaceCard(Modifier.padding(top = 14.dp), padding = 0.dp) {
+        Column(Modifier.padding(horizontal = 16.dp)) {
+            DetailRow(
+                label = stringResource(R.string.s10_row_actual),
+                value = state.actualTime?.let { timeText(it) + " ›" } ?: stringResource(R.string.s10_actual_add),
+                onClick = if (state.isFuture) null else actions.onOpenActualTime
+            )
+            HorizontalDivider(color = Line)
+            DetailRow(stringResource(R.string.s10_row_history), stringResource(R.string.s10_history_open), actions.onOpenHistory)
+            HorizontalDivider(color = Line)
+            DetailRow(stringResource(R.string.s10_row_memo), dose.memo.ifBlank { stringResource(R.string.s07_no_memo) }, null)
+        }
+    }
+
+    // 마지막 변경 되돌리기 (글자 단추)
+    Text(
+        text = stringResource(R.string.s10_undo_text),
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = Muted,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = actions.onUndo)
+            .padding(vertical = 14.dp)
     )
 }
 
-/** 상태 버튼 하나. 지금 상태면 청록 + "· 현재 상태", 아니면 흰 버튼. */
+/** 상태 단추 하나: 위 기호, 아래 이름. 지금 상태면 청록 바탕 */
 @Composable
-private fun StateButton(
+private fun StateTile(
+    symbol: String,
     labelRes: Int,
     target: DoseStatus,
     current: DoseStatus,
     enabled: Boolean,
-    onMark: (DoseStatus) -> Unit
+    onMark: (DoseStatus) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val isCurrent = target == current
-    val label = stringResource(labelRes)
-    McButton(
-        text = if (isCurrent) label + " " + stringResource(R.string.s10_current_suffix) else label,
-        onClick = { onMark(target) },
-        kind = if (isCurrent) ButtonKind.PRIMARY else ButtonKind.WHITE,
-        full = true,
-        enabled = enabled,
-        modifier = Modifier.padding(bottom = 9.dp)
-    )
+    val on = target == current
+    val shape = RoundedCornerShape(14.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .alpha(if (enabled) 1f else 0.4f)
+            .clip(shape)
+            .background(if (on) Teal else Color.White)
+            .border(1.5.dp, if (on) Teal else FieldBorder, shape)
+            .selectable(selected = on, enabled = enabled, role = Role.RadioButton, onClick = { onMark(target) })
+            .padding(vertical = 12.dp)
+    ) {
+        Text(symbol, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = if (on) Color.White else Navy)
+        Text(stringResource(labelRes), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = if (on) Color.White else Navy, modifier = Modifier.padding(top = 2.dp))
+    }
+}
+
+/** 작은 줄: 왼쪽 이름, 오른쪽 값. onClick이 있으면 줄 전체를 누를 수 있고 값이 청록 */
+@Composable
+private fun DetailRow(label: String, value: String, onClick: (() -> Unit)?) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(vertical = 14.dp)
+    ) {
+        Text(label, fontSize = 13.sp, color = Muted, modifier = Modifier.padding(end = 12.dp))
+        Text(
+            text = value,
+            fontSize = 13.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (onClick != null) Teal else Navy,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f)
+        )
+    }
 }
