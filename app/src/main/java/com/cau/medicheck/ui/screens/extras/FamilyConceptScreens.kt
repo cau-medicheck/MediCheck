@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.WarnBadge
 import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
@@ -385,7 +386,7 @@ fun S27DoubleDoseScreen(onBack: () -> Unit, onUnsupported: () -> Unit) {
 
         SurfaceCard(padding = 24.dp) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(Glyph.WARNING, fontSize = 42.sp, modifier = Modifier.clearAndSetSemantics { })
+                WarnBadge()
                 Text(
                     text = stringResource(R.string.s27_card_title),
                     fontSize = 19.sp,
@@ -402,7 +403,6 @@ fun S27DoubleDoseScreen(onBack: () -> Unit, onUnsupported: () -> Unit) {
             }
         }
 
-        Notice(stringResource(R.string.s27_notice), Modifier.padding(top = Gap16), warn = true)
         ConceptNotice()
     }
 }

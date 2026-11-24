@@ -71,7 +71,7 @@ fun S28BackupScreen(state: BackupUiState, actions: BackupActions) {
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s28)) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
-        ScreenIntro(stringResource(R.string.s28_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             // ----- 지금 이 계정의 데이터 -----

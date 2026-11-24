@@ -51,7 +51,7 @@ fun S43CsvExportScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s43)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s43_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             Kicker(stringResource(R.string.s43_kicker))

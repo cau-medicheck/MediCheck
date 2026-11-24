@@ -61,7 +61,7 @@ fun S21ProfileScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s21)) {
         BackLink(stringResource(R.string.s20_back), onBack)
-        ScreenIntro(stringResource(R.string.s21_subtitle), Modifier.padding(top = Gap16))
+        ScreenIntro(modifier = Modifier.padding(top = Gap16))
         Spacer(Modifier.height(Gap22))
         Avatar(Glyph.PROFILE, Modifier.align(Alignment.CenterHorizontally), size = 70.dp, fontSize = 34)
 

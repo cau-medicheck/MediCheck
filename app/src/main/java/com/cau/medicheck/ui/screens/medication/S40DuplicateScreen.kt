@@ -5,7 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -13,6 +12,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.WarnBadge
 import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
@@ -47,10 +47,10 @@ fun S40DuplicateScreen(
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s40)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s40_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
-            Text(text = Glyph.WARNING, fontSize = 33.sp, modifier = Modifier.clearAndSetSemantics { })
+            WarnBadge()
             Text(
                 text = stringResource(R.string.s40_heading),
                 fontSize = 17.sp,

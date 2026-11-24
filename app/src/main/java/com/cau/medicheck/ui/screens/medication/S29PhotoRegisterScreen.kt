@@ -67,7 +67,7 @@ fun S29PhotoRegisterScreen(onBack: () -> Unit) {
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s29)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s29_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             UploadBox()

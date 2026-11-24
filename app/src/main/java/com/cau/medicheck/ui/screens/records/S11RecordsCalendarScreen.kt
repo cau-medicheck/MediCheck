@@ -19,7 +19,6 @@ import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.MonthCalendarGrid
 import com.cau.medicheck.ui.components.MonthSwitcher
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.fullDateText
@@ -74,6 +73,5 @@ fun S11RecordsCalendarScreen(
             }
         }
 
-        Notice(stringResource(R.string.s11_notice), Modifier.padding(top = 16.dp))
     }
 }

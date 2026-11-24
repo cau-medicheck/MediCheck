@@ -15,7 +15,6 @@ import com.cau.medicheck.domain.ApplyScope
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.RadioRow
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
@@ -40,7 +39,7 @@ fun S33EditScopeScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s33)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s33_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard {
             // 고친 새 이름을 보여 준다. 기다리는 수정이 없으면 "선택한 약"
@@ -80,6 +79,5 @@ fun S33EditScopeScreen(
             )
         }
 
-        Notice(stringResource(R.string.s33_notice), Modifier.padding(top = 14.dp))
     }
 }

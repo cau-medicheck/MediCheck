@@ -53,7 +53,7 @@ fun S18PermissionsScreen(
 ) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s18)) {
         BackLink(stringResource(R.string.s18_back), actions.onBack)
-        ScreenIntro(stringResource(R.string.s18_subtitle), Modifier.padding(vertical = 16.dp))
+        ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
         SurfaceCard(padding = 0.dp) {
             Column(Modifier.padding(horizontal = 16.dp)) {

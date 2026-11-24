@@ -59,7 +59,7 @@ fun S44AccountDeleteScreen(deleting: Boolean, onDelete: (String) -> Unit, onBack
 
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s44)) {
         BackLink(stringResource(R.string.common_back_previous), onBack)
-        ScreenIntro(stringResource(R.string.s44_subtitle), Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
             Text(
