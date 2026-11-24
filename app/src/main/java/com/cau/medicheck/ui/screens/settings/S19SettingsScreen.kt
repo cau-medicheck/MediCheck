@@ -1,57 +1,94 @@
 package com.cau.medicheck.ui.screens.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
-import com.cau.medicheck.ui.components.Avatar
-import com.cau.medicheck.ui.components.ButtonKind
-import com.cau.medicheck.ui.components.Glyph
-import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.OptionRow
 import com.cau.medicheck.ui.components.ScreenIntro
-import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.navigation.Routes
+import com.cau.medicheck.ui.theme.DangerTitle
 import com.cau.medicheck.ui.theme.Gap16
-import com.cau.medicheck.ui.theme.Gap22
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 
-/** 설정 허브의 한 줄: 왼쪽 기호(없을 수도 있음) + 제목 + 설명 + 누르면 갈 화면 */
-private data class HubRow(val symbol: String?, val titleRes: Int, val descRes: Int, val route: String)
+/** 설정 허브의 한 줄: 색 아이콘 + 제목 + 누르면 갈 화면 */
+private data class HubRow(val icon: ImageVector, val tint: Color, val bg: Color, val titleRes: Int, val route: String)
 
-/** "알림 및 앱" 카드의 줄들 (v3 settings()의 첫 카드) */
-private val APP_ROWS = listOf(
-    HubRow(Glyph.BELL, R.string.s19_row_noti_title, R.string.s19_row_noti_desc, Routes.S17),
-    HubRow(Glyph.PERMISSION, R.string.s19_row_perm_title, R.string.s19_row_perm_desc, Routes.S18),
-    HubRow(Glyph.TAB_STATS, R.string.s19_row_policy_title, R.string.s19_row_policy_desc, Routes.S20),
-    HubRow(Glyph.HELP, R.string.s19_row_help_title, R.string.s19_row_help_desc, Routes.S22)
+private val TealTint = Color(0xFF128B94); private val TealBg = Color(0xFFE3F5F2)
+private val BlueTint = Color(0xFF3E73C5); private val BlueBg = Color(0xFFE6EEF9)
+private val PurpleTint = Color(0xFF8A63C9); private val PurpleBg = Color(0xFFF1ECF9)
+private val OrangeTint = Color(0xFFC96F12); private val OrangeBg = Color(0xFFFFF3E2)
+private val GrayTint = Color(0xFF6E828B); private val GrayBg = Color(0xFFF1F5F6)
+
+/** 묶음: 알림 */
+private val NOTI_ROWS = listOf(
+    HubRow(Icons.Outlined.Notifications, TealTint, TealBg, R.string.s19_row_noti_title, Routes.S17),
+    HubRow(Icons.Outlined.Shield, BlueTint, BlueBg, R.string.s19_row_perm_title, Routes.S18)
 )
 
-/** "안전·편의 기능" 카드의 줄들. 마지막 두 줄(가족·보호자, 사진으로 약 등록)은 준비 중인 시안 화면의 입구라 맨 끝에 붙였다. */
-private val SAFETY_ROWS = listOf(
-    HubRow(null, R.string.s19_row_a11y_title, R.string.s19_row_a11y_desc, Routes.S37),
-    HubRow(null, R.string.s19_row_privacy_title, R.string.s19_row_privacy_desc, Routes.S36),
-    HubRow(null, R.string.s19_row_offline_title, R.string.s19_row_offline_desc, Routes.S38),
-    HubRow(null, R.string.s19_row_archive_title, R.string.s19_row_archive_desc, Routes.S32),
-    HubRow(null, R.string.s19_row_reqmap_title, R.string.s19_row_reqmap_desc, Routes.S45),
-    HubRow(null, R.string.s19_row_family_title, R.string.s19_row_family_desc, Routes.S23),
-    HubRow(null, R.string.s19_row_photo_title, R.string.s19_row_photo_desc, Routes.S29)
+/** 묶음: 내 정보 */
+private val MINE_ROWS = listOf(
+    HubRow(Icons.Outlined.Lock, PurpleTint, PurpleBg, R.string.s19_row_privacy_title, Routes.S36),
+    HubRow(Icons.Outlined.History, OrangeTint, OrangeBg, R.string.s19_row_archive_title, Routes.S32)
+)
+
+/** 묶음: 화면 · 도움말 */
+private val VIEW_ROWS = listOf(
+    HubRow(Icons.Outlined.TextFields, TealTint, TealBg, R.string.s19_row_a11y_title, Routes.S37),
+    HubRow(Icons.Outlined.Calculate, BlueTint, BlueBg, R.string.s19_row_policy_title, Routes.S20),
+    HubRow(Icons.Outlined.CloudOff, GrayTint, GrayBg, R.string.s19_row_offline_title, Routes.S38),
+    HubRow(Icons.Outlined.Info, GrayTint, GrayBg, R.string.s19_row_help_title, Routes.S22)
+)
+
+/** 묶음: 준비 중 (시안 화면들의 입구 + 전체 기능 목록) — 회색으로 조용히 */
+private val SOON_ROWS = listOf(
+    HubRow(Icons.Outlined.Groups, GrayTint, GrayBg, R.string.s19_soon_family, Routes.S23),
+    HubRow(Icons.Outlined.PhotoCamera, GrayTint, GrayBg, R.string.s19_soon_photo, Routes.S29),
+    HubRow(Icons.Outlined.Checklist, GrayTint, GrayBg, R.string.s19_row_reqmap_title, Routes.S45)
 )
 
 /**
@@ -74,65 +111,94 @@ fun S19SettingsScreen(
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s19)) {
         ScreenIntro(modifier = Modifier.padding(bottom = Gap16))
 
-        // ----- 프로필 카드 -----
-        SurfaceCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Avatar(Glyph.PROFILE, size = 43.dp, fontSize = 23)
-                Spacer(Modifier.width(10.dp))
-                // weight(1f): 버튼 자리를 뺀 나머지 너비를 차지한다. 이름이 길면 잘리지 않고 줄을 바꾼다.
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.s19_name, displayName),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(text = email, fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 5.dp))
-                }
-                Spacer(Modifier.width(10.dp))
-                val editLabel = stringResource(R.string.s19_cd_edit)
-                McButton(
-                    text = stringResource(R.string.s19_edit),
-                    onClick = { onOpen(Routes.S21) },
-                    kind = ButtonKind.LIGHT,
-                    small = true,
-                    // TalkBack은 "수정 ›" 대신 "프로필 수정"이라고 읽는다.
-                    modifier = Modifier.semantics { contentDescription = editLabel }
-                )
+        // ----- 프로필 카드 (청록): 이름 첫 글자 동그라미 + 이름·이메일 + [수정 ›] -----
+        val editLabel = stringResource(R.string.s19_cd_edit)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+                .padding(16.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(46.dp).clip(CircleShape).background(Color.White).clearAndSetSemantics { }
+            ) {
+                Text(displayName.take(1), fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = HeroDeepStart)
             }
+            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(stringResource(R.string.s19_name, displayName), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text(email, fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f), modifier = Modifier.padding(top = 3.dp))
+            }
+            Text(
+                text = stringResource(R.string.s19_edit),
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = HeroDeepStart,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Color.White)
+                    .clickable(role = Role.Button, onClick = { onOpen(Routes.S21) })
+                    .padding(horizontal = 12.dp, vertical = 7.dp)
+                    .semantics { contentDescription = editLabel }
+            )
         }
 
-        SectionTitle(stringResource(R.string.s19_section_app))
-        HubCard(APP_ROWS, onOpen)
+        HubSection(stringResource(R.string.s19_section_noti), NOTI_ROWS, onOpen)
+        HubSection(stringResource(R.string.s19_section_mine), MINE_ROWS, onOpen)
+        HubSection(stringResource(R.string.s19_section_view), VIEW_ROWS, onOpen)
+        HubSection(stringResource(R.string.s19_section_soon), SOON_ROWS, onOpen)
 
-        SectionTitle(stringResource(R.string.s19_section_safety))
-        HubCard(SAFETY_ROWS, onOpen)
-
-        Spacer(Modifier.height(Gap22))
-        McButton(
+        // 로그아웃: 빨간 글자 단추
+        Text(
             text = stringResource(R.string.action_logout),
-            onClick = onLogout,
-            kind = ButtonKind.WHITE,
-            full = true,
-            enabled = !loggingOut
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (loggingOut) Muted else DangerTitle,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(enabled = !loggingOut, role = Role.Button, onClick = onLogout)
+                .padding(vertical = 16.dp)
         )
     }
 }
 
-/** 줄 여러 개를 카드 하나에 담는다. 마지막 줄 아래에는 선을 긋지 않는다. */
+/** 묶음 하나: 작은 제목 + 카드 안 줄들 */
 @Composable
-private fun HubCard(rows: List<HubRow>, onOpen: (String) -> Unit) {
+private fun HubSection(title: String, rows: List<HubRow>, onOpen: (String) -> Unit) {
+    Text(
+        text = title,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.ExtraBold,
+        color = Navy,
+        modifier = Modifier.padding(start = 2.dp, top = 20.dp, bottom = 8.dp).semantics { heading() }
+    )
     SurfaceCard(padding = 0.dp) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 3.dp)) {
+        Column(Modifier.padding(horizontal = 14.dp)) {
             rows.forEachIndexed { index, row ->
-                OptionRow(
-                    title = stringResource(row.titleRes),
-                    description = stringResource(row.descRes),
-                    onClick = { onOpen(row.route) },
-                    showDivider = index != rows.lastIndex,
-                    leading = row.symbol?.let { symbol -> { Avatar(symbol, size = 33.dp, fontSize = 17) } }
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button, onClick = { onOpen(row.route) })
+                        .padding(vertical = 11.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(row.bg)
+                    ) {
+                        Icon(row.icon, contentDescription = null, tint = row.tint, modifier = Modifier.size(19.dp))
+                    }
+                    Text(stringResource(row.titleRes), fontSize = 14.5.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.weight(1f).padding(start = 12.dp))
+                    Text("›", fontSize = 18.sp, color = Muted)
+                }
+                if (index != rows.lastIndex) HorizontalDivider(color = Line)
             }
         }
     }
 }
+
