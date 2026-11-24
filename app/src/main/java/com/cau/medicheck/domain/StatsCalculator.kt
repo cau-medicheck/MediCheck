@@ -53,12 +53,6 @@ data class PeriodStats(val days: List<DayStats>) {
  */
 data class WeekOfMonth(val month: YearMonth, val index: Int)
 
-/**
- * 패턴 탭의 시간대 한 줄: 최근 7일 동안 그 시간대 회차의 횟수.
- * @param hasSchedule 그 시간대에 회차가 하나라도 있었나 (없으면 화면에 "일정 없음")
- */
-data class SlotRate(val period: DayPeriod, val counts: DoseCounts, val hasSchedule: Boolean)
-
 /** 연속 기록: 하루 약을 모두 먹은 날이 며칠 이어졌나. current = 지금까지, best = 가장 길었던 기록 */
 data class Streaks(val current: Int, val best: Int)
 
@@ -69,15 +63,13 @@ data class Streaks(val current: Int, val best: Int)
  *   최근 7일(홈 카드) = 오늘을 포함한 최근 7일
  *   주간(S13) = 월~일 한 주
  *   월간(S14) = 그 달의 1일 ~ 말일, 그 달의 주차들
- *   패턴(S15) = 시간대별은 최근 7일, 연속 기록은 최근 1년
+ *   기타(S15) = 연속 기록은 최근 1년 (빠뜨림·제시간은 PatternInsights, 최근 4주)
  * 어느 기간이든 "도래한 회차"(예정 일시 ≤ 지금)만 센다. 그래서 미래 날짜는 저절로 빠진다.
  */
 object StatsCalculator {
 
     /** 주간 통계가 보는 날 수 */
     const val WEEK_DAYS = 7L
-    /** 패턴 탭의 시간대별이 보는 날 수 (오늘 포함) */
-    const val SLOT_DAYS = 7L
     /** 연속 기록을 찾는 날 수 (오늘 포함) */
     const val STREAK_DAYS = 365L
 
@@ -152,19 +144,6 @@ object StatsCalculator {
         val first = month.atDay(1)
         // 목요일(4)까지 며칠 남았나. 1일이 금~일이면 다음 주 목요일
         return first.plusDays(((4 - first.dayOfWeek.value + 7) % 7).toLong())
-    }
-
-    /**
-     * 패턴 탭의 시간대별: 최근 7일(오늘−6일 ~ 오늘)의 회차를 예정 시각의 시간대로 나눠 센다.
-     * 새벽은 그 시간대에 회차가 있을 때만 넣는다(대부분의 사람에게는 없는 줄이라).
-     */
-    fun slotRates(doses: List<DoseItem>, today: LocalDate, now: LocalDateTime): List<SlotRate> {
-        val from = today.minusDays(SLOT_DAYS - 1)
-        val recent = doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) }
-        return DayPeriod.entries.map { period ->
-            val inPeriod = recent.filter { periodOf(it.time) == period }
-            SlotRate(period, count(inPeriod, now), hasSchedule = inPeriod.isNotEmpty())
-        }.filter { it.period != DayPeriod.DAWN || it.hasSchedule }
     }
 
     /**

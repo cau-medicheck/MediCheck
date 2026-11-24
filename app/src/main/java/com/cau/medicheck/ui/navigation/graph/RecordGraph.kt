@@ -86,12 +86,16 @@ fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
         )
     }
 
-    // ----- S15 패턴 (시간대별·연속 기록) -----
+    // ----- S15 기타 (빠뜨림 진단·복용 습관) -----
     composable(Routes.S15) {
         val vm: PatternViewModel = viewModel(factory = PatternViewModel.factory(user.id))
         val state by vm.uiState.collectAsStateWithLifecycle()
         OnResume(vm::refresh)
-        S15PatternScreen(state = state, onTab = { index -> go.swapStatsTab(index) })
+        S15PatternScreen(
+            state = state,
+            onTab = { index -> go.swapStatsTab(index) },
+            onEditMedication = { medId -> go.open(Routes.s08Edit(medId)) }
+        )
     }
 
     // ----- S43 복약 기록 내보내기 -----
