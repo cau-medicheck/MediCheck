@@ -37,6 +37,8 @@ val Teal = Color(0xFF128B94)
 val TealDark = Color(0xFF096E7A)
 val Mint = Color(0xFFE9F8F5)               // 옅은 청록 바탕 (아이콘 상자, 보조 버튼)
 val MintText = Color(0xFF117E86)
+val MemoIconBg = Color(0xFFFFF3E2); val MemoIconTint = Color(0xFFC47A22)       // 약 상세 작은 칸: 메모 아이콘
+val SourceIconBg = Color(0xFFE6EEF9); val SourceIconTint = Color(0xFF3E73C5)   // 약 상세 작은 칸: 처방 출처 아이콘
 val LogoUnderlineMint = Color(0xFFCDEDEA)  // 머리말 로고 "Check" 밑 캡슐 밑줄의 옅은 반쪽
 val HeroStart = Color(0xFF147C93)          // 홈 큰 카드의 그라데이션 시작
 val HeroEnd = Color(0xFF31B4A2)            // 홈 큰 카드의 그라데이션 끝

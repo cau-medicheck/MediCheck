@@ -441,7 +441,10 @@
     <string name="s07_day_today">오늘</string>
     <string name="s07_day_tomorrow">내일</string>
     <string name="s07_recent_title">최근 7일</string>
-    <string name="s07_recent_count">%1$d번 중 %2$d번 ·\u0020</string>
+    <string name="s07_recent_sentence">%1$d번 중 %2$d번 먹었어요</string>
+    <string name="s07_period_short_day">%1$d일째</string>
+    <string name="s07_period_short_future">%1$d월 %2$d일 시작</string>
+    <string name="s07_period_short_ended">끝남</string>
     <string name="s07_recent_rate">%1$d%%</string>
     <string name="s07_mark_taken">먹음</string>
     <string name="s07_mark_missed">미복용</string>
@@ -450,11 +453,7 @@
     <string name="s07_recent_none">아직 기록 없음</string>
     <string name="s07_mark_none">복용일 아님</string>
     <string name="s07_label_period">복용 기간</string>
-    <string name="s07_period_open">%1$d월 %2$d일부터 · %3$d일째</string>
-    <string name="s07_period_range">%1$d월 %2$d일 ~ %3$d월 %4$d일 · %5$d일째</string>
-    <string name="s07_period_future">%1$d월 %2$d일부터 시작</string>
-    <string name="s07_period_ended">%1$d월 %2$d일 ~ %3$d월 %4$d일 · 끝남</string>
-    <string name="s07_source_add">적기 ›</string>
+    <string name="s07_source_add">적기</string>
     <string name="s07_label_source">처방 출처</string>
     <string name="s07_no_memo">없음</string>
     <string name="s07_pause_title">비활성화</string>
