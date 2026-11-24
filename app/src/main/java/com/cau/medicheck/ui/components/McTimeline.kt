@@ -410,7 +410,7 @@ fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Mo
 
 /** 진행률 카드의 상태 칸 하나: 위 이름, 아래 큰 숫자. TalkBack은 "완료 1"처럼 한 번에 읽는다. */
 @Composable
-private fun RowScope.StatusCountBox(label: String, count: Int, background: Color, textColor: Color) {
+fun RowScope.StatusCountBox(label: String, count: Int, background: Color, textColor: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier

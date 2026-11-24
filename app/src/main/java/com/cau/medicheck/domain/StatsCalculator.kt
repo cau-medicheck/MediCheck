@@ -3,6 +3,7 @@ package com.cau.medicheck.domain
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 /**
  * 복용 기록의 개수 묶음. 하루치에도, 여러 날 치에도 쓴다.
@@ -47,29 +48,38 @@ data class PeriodStats(val days: List<DayStats>) {
 }
 
 /**
- * 건너뜀 패턴(S15).
- * @param skippedByPeriod 시간대(새벽·아침·점심·저녁·밤)마다 건너뛴 횟수. 다섯 시간대가 모두 들어 있다.
- * @param overdueUnrecorded 같은 기간의 "기한 경과 · 미기록" 횟수. 건너뜀과 따로 센다.
+ * 주차: "11월 4주차". 한 주 = 월~일이고, 그 주의 목요일이 있는 달의 몇 번째 주인지로 센다.
+ * (달력에서 흔히 쓰는 방식. 달의 경계에 걸친 주는 목요일이 있는 달에 속한다)
  */
-data class SkipPattern(val skippedByPeriod: Map<DayPeriod, Int>, val overdueUnrecorded: Int) {
-    val totalSkipped: Int get() = skippedByPeriod.values.sum()
-}
+data class WeekOfMonth(val month: YearMonth, val index: Int)
+
+/**
+ * 패턴 탭의 시간대 한 줄: 최근 7일 동안 그 시간대 회차의 횟수.
+ * @param hasSchedule 그 시간대에 회차가 하나라도 있었나 (없으면 화면에 "일정 없음")
+ */
+data class SlotRate(val period: DayPeriod, val counts: DoseCounts, val hasSchedule: Boolean)
+
+/** 연속 기록: 하루 약을 모두 먹은 날이 며칠 이어졌나. current = 지금까지, best = 가장 길었던 기록 */
+data class Streaks(val current: Int, val best: Int)
 
 /**
  * 복용 기록 목록으로 통계를 계산한다. 순수 Kotlin 코드라서 단위 테스트를 할 수 있다. (DB_DESIGN ⑩)
  *
  * 기간:
- *   주간(S13) = 오늘을 포함한 최근 7일 (월~일이 아니다)
- *   월간(S14) = 그 달의 1일 ~ 말일
- *   패턴(S15) = 오늘을 포함한 최근 30일
+ *   최근 7일(홈 카드) = 오늘을 포함한 최근 7일
+ *   주간(S13) = 월~일 한 주
+ *   월간(S14) = 그 달의 1일 ~ 말일, 그 달의 주차들
+ *   패턴(S15) = 시간대별은 최근 7일, 연속 기록은 최근 1년
  * 어느 기간이든 "도래한 회차"(예정 일시 ≤ 지금)만 센다. 그래서 미래 날짜는 저절로 빠진다.
  */
 object StatsCalculator {
 
     /** 주간 통계가 보는 날 수 */
     const val WEEK_DAYS = 7L
-    /** 건너뜀 패턴이 보는 날 수 */
-    const val PATTERN_DAYS = 30L
+    /** 패턴 탭의 시간대별이 보는 날 수 (오늘 포함) */
+    const val SLOT_DAYS = 7L
+    /** 연속 기록을 찾는 날 수 (오늘 포함) */
+    const val STREAK_DAYS = 365L
 
     /**
      * 회차들을 상태별로 센다.
@@ -117,21 +127,65 @@ object StatsCalculator {
     fun month(doses: List<DoseItem>, month: YearMonth, now: LocalDateTime): PeriodStats =
         periodStats(doses, month.atDay(1), month.atEndOfMonth(), now)
 
+    /** 그 날짜가 든 주의 월요일 */
+    fun weekStartOf(date: LocalDate): LocalDate = date.minusDays((date.dayOfWeek.value - 1).toLong())
+
+    /** 한 주(월~일): monday ~ monday+6일 */
+    fun week(doses: List<DoseItem>, monday: LocalDate, now: LocalDateTime): PeriodStats =
+        periodStats(doses, monday, monday.plusDays(6), now)
+
+    /** 그 주가 몇 월 몇 주차인가 (목요일이 있는 달 기준) */
+    fun weekOfMonth(monday: LocalDate): WeekOfMonth {
+        val thursday = monday.plusDays(3)
+        val month = YearMonth.from(thursday)
+        val firstThursday = firstThursdayOf(month)
+        return WeekOfMonth(month, (ChronoUnit.DAYS.between(firstThursday, thursday) / 7).toInt() + 1)
+    }
+
+    /** 그 달에 속한 주들의 월요일 (1주차부터). 목요일이 그 달에 있는 주만 */
+    fun weeksOfMonth(month: YearMonth): List<LocalDate> =
+        generateSequence(weekStartOf(firstThursdayOf(month))) { it.plusWeeks(1) }
+            .takeWhile { YearMonth.from(it.plusDays(3)) == month }
+            .toList()
+
+    private fun firstThursdayOf(month: YearMonth): LocalDate {
+        val first = month.atDay(1)
+        // 목요일(4)까지 며칠 남았나. 1일이 금~일이면 다음 주 목요일
+        return first.plusDays(((4 - first.dayOfWeek.value + 7) % 7).toLong())
+    }
+
     /**
-     * 건너뜀 패턴: 최근 30일(오늘−29일 ~ 오늘)의 도래한 회차 중
-     *   - 건너뜀(SKIPPED)을 예정 시각의 시간대별로 세고
-     *   - 응답 없는 것(기한 경과 · 미기록)은 따로 센다. 미기록을 건너뜀으로 바꾸지 않는다.
-     * 시간대 경계는 일정 화면(S05)과 같은 periodOf를 쓴다.
+     * 패턴 탭의 시간대별: 최근 7일(오늘−6일 ~ 오늘)의 회차를 예정 시각의 시간대로 나눠 센다.
+     * 새벽은 그 시간대에 회차가 있을 때만 넣는다(대부분의 사람에게는 없는 줄이라).
      */
-    fun skipPattern(doses: List<DoseItem>, today: LocalDate, now: LocalDateTime): SkipPattern {
-        val from = today.minusDays(PATTERN_DAYS - 1)
-        val due = doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) && it.isDue(now) }
-        val skipped = due.filter { it.status == DoseStatus.SKIPPED }
-        return SkipPattern(
-            skippedByPeriod = DayPeriod.entries.associateWith { period ->
-                skipped.count { periodOf(it.time) == period }
-            },
-            overdueUnrecorded = due.count { it.status == DoseStatus.PENDING && it.isOverdue(now) }
-        )
+    fun slotRates(doses: List<DoseItem>, today: LocalDate, now: LocalDateTime): List<SlotRate> {
+        val from = today.minusDays(SLOT_DAYS - 1)
+        val recent = doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) }
+        return DayPeriod.entries.map { period ->
+            val inPeriod = recent.filter { periodOf(it.time) == period }
+            SlotRate(period, count(inPeriod, now), hasSchedule = inPeriod.isNotEmpty())
+        }.filter { it.period != DayPeriod.DAWN || it.hasSchedule }
+    }
+
+    /**
+     * 연속 기록: 그날의 회차를 모두 "복용 완료"한 날이 며칠 이어졌나.
+     *   - 회차가 없는 날은 건너뛴다(이어짐을 끊지도, 늘리지도 않는다)
+     *   - 오늘은 아직 남은 회차가 있고 빠뜨린 것(건너뜀·미복용)이 없으면 끊지 않는다(하루가 진행 중이라서)
+     *   - 건너뜀도 "다 먹은 날"이 아니다
+     */
+    fun streaks(doses: List<DoseItem>, today: LocalDate, now: LocalDateTime): Streaks {
+        val from = today.minusDays(STREAK_DAYS - 1)
+        val byDate = doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) }.groupBy { it.date }
+        var run = 0
+        var best = 0
+        byDate.keys.sorted().forEach { date ->
+            val c = count(byDate.getValue(date), now)
+            when {
+                c.upcoming == 0 && c.due > 0 && c.taken == c.due -> { run++; best = maxOf(best, run) }
+                date == today && c.skipped == 0 && c.missed == 0 -> Unit   // 오늘은 아직 진행 중
+                else -> run = 0
+            }
+        }
+        return Streaks(current = run, best = best)
     }
 }

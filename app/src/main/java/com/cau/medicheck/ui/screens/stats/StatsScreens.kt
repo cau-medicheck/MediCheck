@@ -1,51 +1,91 @@
 package com.cau.medicheck.ui.screens.stats
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.outlined.Nightlight
+import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material.icons.outlined.WbTwilight
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
-import com.cau.medicheck.ui.components.BarChart
-import com.cau.medicheck.ui.components.BarColumnUi
-import com.cau.medicheck.ui.components.CountTriple
+import com.cau.medicheck.domain.DayStats
+import com.cau.medicheck.domain.DoseCounts
+import com.cau.medicheck.domain.SlotRate
+import com.cau.medicheck.domain.Streaks
+import com.cau.medicheck.ui.components.Glyph
+import com.cau.medicheck.ui.components.IconSquareButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.MetricNumber
-import com.cau.medicheck.ui.components.MonthSwitcher
-import com.cau.medicheck.ui.components.Notice
-import com.cau.medicheck.ui.components.ProgressBar
-import com.cau.medicheck.ui.components.SectionTitle
 import com.cau.medicheck.ui.components.SegmentedTabs
+import com.cau.medicheck.ui.components.StatusCountBox
 import com.cau.medicheck.ui.components.SurfaceCard
-import com.cau.medicheck.ui.components.solidBar
-import com.cau.medicheck.ui.theme.ChartBarMuted
-import com.cau.medicheck.ui.theme.ChartBottom
-import com.cau.medicheck.ui.theme.ChartTop
+import com.cau.medicheck.ui.components.monthTitleText
+import com.cau.medicheck.ui.theme.DangerTitle
+import com.cau.medicheck.ui.theme.HomeChipDoneBg
+import com.cau.medicheck.ui.theme.HomeChipDoneText
+import com.cau.medicheck.ui.theme.HomeChipMissedBg
+import com.cau.medicheck.ui.theme.HomeChipMissedText
+import com.cau.medicheck.ui.theme.HomeChipSkippedBg
+import com.cau.medicheck.ui.theme.HomeChipSkippedText
+import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
-import com.cau.medicheck.ui.theme.ParagraphText
-import com.cau.medicheck.ui.theme.ProgressFill
+import com.cau.medicheck.ui.theme.ProgressTrack
+import com.cau.medicheck.ui.theme.RateFair
+import com.cau.medicheck.ui.theme.RateGood
+import com.cau.medicheck.ui.theme.RateLow
+import java.time.LocalDate
+import java.time.YearMonth
 
 /*
- * 통계 화면 세 개: S13 주간 · S14 월간 · S15 건너뜀 패턴.
- * 세 화면 위쪽의 탭("주간 | 월간 | 누락 분석")으로 서로 오간다. 계산은 ViewModel(→ StatsCalculator)이 하고
- * 여기서는 받은 값을 그리기만 한다.
+ * 통계 화면 세 개: S13 주간 · S14 월간 · S15 패턴. (2026-11-24 개편, 시안: 04_화면캡처/통계_시안/시안5.html, 시안4.html 패턴)
+ * 위쪽 탭("주간 | 월간 | 패턴")으로 서로 오간다. 계산은 ViewModel(→ StatsCalculator)이 하고 여기서는 그리기만 한다.
+ * 설명 문장은 두지 않는다(계산 기준은 설정의 "복약률 계산 기준"에만 있다).
  */
 
-/** 통계 화면 맨 위: 탭 세 개. (탭 화면이라 큰 제목은 두지 않는다 — 하단 탭 이름이 같은 말이다) index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 누락 분석) */
+/** 통계 화면 맨 위: 탭 세 개. index = 지금 화면의 탭 번호(0 주간, 1 월간, 2 패턴) */
 @Composable
 private fun ColumnScope.StatsHeader(index: Int, onTab: (Int) -> Unit) {
     SegmentedTabs(
@@ -60,213 +100,498 @@ private fun ColumnScope.StatsHeader(index: Int, onTab: (Int) -> Unit) {
     )
 }
 
-/** 완료율 글자: "80%" 또는 계산할 것이 없으면 "N/A" */
-@Composable
-private fun rateText(rate: Int?): String =
-    if (rate == null) stringResource(R.string.common_na) else stringResource(R.string.common_percent, rate)
+// ---------------------------------------------------------------------------------------------
+// 색: 80% 이상 초록 · 50% 이상 주황 · 그 아래 빨강 (내 약 카드·약 상세와 같은 기준)
+// ---------------------------------------------------------------------------------------------
 
-// =============================================================================================
-// S13 주간 통계
-// =============================================================================================
+/** 막대·원 그래프의 색 */
+private fun rateFill(rate: Int): Color = when {
+    rate >= 80 -> RateGood
+    rate >= 50 -> RateFair
+    else -> RateLow
+}
+
+/** 숫자 글자의 색 (흰 바탕에서 읽기 좋게 막대 색보다 진하다) */
+private fun rateText(rate: Int): Color = when {
+    rate >= 80 -> HomeChipDoneText
+    rate >= 50 -> HomeChipMissedText
+    else -> DangerTitle
+}
+
+/** 달력 칸 색 (진할수록 많이 먹은 날) */
+private val HeatFull = Color(0xFF17806D)    // 80% 이상 — 글자는 흰색
+private val HeatGood = Color(0xFF9FDCCF)    // 50% 이상
+private val HeatSome = Color(0xFFFFD3A6)    // 조금
+private val HeatNone = Color(0xFFF4B4B4)    // 0%
+private val HeatEmpty = Color(0xFFF4F7F8)   // 회차가 없거나 아직 안 온 날
+private val HeatEmptyText = Color(0xFF6E828B)
+
+private fun heatColor(rate: Int?): Color = when {
+    rate == null -> HeatEmpty
+    rate >= 80 -> HeatFull
+    rate >= 50 -> HeatGood
+    rate > 0 -> HeatSome
+    else -> HeatNone
+}
+
+// ---------------------------------------------------------------------------------------------
+// 공통 부품
+// ---------------------------------------------------------------------------------------------
+
+/** ‹ 제목 / 날짜 범위 › — 주·달 이동 */
+@Composable
+private fun PeriodNav(title: String, range: String, prevLabel: String, nextLabel: String, onPrev: () -> Unit, onNext: () -> Unit, nextEnabled: Boolean) {
+    SurfaceCard(padding = 10.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconSquareButton(Glyph.PREV, prevLabel, outlined = true, onClick = onPrev)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.semantics { heading() })
+                Text(range, fontSize = 12.sp, color = Muted)
+            }
+            IconSquareButton(Glyph.NEXT, nextLabel, outlined = true, onClick = onNext, enabled = nextEnabled)
+        }
+    }
+}
+
+/** "11.23 ~ 11.29" */
+@Composable
+private fun rangeText(from: LocalDate, to: LocalDate): String =
+    stringResource(R.string.stats_range, from.monthValue, from.dayOfMonth, to.monthValue, to.dayOfMonth)
 
 /**
- * S13 주간 통계 (v3 weekStats()).
- * 오늘을 포함한 최근 7일의 완료율과 요일별 막대. 막대는 왼쪽이 6일 전, 오른쪽 끝이 오늘이다.
+ * 요약 카드: [원 그래프 %]  5 / 9회  [지난주 ▲ 4%p]
+ *                          완료 · 건너뜀 · 미복용 칸
  */
 @Composable
-fun S13WeekStatsScreen(state: WeekStatsUiState, onTab: (Int) -> Unit) {
-    val total = state.stats.total
-    val weekdays = stringArrayResource(R.array.common_weekdays)        // "일"…"토"
-    val weekdaysFull = stringArrayResource(R.array.common_weekdays_full)
+private fun SummaryCard(total: DoseCounts, prevRate: Int?, @androidx.annotation.StringRes deltaRes: Int) {
+    val rate = total.completionRate
+    SurfaceCard(Modifier.padding(top = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RateRing(rate, size = 92.dp)
+            Column(Modifier.padding(start = 18.dp)) {
+                Text(
+                    text = stringResource(R.string.stats_count, total.taken, total.due),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Navy
+                )
+                if (rate != null && prevRate != null) DeltaChip(rate - prevRate, deltaRes, Modifier.padding(top = 8.dp))
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+            StatusCountBox(stringResource(R.string.common_count_taken), total.taken, HomeChipDoneBg, HomeChipDoneText)
+            StatusCountBox(stringResource(R.string.common_count_skipped), total.skipped, HomeChipSkippedBg, HomeChipSkippedText)
+            StatusCountBox(stringResource(R.string.common_count_missed), total.missed, HomeChipMissedBg, HomeChipMissedText)
+        }
+    }
+}
 
+/** 원 그래프: 가운데 "56%", 계산할 것이 없으면 "–" */
+@Composable
+private fun RateRing(rate: Int?, size: Dp) {
+    val label = if (rate == null) stringResource(R.string.common_na) else stringResource(R.string.common_percent, rate)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(size)
+            .clearAndSetSemantics { contentDescription = label }
+    ) {
+        Canvas(Modifier.size(size)) {
+            val stroke = 10.dp.toPx()
+            val inset = stroke / 2
+            val arcSize = Size(this.size.width - stroke, this.size.height - stroke)
+            drawArc(ProgressTrack, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
+            if (rate != null && rate > 0) {
+                drawArc(rateFill(rate), -90f, 360f * rate / 100f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+            }
+        }
+        Text(label, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = if (rate == null) Muted else rateText(rate))
+    }
+}
+
+/** "지난주 ▲ 4%p" / "지난주 ▼ 18%p" / "지난주와 같음" */
+@Composable
+private fun DeltaChip(delta: Int, @androidx.annotation.StringRes deltaRes: Int, modifier: Modifier = Modifier) {
+    val (bg, fg, mark) = when {
+        delta > 0 -> Triple(HomeChipDoneBg, HomeChipDoneText, "▲")
+        delta < 0 -> Triple(Color(0xFFFDEDED), DangerTitle, "▼")
+        else -> Triple(ProgressTrack, Muted, "=")
+    }
+    Text(
+        text = stringResource(deltaRes, mark, kotlin.math.abs(delta)),
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = fg,
+        modifier = modifier
+            .clip(RoundedCornerShape(99.dp))
+            .background(bg)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    )
+}
+
+/** 카드 제목 (+ 오른쪽 작은 글자) */
+@Composable
+private fun CardTitle(title: String, side: String? = null) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
+        Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.weight(1f).semantics { heading() })
+        if (side != null) Text(side, fontSize = 12.sp, color = Muted)
+    }
+}
+
+/** 가로 막대 한 줄의 막대 부분 */
+@Composable
+private fun RateBar(rate: Int?, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(10.dp)
+            .clip(RoundedCornerShape(99.dp))
+            .background(ProgressTrack)
+    ) {
+        if (rate != null && rate > 0) {
+            Box(
+                Modifier
+                    .fillMaxWidth(rate / 100f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(rateFill(rate))
+            )
+        }
+    }
+}
+
+// =============================================================================================
+// S13 주간: 월~일 한 주
+// =============================================================================================
+
+@Composable
+fun S13WeekStatsScreen(state: WeeklyStatsUiState, onTab: (Int) -> Unit, onShiftWeek: (Long) -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s13)) {
         StatsHeader(index = 0, onTab = onTab)
-        // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
+        val week = state.week
+        PeriodNav(
+            title = stringResource(R.string.stats_week_title, week.month.monthValue, week.index),
+            range = rangeText(state.monday, state.monday.plusDays(6)),
+            prevLabel = stringResource(R.string.stats_cd_prev_week),
+            nextLabel = stringResource(R.string.stats_cd_next_week),
+            onPrev = { onShiftWeek(-1) },
+            onNext = { onShiftWeek(1) },
+            nextEnabled = !state.isThisWeek
+        )
+        // 기록을 읽어 오는 잠깐 동안은 "– · 0"이 번쩍이지 않게 아래를 그리지 않는다.
         if (state.isLoading) return@McScreenColumn
 
-        SurfaceCard {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.s13_rate_label), fontSize = 11.sp, color = Muted)
-                MetricNumber(rateText(total.completionRate), fontSize = 46, modifier = Modifier.padding(vertical = 6.dp))
-                ProgressBar(
-                    fraction = (total.completionRate ?: 0) / 100f,
+        SummaryCard(state.stats.total, state.prevRate, R.string.stats_delta_week)
+
+        SurfaceCard(Modifier.padding(top = 12.dp)) {
+            CardTitle(stringResource(R.string.stats_section_weekday))
+            WeekdayBars(state.stats.days, state.today)
+        }
+    }
+}
+
+/** 요일별 세로 막대 7개(월~일). 아직 안 온 날은 점선 칸, 회차가 없던 날은 빈 칸 */
+@Composable
+private fun WeekdayBars(days: List<DayStats>, today: LocalDate) {
+    val names = stringArrayResource(R.array.common_weekdays)   // "일"…"토"
+    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+        days.forEach { day ->
+            val rate = day.counts.completionRate
+            val future = day.date.isAfter(today)
+            val name = names[day.date.dayOfWeek.value % 7]
+            val pct = if (rate == null) "" else stringResource(R.string.common_percent, rate)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(36.dp)
+                    .clearAndSetSemantics { contentDescription = "$name $pct" }
+            ) {
+                Text(pct, fontSize = 11.sp, color = Muted, modifier = Modifier.height(18.dp))
+                val shape = RoundedCornerShape(9.dp)
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
                     modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .clearAndSetSemantics { }
-                )
-                CountTriple(
-                    items = listOf(
-                        stringResource(R.string.common_count_taken) to total.taken,
-                        stringResource(R.string.common_count_skipped) to total.skipped,
-                        stringResource(R.string.common_count_missed) to total.missed
-                    ),
-                    valueSize = 19
+                        .width(24.dp)
+                        .height(104.dp)
+                        .clip(shape)
+                        .then(
+                            if (future) Modifier.background(Color.White).border(1.5.dp, Line, shape)
+                            else Modifier.background(ProgressTrack)
+                        )
+                ) {
+                    if (rate != null && rate > 0) {
+                        Box(Modifier.fillMaxWidth().fillMaxHeight(rate / 100f).clip(shape).background(rateFill(rate)))
+                    }
+                }
+                val isToday = day.date == today
+                Text(
+                    text = name,
+                    fontSize = 12.sp,
+                    fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+                    color = if (isToday) Navy else Muted,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }
-
-        SectionTitle(stringResource(R.string.s13_section_daily))
-        SurfaceCard {
-            // 위(옅은 청록)에서 아래(진한 청록)로 흐르는 막대 색
-            val gradient = Brush.verticalGradient(listOf(ChartTop, ChartBottom))
-            val columns = state.stats.days.map { day ->
-                val index = day.date.dayOfWeek.value % 7   // 일요일 = 0
-                val rate = rateText(day.counts.completionRate)
-                BarColumnUi(
-                    percent = day.counts.completionRate,
-                    topLabel = rate,
-                    bottomLabel = weekdays[index],
-                    description = stringResource(R.string.s13_cd_bar, weekdaysFull[index], rate),
-                    brush = gradient
-                )
-            }
-            BarChart(columns, maxBarHeight = 110.dp, gap = 6.dp)
-        }
-
-        Notice(stringResource(R.string.s13_notice), Modifier.padding(top = 16.dp))
     }
 }
 
 // =============================================================================================
-// S14 월간 통계
+// S14 월간: 원 그래프 + 날짜별 달력 + 주차별 가로 막대
 // =============================================================================================
 
-/**
- * S14 월간 통계 (v3 monthStats()).
- * 보는 달의 완료율과 일자별 막대. 완료율이 100%인 날만 진한 색, 그 밖(0~99%·계산할 것 없음)은 옅은 색이다.
- * 이번 달이면 오늘 뒤의 날짜는 아직 도래한 회차가 없어 가장 낮은 막대로 보인다.
- */
 @Composable
 fun S14MonthStatsScreen(state: MonthStatsUiState, onTab: (Int) -> Unit, onShiftMonth: (Long) -> Unit) {
-    val total = state.stats.total
-
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s14)) {
         StatsHeader(index = 1, onTab = onTab)
-        // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
+        val month = state.month
+        PeriodNav(
+            title = monthTitleText(month),
+            range = rangeText(month.atDay(1), month.atEndOfMonth()),
+            prevLabel = stringResource(R.string.common_cd_prev_month),
+            nextLabel = stringResource(R.string.common_cd_next_month),
+            onPrev = { onShiftMonth(-1) },
+            onNext = { onShiftMonth(1) },
+            nextEnabled = month.isBefore(YearMonth.from(state.today))
+        )
         if (state.isLoading) return@McScreenColumn
 
-        SurfaceCard {
-            MonthSwitcher(month = state.month, onPrev = { onShiftMonth(-1) }, onNext = { onShiftMonth(1) })
-            Text(
-                stringResource(R.string.s14_rate_label),
-                fontSize = 11.sp,
-                color = Muted,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            MetricNumber(rateText(total.completionRate), fontSize = 42)
-            ProgressBar(
-                fraction = (total.completionRate ?: 0) / 100f,
-                modifier = Modifier
-                    .padding(top = 6.dp)
-                    .clearAndSetSemantics { }
-            )
-            Text(
-                text = stringResource(R.string.s14_counts, total.taken, total.skipped, total.missed),
-                fontSize = 12.sp,
-                lineHeight = 21.sp,
-                color = ParagraphText,
-                modifier = Modifier.padding(top = 12.dp)
-            )
+        SummaryCard(state.stats.total, state.prevRate, R.string.stats_delta_month)
+
+        SurfaceCard(Modifier.padding(top = 12.dp)) {
+            CardTitle(stringResource(R.string.stats_section_calendar))
+            HeatCalendar(month, state.stats.days, state.today)
         }
 
-        SectionTitle(stringResource(R.string.s14_section_daily))
-        SurfaceCard {
-            val columns = state.stats.days.map { day ->
-                val rate = day.counts.completionRate
-                BarColumnUi(
-                    percent = rate,
-                    topLabel = null,
-                    bottomLabel = null,
-                    // 예: "2026-11-03: 100%", 계산할 것이 없는 날은 "2026-11-20: N/A"
-                    description = stringResource(R.string.s14_cd_bar, day.date.toString(), rateText(rate)),
-                    brush = solidBar(if (rate == 100) ProgressFill else ChartBarMuted)
-                )
-            }
-            BarChart(columns, maxBarHeight = 115.dp, gap = 2.dp)
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            ) {
-                Text(stringResource(R.string.s14_first_day), fontSize = 11.sp, color = Muted)
-                Text(stringResource(R.string.s14_last_day, state.month.lengthOfMonth()), fontSize = 11.sp, color = Muted)
-            }
-        }
-
-    }
-}
-
-// =============================================================================================
-// S15 건너뜀 패턴
-// =============================================================================================
-
-/**
- * S15 건너뜀 패턴 (v3 missed()).
- * 최근 30일 동안 "건너뜀"으로 기록한 횟수를 시간대(아침·점심·저녁·밤)별로 보여 준다.
- * 응답하지 않은 회차(기한 경과 · 미기록)는 건너뜀에 넣지 않고 아래 안내에 따로 적는다.
- */
-@Composable
-fun S15SkipPatternScreen(state: SkipPatternUiState, onTab: (Int) -> Unit) {
-    val pattern = state.pattern
-    // 막대 길이의 기준: 네 시간대 중 가장 많은 횟수 (0으로 나누지 않게 최소 1)
-    val max = maxOf(1, pattern.skippedByPeriod.values.maxOrNull() ?: 0)
-
-    McScreenColumn(paneTitle = stringResource(R.string.screen_title_s15)) {
-        StatsHeader(index = 2, onTab = onTab)
-        // 기록을 읽어 오는 잠깐 동안은 "N/A · 0"이 번쩍이지 않게 아래를 그리지 않는다.
-        if (state.isLoading) return@McScreenColumn
-
-        SurfaceCard {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.s15_total_label), fontSize = 11.sp, color = Muted)
-                MetricNumber(
-                    text = pattern.totalSkipped.toString(),
-                    fontSize = 45,
-                    suffix = stringResource(R.string.s15_unit)
-                )
-            }
-        }
-
-        SectionTitle(stringResource(R.string.s15_section_periods))
-        SurfaceCard(padding = 0.dp) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                DayPeriod.entries.forEach { period ->
-                    val count = pattern.skippedByPeriod[period] ?: 0
-                    Column(Modifier.padding(vertical = 12.dp)) {
-                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                stringResource(period.labelRes()),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Navy
-                            )
-                            Text(stringResource(R.string.s15_count, count), fontSize = 11.sp, color = Muted)
-                        }
-                        ProgressBar(
-                            fraction = count.toFloat() / max,
-                            modifier = Modifier
-                                .padding(top = 7.dp)
-                                .clearAndSetSemantics { }
-                        )
+        if (state.weeks.isNotEmpty()) {
+            SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
+                Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 16.dp, bottom = 6.dp)) {
+                    Box(Modifier.padding(horizontal = 8.dp)) { CardTitle(stringResource(R.string.stats_section_weeks)) }
+                    state.weeks.forEachIndexed { i, row ->
+                        WeekRateRow(row)
+                        if (i < state.weeks.lastIndex) HorizontalDivider(color = Line)
                     }
                 }
             }
         }
+    }
+}
 
-        Notice(
-            stringResource(R.string.s15_notice, pattern.overdueUnrecorded, pattern.totalSkipped),
-            Modifier.padding(top = 16.dp),
-            warn = true
+/** 날짜별 달력: 칸 색 = 그날 복용률. 일요일부터. 아래에 "0% ━━ 100%" 색 띠 */
+@Composable
+private fun HeatCalendar(month: YearMonth, days: List<DayStats>, today: LocalDate) {
+    val weekdays = stringArrayResource(R.array.common_weekdays)
+    val byDate = days.associateBy { it.date }
+    val blanks = month.atDay(1).dayOfWeek.value % 7
+    val cells: List<LocalDate?> = List(blanks) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            weekdays.forEach { name ->
+                Text(name, fontSize = 11.sp, color = Muted, textAlign = TextAlign.Center, modifier = Modifier.weight(1f).clearAndSetSemantics { })
+            }
+        }
+        cells.chunked(7).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                row.forEach { date ->
+                    if (date == null) Spacer(Modifier.weight(1f))
+                    else HeatCell(date, byDate[date]?.counts?.completionRate?.takeIf { !date.isAfter(today) }, date == today, Modifier.weight(1f))
+                }
+                repeat(7 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp).clearAndSetSemantics { }) {
+            Text(stringResource(R.string.common_percent, 0), fontSize = 11.sp, color = Muted)
+            Box(
+                Modifier
+                    .padding(horizontal = 8.dp)
+                    .weight(1f)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Brush.horizontalGradient(listOf(HeatNone, HeatSome, HeatGood, HeatFull)))
+            )
+            Text(stringResource(R.string.common_percent, 100), fontSize = 11.sp, color = Muted)
+        }
+    }
+}
+
+@Composable
+private fun HeatCell(date: LocalDate, rate: Int?, isToday: Boolean, modifier: Modifier) {
+    val label = if (rate == null) stringResource(R.string.stats_cd_day_none, date.dayOfMonth)
+    else stringResource(R.string.stats_cd_day, date.dayOfMonth, rate)
+    val shape = RoundedCornerShape(8.dp)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .aspectRatio(1.15f)
+            .clip(shape)
+            .background(heatColor(rate))
+            .then(if (isToday) Modifier.border(2.dp, Navy, shape) else Modifier)
+            .clearAndSetSemantics { contentDescription = label }
+    ) {
+        Text(
+            text = date.dayOfMonth.toString(),
+            fontSize = 12.sp,
+            fontWeight = if (rate == null) FontWeight.Medium else FontWeight.Bold,
+            color = when {
+                rate == null -> HeatEmptyText
+                rate >= 80 -> Color.White
+                else -> Navy
+            }
         )
     }
 }
 
-/** 시간대 → 이름 문구 (일정 화면 S05의 구역 제목과 같은 글자) */
-private fun DayPeriod.labelRes(): Int = when (this) {
-    DayPeriod.DAWN -> R.string.s05_period_dawn
-    DayPeriod.MORNING -> R.string.s05_period_morning
-    DayPeriod.LUNCH -> R.string.s05_period_lunch
-    DayPeriod.EVENING -> R.string.s05_period_evening
-    DayPeriod.NIGHT -> R.string.s05_period_night
+/** 주차별 한 줄: "1주차 / 11.2 ~ 11.8   ━━━━━━   80%". 이번 주는 옅은 바탕 */
+@Composable
+private fun WeekRateRow(row: WeekRow) {
+    val name = stringResource(R.string.stats_week_index, row.index)
+    val range = rangeText(row.monday, row.monday.plusDays(6))
+    val pct = if (row.rate == null) stringResource(R.string.common_na) else stringResource(R.string.common_percent, row.rate)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (row.isThisWeek) Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFF3F8F9)) else Modifier)
+            .padding(horizontal = 8.dp, vertical = 12.dp)   // 모든 줄이 같은 여백이라야 막대 길이가 맞는다
+            .clearAndSetSemantics { contentDescription = "$name $range $pct" }
+    ) {
+        Column(Modifier.width(96.dp)) {
+            Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy)
+            Text(range, fontSize = 11.sp, color = Muted)
+        }
+        RateBar(row.rate, Modifier.weight(1f))
+        Text(
+            text = pct,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (row.rate == null) Muted else rateText(row.rate),
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(54.dp)
+        )
+    }
+}
+
+// =============================================================================================
+// S15 패턴: 자주 빠뜨리는 때 — 시간대별(최근 7일) + 연속 기록
+// =============================================================================================
+
+@Composable
+fun S15PatternScreen(state: PatternUiState, onTab: (Int) -> Unit) {
+    McScreenColumn(paneTitle = stringResource(R.string.screen_title_s15)) {
+        StatsHeader(index = 2, onTab = onTab)
+        Text(
+            text = stringResource(R.string.s15_title),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Navy,
+            modifier = Modifier.padding(start = 2.dp, bottom = 4.dp).semantics { heading() }
+        )
+        if (state.isLoading) return@McScreenColumn
+
+        SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
+            Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 6.dp)) {
+                CardTitle(stringResource(R.string.s15_section_slots), stringResource(R.string.s15_recent))
+                state.slots.forEachIndexed { i, slot ->
+                    SlotRow(slot)
+                    if (i < state.slots.lastIndex) HorizontalDivider(color = Line)
+                }
+            }
+        }
+
+        StreakCard(state.streaks)
+    }
+}
+
+/** 시간대 → 이름·아이콘·아이콘 색·아이콘 바탕 */
+private data class SlotLook(val labelRes: Int, val icon: ImageVector, val tint: Color, val bg: Color, val iconSize: Dp = 20.dp)
+
+private fun DayPeriod.look(): SlotLook = when (this) {
+    DayPeriod.DAWN -> SlotLook(R.string.s05_period_dawn, Icons.Outlined.Nightlight, Color(0xFF6B7BB0), Color(0xFFEEF0F8))
+    DayPeriod.MORNING -> SlotLook(R.string.s05_period_morning, Icons.Outlined.WbSunny, Color(0xFFC96F12), Color(0xFFFFF3E2))
+    DayPeriod.LUNCH -> SlotLook(R.string.s05_period_lunch, Icons.Filled.Circle, Color(0xFFD9A21B), Color(0xFFFFF8DC), iconSize = 12.dp)
+    DayPeriod.EVENING -> SlotLook(R.string.s05_period_evening, Icons.Outlined.WbTwilight, Color(0xFFC2703D), Color(0xFFFCEFE6))
+    DayPeriod.NIGHT -> SlotLook(R.string.s05_period_night, Icons.Filled.Bedtime, Color(0xFF4B5E9C), Color(0xFFE9EDF8))
+}
+
+/** 시간대 한 줄: [아이콘] 아침  ━━━━━  57%  (회차가 없던 시간대는 흐리게 "일정 없음") */
+@Composable
+private fun SlotRow(slot: SlotRate) {
+    val look = slot.period.look()
+    val name = stringResource(look.labelRes)
+    val rate = slot.counts.completionRate
+    val value = when {
+        !slot.hasSchedule -> stringResource(R.string.s15_no_schedule)
+        rate == null -> stringResource(R.string.common_na)
+        else -> stringResource(R.string.common_percent, rate)
+    }
+    val empty = !slot.hasSchedule
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+            .clearAndSetSemantics { contentDescription = "$name $value" }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(11.dp))
+                .background(if (empty) Color(0xFFF1F4F6) else look.bg)
+        ) {
+            Icon(look.icon, contentDescription = null, tint = if (empty) Color(0xFFA9B6BC) else look.tint, modifier = Modifier.size(look.iconSize))
+        }
+        Text(
+            text = name,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (empty) HeatEmptyText else Navy,
+            modifier = Modifier.padding(start = 12.dp).width(44.dp)
+        )
+        RateBar(if (empty) null else rate, Modifier.weight(1f))
+        Text(
+            text = value,
+            fontSize = if (empty) 12.sp else 15.sp,
+            fontWeight = if (empty) FontWeight.Medium else FontWeight.ExtraBold,
+            color = when {
+                empty || rate == null -> HeatEmptyText
+                else -> rateText(rate)
+            },
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(64.dp)
+        )
+    }
+}
+
+/** 연속 기록: [불꽃]  현재 0일 | 최고 4일 */
+@Composable
+private fun StreakCard(streaks: Streaks) {
+    SurfaceCard(Modifier.padding(top = 12.dp)) {
+        CardTitle(stringResource(R.string.s15_section_streak))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brush.linearGradient(listOf(Color(0xFFFFB547), Color(0xFFF0743E))))
+            ) {
+                Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp))
+            }
+            StreakValue(stringResource(R.string.s15_streak_current), streaks.current, Modifier.weight(1f).padding(start = 16.dp))
+            Box(Modifier.width(1.dp).height(44.dp).background(Line))
+            StreakValue(stringResource(R.string.s15_streak_best), streaks.best, Modifier.weight(1f).padding(start = 18.dp))
+        }
+    }
+}
+
+@Composable
+private fun StreakValue(label: String, days: Int, modifier: Modifier) {
+    val unit = stringResource(R.string.s15_days_unit)
+    Column(modifier.clearAndSetSemantics { contentDescription = "$label $days$unit" }) {
+        Text(label, fontSize = 12.sp, color = Muted)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(days.toString(), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Navy)
+            Text(unit, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.padding(start = 2.dp, bottom = 5.dp))
+        }
+    }
 }

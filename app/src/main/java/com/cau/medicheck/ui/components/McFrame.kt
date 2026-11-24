@@ -55,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.disabled
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.theme.LogoUnderlineMint
 import com.cau.medicheck.ui.theme.Teal
@@ -202,17 +204,22 @@ private fun HeaderAction(description: String, onClick: () -> Unit, content: @Com
  * @param description TalkBack이 읽는 이름 ("알림", "설정")
  */
 @Composable
-fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onClick: () -> Unit) {
+fun IconSquareButton(symbol: String, description: String, outlined: Boolean, onClick: () -> Unit, enabled: Boolean = true) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(HeaderActionHeight)
+            .alpha(if (enabled) 1f else 0.35f)   // 갈 수 없는 방향(예: 이번 주 다음)은 흐리게
             .clip(shape)
             .background(if (outlined) Color.White else IconBtnBg)
             .then(if (outlined) Modifier.border(1.dp, Line, shape) else Modifier)
-            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
-            .clearAndSetSemantics { contentDescription = description; role = Role.Button }
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick)
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                if (!enabled) disabled()
+            }
     ) {
         GlyphText(symbol, fontSize = 18, color = IconBtnText)
     }

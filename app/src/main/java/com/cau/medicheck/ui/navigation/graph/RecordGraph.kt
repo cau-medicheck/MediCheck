@@ -19,9 +19,9 @@ import com.cau.medicheck.ui.screens.records.S43CsvExportScreen
 import com.cau.medicheck.ui.screens.stats.MonthStatsViewModel
 import com.cau.medicheck.ui.screens.stats.S13WeekStatsScreen
 import com.cau.medicheck.ui.screens.stats.S14MonthStatsScreen
-import com.cau.medicheck.ui.screens.stats.S15SkipPatternScreen
-import com.cau.medicheck.ui.screens.stats.SkipPatternViewModel
-import com.cau.medicheck.ui.screens.stats.WeekStatsViewModel
+import com.cau.medicheck.ui.screens.stats.S15PatternScreen
+import com.cau.medicheck.ui.screens.stats.PatternViewModel
+import com.cau.medicheck.ui.screens.stats.WeeklyStatsViewModel
 
 /** 이 파일이 붙여 둔 화면 ID */
 val RECORD_SCREENS = setOf("S11", "S12", "S13", "S14", "S15", "S43")
@@ -33,7 +33,7 @@ private val STATS_TABS = listOf(Routes.S13, Routes.S14, Routes.S15)
  * 기록·통계 화면들의 주소 등록과 그 사이의 이동. (구현 명세 04)
  *
  *   기록 탭 → S11 기록 캘린더 ─ 기록 보기 › → S12 날짜별 기록 ─ 상세 › → S10 회차 상세
- *   통계 탭 → S13 주간 ⇄ S14 월간 ⇄ S15 건너뜀 패턴   (위쪽 탭으로 서로 "바꿔 끼운다")
+ *   통계 탭 → S13 주간 ⇄ S14 월간 ⇄ S15 패턴   (위쪽 탭으로 서로 "바꿔 끼운다")
  *   S43 복약 기록 내보내기 — 6단계의 개인정보 센터(S36)에서 들어온다. 그 전까지는 설정(⚙) 임시 화면에 길을 둔다.
  */
 fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
@@ -68,10 +68,10 @@ fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
 
     // ----- S13 주간 통계 -----
     composable(Routes.S13) {
-        val vm: WeekStatsViewModel = viewModel(factory = WeekStatsViewModel.factory(user.id))
+        val vm: WeeklyStatsViewModel = viewModel(factory = WeeklyStatsViewModel.factory(user.id))
         val state by vm.uiState.collectAsStateWithLifecycle()
         OnResume(vm::refresh)
-        S13WeekStatsScreen(state = state, onTab = { index -> go.swapStatsTab(index) })
+        S13WeekStatsScreen(state = state, onTab = { index -> go.swapStatsTab(index) }, onShiftWeek = vm::shiftWeek)
     }
 
     // ----- S14 월간 통계 -----
@@ -86,12 +86,12 @@ fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
         )
     }
 
-    // ----- S15 건너뜀 패턴 -----
+    // ----- S15 패턴 (시간대별·연속 기록) -----
     composable(Routes.S15) {
-        val vm: SkipPatternViewModel = viewModel(factory = SkipPatternViewModel.factory(user.id))
+        val vm: PatternViewModel = viewModel(factory = PatternViewModel.factory(user.id))
         val state by vm.uiState.collectAsStateWithLifecycle()
         OnResume(vm::refresh)
-        S15SkipPatternScreen(state = state, onTab = { index -> go.swapStatsTab(index) })
+        S15PatternScreen(state = state, onTab = { index -> go.swapStatsTab(index) })
     }
 
     // ----- S43 복약 기록 내보내기 -----
@@ -110,7 +110,7 @@ fun NavGraphBuilder.recordGraph(user: User, go: AppNavigator) {
 
 /**
  * 통계 화면 위쪽 탭을 눌렀을 때: 지금 통계 화면을 그 화면으로 "바꿔 끼운다"(쌓지 않는다).
- * 그래서 주간 → 월간 → 누락 분석을 오간 뒤 뒤로 가기를 한 번 누르면 통계에 들어오기 전 화면으로 간다.
+ * 그래서 주간 → 월간 → 패턴을 오간 뒤 뒤로 가기를 한 번 누르면 통계에 들어오기 전 화면으로 간다.
  * 지금 화면의 탭을 다시 누르면 아무 일도 하지 않는다.
  */
 private fun AppNavigator.swapStatsTab(index: Int) = swap(STATS_TABS[index])
