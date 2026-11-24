@@ -51,6 +51,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.HomeChipWaitBg
+import com.cau.medicheck.domain.MedicationStatus
 import com.cau.medicheck.domain.DayMark
 import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseCounts
@@ -213,7 +215,9 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
     }
 
     // ----- 다음 복용: 진한 청록 띠 (보기 전용) -----
-    state.nextDose?.let { NextDoseBand(it) }
+    // 다음 복용이 없어도(비활성화·종료) 띠를 같은 크기의 회색으로 남긴다. 띠가 사라지면 비활성화를 켜고 끌 때
+    // 아래 칸들이 위아래로 움직이기 때문이다.
+    NextDoseBand(state.nextDose, state.status)
 
     // ----- 부수 정보: 작은 칸 3개 (복용 기간 · 메모 · 처방 출처) -----
     val source = listOf(med.hospital, med.department).filter { it.isNotBlank() }.joinToString(" · ")
@@ -287,17 +291,32 @@ private fun whenText(med: MedicationDetail): String {
     }
 }
 
-/** 진한 청록 띠: [시계] 다음 복용 / 내일 12:30 · 식후 */
+/**
+ * 다음 복용 띠: [시계] 다음 복용 / 내일 12:30 · 식후 (진한 청록).
+ * 다음 복용이 없으면 같은 크기의 회색 띠: "없음 · 비활성화 중" / "없음 · 복용 기간 끝" / "없음 · 7일 안에 일정 없음"
+ */
 @Composable
-private fun NextDoseBand(dose: DoseItem) {
-    val today = LocalDate.now()
-    val day = when (dose.date) {
-        today -> stringResource(R.string.s07_day_today)
-        today.plusDays(1) -> stringResource(R.string.s07_day_tomorrow)
-        else -> fullDateText(dose.date)
+private fun NextDoseBand(dose: DoseItem?, status: MedicationStatus) {
+    val value = if (dose == null) {
+        stringResource(
+            when (status) {
+                MedicationStatus.PAUSED -> R.string.s07_next_none_paused
+                MedicationStatus.ENDED -> R.string.s07_next_none_ended
+                MedicationStatus.ACTIVE -> R.string.s07_next_none
+            }
+        )
+    } else {
+        val today = LocalDate.now()
+        val day = when (dose.date) {
+            today -> stringResource(R.string.s07_day_today)
+            today.plusDays(1) -> stringResource(R.string.s07_day_tomorrow)
+            else -> fullDateText(dose.date)
+        }
+        val condition = if (dose.condition == DoseCondition.NONE) "" else " · " + conditionLabel(dose.condition)
+        "$day ${timeText(dose.time)}$condition"
     }
-    val condition = if (dose.condition == DoseCondition.NONE) "" else " · " + conditionLabel(dose.condition)
-    val value = "$day ${timeText(dose.time)}$condition"
+    val active = dose != null
+    val fg = if (active) Color.White else HomeChipWaitText
     val label = stringResource(R.string.s07_next_label)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -305,7 +324,10 @@ private fun NextDoseBand(dose: DoseItem) {
             .padding(top = 12.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+            .background(
+                if (active) Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd))
+                else Brush.linearGradient(listOf(HomeChipWaitBg, HomeChipWaitBg))
+            )
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .clearAndSetSemantics { contentDescription = "$label, $value" }
     ) {
@@ -314,13 +336,13 @@ private fun NextDoseBand(dose: DoseItem) {
             modifier = Modifier
                 .size(38.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.18f))
+                .background(if (active) Color.White.copy(alpha = 0.18f) else Color.White)
         ) {
-            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp))
+            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = fg, modifier = Modifier.size(21.dp))
         }
         Column(Modifier.padding(start = 12.dp)) {
-            Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
-            Text(value, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            Text(label, fontSize = 11.sp, color = if (active) Color.White.copy(alpha = 0.85f) else HomeChipWaitText)
+            Text(value, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

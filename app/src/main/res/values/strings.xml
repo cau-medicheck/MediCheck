@@ -438,6 +438,9 @@
     <string name="s07_back">내 약 관리</string>
     <string name="s07_label_memo">메모</string>
     <string name="s07_next_label">다음 복용</string>
+    <string name="s07_next_none_paused">없음 · 비활성화 중</string>
+    <string name="s07_next_none_ended">없음 · 복용 기간 끝</string>
+    <string name="s07_next_none">없음 · 7일 안에 일정 없음</string>
     <string name="s07_day_today">오늘</string>
     <string name="s07_day_tomorrow">내일</string>
     <string name="s07_recent_title">최근 7일</string>
