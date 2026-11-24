@@ -1,6 +1,11 @@
 package com.cau.medicheck.ui.screens.dose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,7 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,14 +27,15 @@ import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.PickerField
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.TimePickerPopup
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.theme.Mint
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
+import com.cau.medicheck.ui.theme.Teal
 import java.time.LocalTime
 
 /**
@@ -63,9 +72,8 @@ fun S31ActualTimeScreen(
         }
 
         BackLink(stringResource(R.string.s31_back), onBack)
-        ScreenIntro(stringResource(R.string.s31_subtitle), Modifier.padding(vertical = 16.dp))
 
-        SurfaceCard {
+        SurfaceCard(Modifier.padding(top = 14.dp)) {
             Text(text = dose.medicationName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
             Text(
                 text = stringResource(R.string.s31_scheduled_line, dose.date.toString(), timeText(dose.time)),
@@ -75,6 +83,12 @@ fun S31ActualTimeScreen(
             )
             FieldLabel(stringResource(R.string.s31_label))
             PickerField(text = timeText(state.time), onClick = { showTimePicker = true })
+            // 빠른 선택: 예정 시각 그대로 / 지금
+            val now = LocalTime.now().withSecond(0).withNano(0)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 10.dp)) {
+                QuickTime(stringResource(R.string.s31_quick_scheduled, timeText(dose.time)), state.time == dose.time) { onTimePicked(dose.time) }
+                QuickTime(stringResource(R.string.s31_quick_now, timeText(now)), state.time == now) { onTimePicked(now) }
+            }
             McButton(
                 text = stringResource(R.string.s31_btn_save),
                 onClick = onSave,
@@ -83,7 +97,6 @@ fun S31ActualTimeScreen(
             )
         }
 
-        Notice(stringResource(R.string.s31_notice), Modifier.padding(top = 14.dp))
     }
 
     if (showTimePicker) {
@@ -96,4 +109,21 @@ fun S31ActualTimeScreen(
             }
         )
     }
+}
+
+/** 빠른 시각 단추: "예정 12:30" / "지금 18:10". 고른 값과 같으면 청록 */
+@Composable
+private fun QuickTime(label: String, selected: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(99.dp)
+    Text(
+        text = label,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = if (selected) Color.White else Teal,
+        modifier = Modifier
+            .clip(shape)
+            .background(if (selected) Teal else Mint)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 9.dp)
+    )
 }
