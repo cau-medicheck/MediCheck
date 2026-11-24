@@ -458,7 +458,8 @@
     <string name="s08_back">약 관리로 돌아가기</string>
     <string name="s08_title_new">새 약 등록</string>
     <string name="s08_title_edit">약 정보 수정</string>
-    <string name="s08_subtitle">복용 정보와 일정을 설정하세요.</string>
+    <string name="s08_card_basic">기본</string>
+    <string name="s08_card_days">요일 · 기간</string>
     <string name="s08_label_name">약 이름 *</string>
     <string name="s08_hint_name">예: 비타민 C</string>
     <string name="s08_label_dosage">1회 복용량 *</string>
