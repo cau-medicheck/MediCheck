@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 /*
- * 내 약 목록(S06)의 약 카드에 붙는 숫자들. (2026-11-24, 시안: 04_화면캡처/내약탭_시안/켜기끄기_시안.html)
+ * 내 약 목록(S06)의 약 카드와 약 상세(S07)에 붙는 숫자들. (2026-11-24, 시안: 04_화면캡처/내약탭_시안/켜기끄기_시안.html, 약상세_시안/시안.html)
  * 안드로이드와 상관없는 순수 계산이라 단위 테스트로 확인한다(MedicationInsightsTest).
  */
 
@@ -17,7 +17,16 @@ import java.time.temporal.ChronoUnit
  */
 data class CourseProgress(val day: Int, val total: Int, val daysLeft: Int)
 
-/** 목록 위쪽 상태 칩: 전체 · 복용 중 · 쉬는 중 · 종료 */
+/**
+ * 약 상세의 최근 7일 요일 동그라미 하나: 그날 이 약을 어떻게 했나. (2026-11-24, 시안: 04_화면캡처/약상세_시안/시안.html B)
+ * 하루에 회차가 여럿이면: 하나라도 미복용 → MISSED, 아직 시각 전인 회차가 있으면 → UPCOMING,
+ * 하나라도 건너뜀 → SKIPPED, 모두 먹었으면 → TAKEN. 그날 회차가 없으면 NONE.
+ */
+enum class DayMark { TAKEN, MISSED, SKIPPED, UPCOMING, NONE }
+
+data class RecentDay(val date: LocalDate, val mark: DayMark)
+
+/** 목록 위쪽 상태 칩: 전체 · 복용 중 · 비활성화 · 종료 */
 enum class MedicationFilter { ALL, ACTIVE, PAUSED, ENDED }
 
 object MedicationInsights {
@@ -31,11 +40,54 @@ object MedicationInsights {
      *
      * @param doses 이 약의 회차들 (다른 날짜가 섞여 있어도 최근 7일만 센다)
      */
-    fun recentRate(doses: List<DoseItem>, now: LocalDateTime): Int? {
+    fun recentRate(doses: List<DoseItem>, now: LocalDateTime): Int? = recentCounts(doses, now).completionRate
+
+    /** 최근 7일(오늘 포함)의 횟수: 약 상세의 "7번 중 2번 먹음". 계산 기준은 recentRate와 같다. */
+    fun recentCounts(doses: List<DoseItem>, now: LocalDateTime): DoseCounts {
         val today = now.toLocalDate()
         val from = today.minusDays(RECENT_DAYS - 1)
-        val recent = doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) }
-        return StatsCalculator.count(recent, now).completionRate
+        return StatsCalculator.count(doses.filter { !it.date.isBefore(from) && !it.date.isAfter(today) }, now)
+    }
+
+    /** 약 상세의 요일 동그라미 7개: 6일 전부터 오늘까지, 하루에 하나. 규칙은 DayMark 설명 참고 */
+    fun recentDays(doses: List<DoseItem>, now: LocalDateTime): List<RecentDay> {
+        val today = now.toLocalDate()
+        val byDate = doses.groupBy { it.date }
+        return (RECENT_DAYS - 1 downTo 0).map { back ->
+            val date = today.minusDays(back)
+            val shown = byDate[date].orEmpty().map { it.displayStatus(now) }
+            val mark = when {
+                shown.isEmpty() -> DayMark.NONE
+                DoseDisplayStatus.MISSED in shown -> DayMark.MISSED
+                DoseDisplayStatus.UPCOMING in shown -> DayMark.UPCOMING
+                DoseDisplayStatus.SKIPPED in shown -> DayMark.SKIPPED
+                else -> DayMark.TAKEN
+            }
+            RecentDay(date, mark)
+        }
+    }
+
+    /**
+     * 이 약의 다음 복용 회차. 없으면 null (비활성화, 종료, 앞으로 7일 안에 회차가 없을 때).
+     *   - 오늘: 아직 기록 전이고 미복용으로 넘어가지 않은 회차 (예정 시각 30분 뒤까지는 "지금 먹을 약"이다)
+     *   - 내일부터 7일: 지금 규칙으로 계산한 예정 회차. 미리 건너뛴 회차는 빼고 그다음을 찾는다.
+     *
+     * @param records 이 약의 오늘 ~ 7일 뒤 기록 (미리 건너뛴 미래 기록이 여기에 들어 있다)
+     */
+    fun nextDose(med: MedicationDetail, records: List<DoseItem>, now: LocalDateTime): DoseItem? {
+        val today = now.toLocalDate()
+        val recorded = records.filter { it.medicationId == med.id }.associateBy { it.key }
+        recorded.values
+            .filter { it.date == today && it.status == DoseStatus.PENDING && !it.isOverdue(now) }
+            .minByOrNull { it.time }
+            ?.let { return it }
+        for (ahead in 1..RECENT_DAYS) {
+            val date = today.plusDays(ahead)
+            DosePlanner.plannedDoses(date, listOf(med), today)
+                .firstOrNull { (recorded[it.key]?.status ?: DoseStatus.PENDING) == DoseStatus.PENDING }
+                ?.let { return it }
+        }
+        return null
     }
 
     /**

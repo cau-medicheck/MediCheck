@@ -8,19 +8,26 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.R
+import com.cau.medicheck.data.repository.DoseRepository
 import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.data.repository.MedicationResult
+import com.cau.medicheck.domain.DoseCounts
+import com.cau.medicheck.domain.DoseItem
 import com.cau.medicheck.domain.MedicationDetail
+import com.cau.medicheck.domain.MedicationInsights
 import com.cau.medicheck.domain.MedicationStatus
+import com.cau.medicheck.domain.RecentDay
 import com.cau.medicheck.domain.medicationStatus
 import com.cau.medicheck.domain.sortForList
 import com.cau.medicheck.ui.components.ToastBus
+import com.cau.medicheck.ui.screens.dose.tickerFlow
 import com.cau.medicheck.ui.navigation.SelectionStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -29,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * 약 상세(S07)와 삭제 확인(S09)이 그릴 상태.
@@ -42,7 +50,13 @@ data class MedicationDetailUiState(
     val med: MedicationDetail? = null,
     val status: MedicationStatus = MedicationStatus.ACTIVE,
     val isBusy: Boolean = false,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    /** 최근 7일 요일 동그라미 (6일 전 → 오늘) */
+    val recentDays: List<RecentDay> = emptyList(),
+    /** 최근 7일 횟수: "7번 중 2번 먹음" */
+    val recentCounts: DoseCounts = DoseCounts(),
+    /** 다음 복용 회차. 없으면 null (비활성화·종료 등) */
+    val nextDose: DoseItem? = null
 )
 
 /**
@@ -56,6 +70,7 @@ class MedicationDetailViewModel(
     private val userId: Long,
     private val argMedId: Long?,
     private val medicationRepository: MedicationRepository,
+    private val doseRepository: DoseRepository,
     private val selection: SelectionStore,
     private val toastBus: ToastBus,
     private val clock: Clock = Clock.systemDefaultZone()
@@ -66,6 +81,8 @@ class MedicationDetailViewModel(
     private val busy = MutableStateFlow(false)
     private val deleted = MutableStateFlow(false)
     private val today = MutableStateFlow(LocalDate.now(clock))
+    /** "지금". 미복용 여부와 다음 복용이 시각에 따라 바뀌므로 30초마다 새 값이 들어온다. */
+    private val now = MutableStateFlow(LocalDateTime.now(clock))
 
     /** 삭제를 시작하기 직전에 화면에 있던 약. 삭제 중·삭제 뒤에도 이 값을 그대로 보여 준다. */
     private var frozen: MedicationDetail? = null
@@ -76,6 +93,14 @@ class MedicationDetailViewModel(
         if (id == null) flowOf(null to null)
         else medicationRepository.observeMedications(userId).map { meds -> id to meds.find { it.id == id } }
     }
+
+    /** 이 약의 6일 전 ~ 7일 뒤 기록 (최근 7일 동그라미와, 미리 건너뛴 미래 회차를 빼고 다음 복용을 찾는 데 쓴다) */
+    private val records = combine(medId, now.map { it.toLocalDate() }.distinctUntilChanged()) { id, day -> id to day }
+        .flatMapLatest { (id, day) ->
+            if (id == null) flowOf(emptyList())
+            else doseRepository.observeDoses(userId, day.minusDays(MedicationInsights.RECENT_DAYS - 1), day.plusDays(MedicationInsights.RECENT_DAYS))
+                .map { doses -> doses.filter { it.medicationId == id } }
+        }
 
     val uiState: StateFlow<MedicationDetailUiState> =
         combine(
@@ -93,9 +118,19 @@ class MedicationDetailViewModel(
                 isBusy = busy,
                 isDeleted = deleted
             )
+        }.combine(combine(records, now) { r, n -> r to n }) { state, (records, now) ->
+            val med = state.med ?: return@combine state
+            state.copy(
+                recentDays = MedicationInsights.recentDays(records, now),
+                recentCounts = MedicationInsights.recentCounts(records, now),
+                nextDose = MedicationInsights.nextDose(med, records, now)
+            )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MedicationDetailUiState())
 
     init {
+        viewModelScope.launch { tickerFlow(clock).collect { now.value = it } }
+        // 오늘까지의 기록을 먼저 채운다 (앱을 며칠 안 열었으면 그 사이 날짜의 기록이 아직 없다)
+        viewModelScope.launch { doseRepository.refresh(userId) }
         viewModelScope.launch {
             val meds = medicationRepository.observeMedications(userId).first()
             val id = argMedId
@@ -110,6 +145,7 @@ class MedicationDetailViewModel(
     /** 화면이 다시 보일 때 "오늘"을 새로 읽는다 (자정이 지나면 '종료' 배지가 바뀔 수 있다). */
     fun refresh() {
         today.value = LocalDate.now(clock)
+        now.value = LocalDateTime.now(clock)
     }
 
     /** 일시중지 스위치. 켜면 중지, 끄면 재개. 처리하는 동안은 스위치를 막는다. */
@@ -155,7 +191,7 @@ class MedicationDetailViewModel(
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
                 MedicationDetailViewModel(
-                    userId, medId, container.medicationRepository, container.selection, container.toastBus,
+                    userId, medId, container.medicationRepository, container.doseRepository, container.selection, container.toastBus,
                     clock = container.clock
                 )
             }
