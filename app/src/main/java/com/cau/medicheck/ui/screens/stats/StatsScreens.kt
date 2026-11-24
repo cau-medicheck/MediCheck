@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -75,6 +74,8 @@ import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.GlyphText
 import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.StatusCount
+import com.cau.medicheck.ui.components.StatusCountRow
 import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.monthTitleText
@@ -277,37 +278,18 @@ private fun SummaryCard(total: DoseCounts, prevRate: Int?, @androidx.annotation.
         }
         // 완료 · 건너뜀 · 미복용: 선으로 나눈 세 칸 (색 점 + 이름 / 횟수 / 비율)
         HorizontalDivider(color = Line, modifier = Modifier.padding(top = 18.dp))
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(top = 14.dp)) {
-            CountColumn(stringResource(R.string.common_count_taken), total.taken, total.due, RateGood, HomeChipDoneText, Modifier.weight(1f))
-            Box(Modifier.width(1.dp).fillMaxHeight().background(Line))
-            CountColumn(stringResource(R.string.common_count_skipped), total.skipped, total.due, TimelineDotSkipped, HomeChipSkippedText, Modifier.weight(1f))
-            Box(Modifier.width(1.dp).fillMaxHeight().background(Line))
-            CountColumn(stringResource(R.string.common_count_missed), total.missed, total.due, TimelineDotMissed, HomeChipMissedText, Modifier.weight(1f))
-        }
+        StatusCountRow(
+            items = listOf(
+                StatusCount(stringResource(R.string.common_count_taken), total.taken, RateGood, HomeChipDoneText),
+                StatusCount(stringResource(R.string.common_count_skipped), total.skipped, TimelineDotSkipped, HomeChipSkippedText),
+                StatusCount(stringResource(R.string.common_count_missed), total.missed, TimelineDotMissed, HomeChipMissedText)
+            ),
+            total = total.due,
+            modifier = Modifier.padding(top = 14.dp)
+        )
     }
 }
 
-/** 숫자 한 칸: "● 완료 / 5회 / 56%". 비율 = 그 횟수 ÷ 먹어야 했던 횟수 */
-@Composable
-private fun CountColumn(label: String, count: Int, due: Int, dot: Color, textColor: Color, modifier: Modifier) {
-    val unit = stringResource(R.string.s15_count_unit)
-    val share = if (due == 0) null else Math.round(count * 100f / due)
-    val shareText = share?.let { stringResource(R.string.common_percent, it) }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.clearAndSetSemantics { contentDescription = "$label $count$unit ${shareText.orEmpty()}" }
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(8.dp).clip(CircleShape).background(dot))
-            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.padding(start = 5.dp))
-        }
-        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
-            Text(count.toString(), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
-            Text(unit, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(start = 1.dp, bottom = 4.dp))
-        }
-        if (shareText != null) Text(shareText, fontSize = 11.sp, color = Muted)
-    }
-}
 
 /** 원 그래프: 가운데 "56%", 계산할 것이 없으면 "–" */
 @Composable

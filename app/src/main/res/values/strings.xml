@@ -144,6 +144,9 @@
 
     <string name="s16_notice_reminder_off">복약 알림이 꺼져 있어요. 알림 설정에서 켜 주세요.</string>
     <string name="s16_notice_permission_off">알림 권한이 꺼져 있어요. 권한 안내를 확인해 주세요.</string>
+    <string name="s16_next_label">다음 알림</string>
+    <string name="s16_next_value">%1$s %2$s · %3$d개</string>
+    <string name="s16_next_none">예약된 알림이 없어요</string>
     <string name="s16_section">예약된 알림 미리보기</string>
     <string name="s16_row_title">%1$s 복약 시간</string>
     <string name="s16_row_sub">%1$s · %2$s · %3$s</string>
@@ -153,7 +156,7 @@
     <string name="s16_empty_body">약을 등록하면 알림 미리보기가 표시돼요.</string>
     <string name="s16_empty_body_has_meds">오늘과 내일 남은 알림이 없어요.</string>
     <string name="s16_btn_settings">알림 설정</string>
-    <string name="s16_btn_permissions">OS 권한 안내</string>
+    <string name="s16_btn_permissions">권한 안내</string>
 
     <!-- S17 알림 설정 -->
     <string name="s17_back">설정</string>
@@ -624,6 +627,12 @@
     <string name="s19_name">%1$s님</string>
     <string name="s19_edit">수정 ›</string>
     <string name="s19_cd_edit">프로필 수정</string>
+    <string name="s19_section_noti">알림</string>
+    <string name="s19_section_mine">내 정보</string>
+    <string name="s19_section_view">화면 · 도움말</string>
+    <string name="s19_section_soon">준비 중</string>
+    <string name="s19_soon_family">가족·보호자</string>
+    <string name="s19_soon_photo">사진으로 약 등록</string>
     <string name="s19_section_app">알림 및 앱</string>
     <string name="s19_row_noti_title">복약 알림 설정</string>
     <string name="s19_row_noti_desc">알림·소리·재알림</string>
@@ -632,7 +641,7 @@
     <string name="s19_row_policy_title">복약률 계산 정책</string>
     <string name="s19_row_policy_desc">미복용/건너뜀 기준</string>
     <!-- 프로토타입 원문 "도움말·프로토타입": 실제 앱은 프로토타입이 아니라서 S22 본문 제목과 같은 말로 바꿨다 -->
-    <string name="s19_row_help_title">도움말·구현 범위</string>
+    <string name="s19_row_help_title">도움말</string>
     <string name="s19_row_help_desc">사용법 및 기능 범위</string>
     <string name="s19_section_safety">안전·편의 기능</string>
     <string name="s19_row_a11y_title">접근성·글자 크기</string>

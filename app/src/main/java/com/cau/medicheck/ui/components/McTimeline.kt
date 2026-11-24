@@ -4,8 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -68,6 +66,7 @@ import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.ParagraphText
+import com.cau.medicheck.ui.theme.RateGood
 import com.cau.medicheck.ui.theme.Teal
 import com.cau.medicheck.ui.theme.TimelineDotMissed
 import com.cau.medicheck.ui.theme.TimelineDotSkipped
@@ -398,30 +397,53 @@ fun DayRateCard(progress: DayProgress, isToday: Boolean, modifier: Modifier = Mo
                 .padding(top = 10.dp, bottom = 16.dp)
                 .clearAndSetSemantics { }
         )
-        // 아래: 상태 색으로 칠한 칸 (시간표 꼬리표와 같은 색). 오늘은 예정까지 네 칸, 지난 날은 예정이 없어 세 칸.
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            StatusCountBox(stringResource(R.string.common_count_taken), progress.taken, HomeChipDoneBg, HomeChipDoneText)
-            StatusCountBox(stringResource(R.string.common_count_skipped), progress.skipped, HomeChipSkippedBg, HomeChipSkippedText)
-            StatusCountBox(stringResource(R.string.common_count_missed), progress.missed, HomeChipMissedBg, HomeChipMissedText)
-            if (isToday) StatusCountBox(stringResource(R.string.s04_chip_upcoming), progress.upcoming, HomeChipWaitBg, HomeChipWaitText)
-        }
+        // 아래: 선으로 나눈 숫자 칸 (통계 요약과 같은 모양). 오늘은 예정까지 네 칸, 지난 날은 예정이 없어 세 칸. 비율은 그날 전체 회차 기준
+        HorizontalDivider(color = Line)
+        StatusCountRow(
+            items = buildList {
+                add(StatusCount(stringResource(R.string.common_count_taken), progress.taken, RateGood, HomeChipDoneText))
+                add(StatusCount(stringResource(R.string.common_count_skipped), progress.skipped, TimelineDotSkipped, HomeChipSkippedText))
+                add(StatusCount(stringResource(R.string.common_count_missed), progress.missed, TimelineDotMissed, HomeChipMissedText))
+                if (isToday) add(StatusCount(stringResource(R.string.s04_chip_upcoming), progress.upcoming, TimelineDotWait, HomeChipWaitText))
+            },
+            total = progress.total,
+            modifier = Modifier.padding(top = 14.dp)
+        )
     }
 }
 
-/** 진행률 카드의 상태 칸 하나: 위 이름, 아래 큰 숫자. TalkBack은 "완료 1"처럼 한 번에 읽는다. */
+/** 숫자 칸 하나의 값: 이름 · 횟수 · 점 색 · 숫자 색 */
+data class StatusCount(val label: String, val count: Int, val dot: Color, val textColor: Color)
+
+/**
+ * 선으로 나눈 숫자 칸 한 줄: "● 완료 / 5회 / 56%". 통계 요약 카드와 일정·날짜별 기록의 진행률 카드가 함께 쓴다.
+ * @param total 비율의 분모 (0이면 비율을 쓰지 않는다)
+ */
 @Composable
-private fun RowScope.StatusCountBox(label: String, count: Int, background: Color, textColor: Color) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .weight(1f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(background)
-            .padding(vertical = 10.dp)
-            .semantics(mergeDescendants = true) { }
-    ) {
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textColor)
-        Text(count.toString(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = textColor, modifier = Modifier.padding(top = 2.dp))
+fun StatusCountRow(items: List<StatusCount>, total: Int, modifier: Modifier = Modifier) {
+    val unit = stringResource(R.string.s15_count_unit)
+    Row(modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        items.forEachIndexed { i, item ->
+            if (i > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(Line))
+            val share = if (total == 0) null else Math.round(item.count * 100f / total)
+            val shareText = share?.let { stringResource(R.string.common_percent, it) }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .clearAndSetSemantics { contentDescription = "${item.label} ${item.count}$unit ${shareText.orEmpty()}" }
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(item.dot))
+                    Text(item.label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.padding(start = 5.dp))
+                }
+                Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
+                    Text(item.count.toString(), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = item.textColor)
+                    Text(unit, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(start = 1.dp, bottom = 4.dp))
+                }
+                if (shareText != null) Text(shareText, fontSize = 11.sp, color = Muted)
+            }
+        }
     }
 }
 
