@@ -1,7 +1,6 @@
 package com.cau.medicheck.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -58,6 +56,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.LogoUnderlineMint
+import com.cau.medicheck.ui.theme.Teal
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.drawBehind
 import com.cau.medicheck.ui.navigation.Routes
 import com.cau.medicheck.ui.theme.BodyBottom
 import com.cau.medicheck.ui.theme.BodyHorizontal
@@ -144,22 +148,9 @@ fun McTopBar(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
                         .clickable(role = Role.Button, onClickLabel = homeLabel, onClick = onHome)
-                        .padding(end = 6.dp)
+                        .padding(start = 2.dp, end = 6.dp, top = 4.dp, bottom = 4.dp)
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.logo_capsule),
-                        contentDescription = null,   // 장식. 옆의 글자가 읽힌다
-                        modifier = Modifier.size(34.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-0.8).sp,
-                        color = Navy,
-                        maxLines = 1,
-                        modifier = Modifier.padding(start = 4.dp).semantics { heading() }
-                    )
+                    BrandWordmark()
                 }
                 Spacer(Modifier.weight(1f))
             } else Column(modifier = Modifier.weight(1f)) {
@@ -319,6 +310,34 @@ fun McScreenColumn(
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
                 .padding(start = BodyHorizontal, end = BodyHorizontal, top = BodyTop, bottom = BodyBottom),
             content = content
+        )
+    }
+}
+
+/**
+ * 머리말 로고: "Medi"(남색) + "Check"(청록), "Check" 밑에 두 색 캡슐 밑줄. (2026-11-24, 시안: 04_화면캡처/로고_시안/시안2.html 4번)
+ * 그림 파일 없이 글자와 Canvas로 그린다. TalkBack은 "MediCheck" 한 덩어리 제목으로 읽는다.
+ */
+@Composable
+private fun BrandWordmark() {
+    val appName = stringResource(R.string.app_name)
+    Row(modifier = Modifier.clearAndSetSemantics { contentDescription = appName; heading() }) {
+        Text(text = "Medi", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.6).sp, color = Navy, maxLines = 1)
+        Text(
+            text = "Check",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.6).sp,
+            color = Teal,
+            maxLines = 1,
+            // 캡슐 밑줄: 왼쪽 42%는 옅은 민트, 나머지는 청록. 글자 아래쪽 바깥에 그린다
+            modifier = Modifier.drawBehind {
+                val h = 3.dp.toPx()
+                val top = size.height - 2.dp.toPx()
+                val r = CornerRadius(h / 2)
+                drawRoundRect(LogoUnderlineMint, Offset(0f, top), Size(size.width, h), r)
+                drawRoundRect(Teal, Offset(size.width * 0.42f, top), Size(size.width * 0.58f, h), r)
+            }
         )
     }
 }

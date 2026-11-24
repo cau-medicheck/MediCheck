@@ -393,11 +393,11 @@
         <item>일요일</item><item>월요일</item><item>화요일</item><item>수요일</item><item>목요일</item><item>금요일</item><item>토요일</item>
     </string-array>
     <string name="med_status_active">복용 중</string>
-    <string name="med_status_paused">쉬는 중</string>
+    <string name="med_status_paused">비활성화</string>
     <!-- 내 약 목록 카드 (2026-11-24) -->
     <string name="s06_filter_all">전체 %1$d</string>
     <string name="s06_filter_active">복용 중 %1$d</string>
-    <string name="s06_filter_paused">쉬는 중 %1$d</string>
+    <string name="s06_filter_paused">비활성화 %1$d</string>
     <string name="s06_filter_ended">종료 %1$d</string>
     <string name="s06_filter_empty">해당하는 약이 없어요.</string>
     <string name="s06_recent">최근 7일</string>
@@ -408,7 +408,7 @@
     <string name="s06_dday_today">D-day</string>
     <string name="s06_cd_active">%1$s 복용 중</string>
     <string name="s06_toast_activated">%1$s: 오늘부터 일정에 넣었어요.</string>
-    <string name="s06_toast_resting">%1$s: 쉬는 중으로 바꿨어요.</string>
+    <string name="s06_toast_resting">%1$s: 비활성화했어요. 일정과 알림에서 빠져요.</string>
     <string name="s08_start_now">바로 복용 시작</string>
     <string name="s08_label_look">모양 · 색</string>
     <string name="shape_tablet">알약</string>
@@ -447,7 +447,7 @@
     <string name="s07_label_memo">메모</string>
     <string name="s07_label_source">처방 출처</string>
     <string name="s07_no_memo">없음</string>
-    <string name="s07_pause_title">쉬는 중</string>
+    <string name="s07_pause_title">비활성화</string>
     <string name="s07_pause_body">켜 두면 오늘 이후 일정과 알림에서 빠져요.</string>
     <string name="s07_btn_edit">✎ 약 수정</string>
     <string name="s07_btn_delete">삭제</string>

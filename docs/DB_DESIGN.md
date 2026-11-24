@@ -368,9 +368,9 @@ ORDER BY r.date, r.scheduled_time, r.medication_name COLLATE NOCASE
   5. (S44·샘플 다시 만들기) 설정 `DELETE FROM user_settings WHERE user_id = :userId` → 사용자 `DELETE FROM users WHERE id = :userId`
   - 구현: 각 DAO의 `deleteAllForUser(userId)`(이력·기록·규칙·약), `UserSettingsDao.deleteForUser`, `UserDao.deleteById`. `SampleAccountSeeder.deleteUserData`가 이 순서로 부른다(S44도 6단계에서 같은 순서를 쓴다).
 
-### ⑧-2 일시중지 = 쉬는 중 (S07·S06, 결정 7)
+### ⑧-2 일시중지 = 비활성화 (S07·S06, 결정 7)
 
-2026-11-24부터 화면 이름은 "쉬는 중"이고, 내 약 목록(S06)의 약 카드 스위치로도 켜고 끈다(켜짐 = 복용 중). 약 등록(S08)의 "바로 복용 시작"을 끄고 등록하면 `paused_from = min(start_date, 오늘)`로 만들어 기록이 하나도 생기지 않는다(켜기 전에 미복용이 쌓이지 않게).
+2026-11-24부터 화면 이름은 "비활성화"(처음엔 "쉬는 중")이고, 내 약 목록(S06)의 약 카드 스위치로도 켜고 끈다(켜짐 = 복용 중). 약 등록(S08)의 "바로 복용 시작"을 끄고 등록하면 `paused_from = min(start_date, 오늘)`로 만들어 기록이 하나도 생기지 않는다(켜기 전에 미복용이 쌓이지 않게).
 
 
 삭제가 아니다. 약과 기록은 그대로 두고 **기록 만들기만 멈춘다**. 각 열의 ①~③은 트랜잭션 하나, ④는 커밋 뒤.
