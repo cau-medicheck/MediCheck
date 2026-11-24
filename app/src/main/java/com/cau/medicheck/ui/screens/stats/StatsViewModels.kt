@@ -7,8 +7,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cau.medicheck.MediCheckApplication
 import com.cau.medicheck.data.repository.DoseRepository
+import com.cau.medicheck.data.repository.MedicationRepository
 import com.cau.medicheck.domain.PeriodStats
-import com.cau.medicheck.domain.SlotRate
+import com.cau.medicheck.domain.DayPeriod
+import com.cau.medicheck.domain.HabitMark
+import com.cau.medicheck.domain.MedMiss
+import com.cau.medicheck.domain.MedicationColor
+import com.cau.medicheck.domain.MedicationShape
+import com.cau.medicheck.domain.PatternInsights
+import com.cau.medicheck.domain.Punctuality
+import com.cau.medicheck.domain.SlotMiss
+import com.cau.medicheck.domain.WorstDose
 import com.cau.medicheck.domain.Streaks
 import com.cau.medicheck.domain.WeekOfMonth
 import com.cau.medicheck.domain.StatsCalculator
@@ -23,6 +32,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -190,30 +200,52 @@ class MonthStatsViewModel(
     }
 }
 
-// ---------- S15 패턴: 시간대별(최근 7일) + 연속 기록 ----------
+// ---------- S15 기타: 빠뜨림 진단(최근 4주) + 복용 습관 ----------
+
+/** 자주 빠뜨린 약 한 줄 + 그 약의 아이콘 모양·색(약이 지워졌으면 기본값) */
+data class MedMissUi(val miss: MedMiss, val shape: MedicationShape, val color: MedicationColor)
 
 data class PatternUiState(
     val isLoading: Boolean = true,
-    val slots: List<SlotRate> = emptyList(),
-    val streaks: Streaks = Streaks(0, 0)
+    val worst: WorstDose? = null,
+    val slots: List<SlotMiss> = emptyList(),
+    val weekdays: List<Pair<DayOfWeek, Int>> = emptyList(),
+    val meds: List<MedMissUi> = emptyList(),
+    val streaks: Streaks = Streaks(0, 0),
+    val habitDays: List<Pair<LocalDate, HabitMark>> = emptyList(),
+    val punctuality: Punctuality = Punctuality(),
+    val averageDelay: Map<DayPeriod, Int> = emptyMap()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PatternViewModel(
     userId: Long,
     doseRepository: DoseRepository,
+    medicationRepository: MedicationRepository,
     clock: Clock = Clock.systemDefaultZone()
 ) : ClockViewModel(userId, doseRepository, clock) {
 
     val uiState: StateFlow<PatternUiState> =
         today.flatMapLatest { today ->
-            doseRepository.observeDoses(userId, today.minusDays(StatsCalculator.STREAK_DAYS - 1), today)
-                .map { doses -> today to doses }
-        }.combine(now) { (today, doses), now ->
+            // 연속 기록은 1년, 나머지는 4주를 본다 → 1년치를 한 번에 읽는다
+            combine(
+                doseRepository.observeDoses(userId, today.minusDays(StatsCalculator.STREAK_DAYS - 1), today),
+                medicationRepository.observeMedications(userId)
+            ) { doses, meds -> Triple(today, doses, meds.associateBy { it.id }) }
+        }.combine(now) { (today, doses, meds), now ->
             PatternUiState(
                 isLoading = false,
-                slots = StatsCalculator.slotRates(doses, today, now),
-                streaks = StatsCalculator.streaks(doses, today, now)
+                worst = PatternInsights.worst(doses, today, now),
+                slots = PatternInsights.slots(doses, today, now),
+                weekdays = PatternInsights.byWeekday(doses, today, now),
+                meds = PatternInsights.meds(doses, today, now).take(3).map { m ->
+                    val med = meds[m.medicationId]
+                    MedMissUi(m, med?.shape ?: MedicationShape.TABLET, med?.color ?: MedicationColor.TEAL)
+                },
+                streaks = StatsCalculator.streaks(doses, today, now),
+                habitDays = PatternInsights.habitDays(doses, today, now),
+                punctuality = PatternInsights.punctuality(doses, today, clock.zone),
+                averageDelay = PatternInsights.averageDelay(doses, today, clock.zone)
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PatternUiState())
 
@@ -221,7 +253,7 @@ class PatternViewModel(
         fun factory(userId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as MediCheckApplication).container
-                PatternViewModel(userId, container.doseRepository, container.clock)
+                PatternViewModel(userId, container.doseRepository, container.medicationRepository, container.clock)
             }
         }
     }

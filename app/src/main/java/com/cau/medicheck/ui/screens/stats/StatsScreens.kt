@@ -63,15 +63,25 @@ import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DayPeriod
 import com.cau.medicheck.domain.DayStats
+import com.cau.medicheck.domain.DoseCondition
 import com.cau.medicheck.domain.DoseCounts
-import com.cau.medicheck.domain.SlotRate
+import com.cau.medicheck.domain.HabitMark
+import com.cau.medicheck.domain.Punctuality
+import com.cau.medicheck.domain.SlotMiss
 import com.cau.medicheck.domain.Streaks
+import com.cau.medicheck.domain.WorstDose
+import com.cau.medicheck.domain.periodOf
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.GlyphText
+import com.cau.medicheck.ui.components.McMedIcon
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.SurfaceCard
+import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.monthTitleText
+import com.cau.medicheck.ui.components.timeText
 import com.cau.medicheck.ui.theme.DangerTitle
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
 import com.cau.medicheck.ui.theme.HomeChipDoneBg
 import com.cau.medicheck.ui.theme.HomeChipDoneText
 import com.cau.medicheck.ui.theme.HomeChipMissedText
@@ -90,7 +100,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 /*
- * 통계 화면 세 개: S13 주간 · S14 월간 · S15 패턴. (2026-11-24 개편, 시안: 04_화면캡처/통계_시안/시안5.html, 시안4.html 패턴)
+ * 통계 화면 세 개: S13 주간 · S14 월간 · S15 기타(빠뜨림 진단·복용 습관). (2026-11-24 개편, 시안: 04_화면캡처/통계_시안/시안5.html, 시안4.html 패턴)
  * 위쪽 탭("주간 | 월간 | 패턴")으로 서로 오간다. 계산은 ViewModel(→ StatsCalculator)이 하고 여기서는 그리기만 한다.
  * 설명 문장은 두지 않는다(계산 기준은 설정의 "복약률 계산 기준"에만 있다).
  */
@@ -580,33 +590,134 @@ private fun WeekRateRow(row: WeekRow) {
 }
 
 // =============================================================================================
-// S15 패턴: 자주 빠뜨리는 때 — 시간대별(최근 7일) + 연속 기록
+// S15 기타: 빠뜨림 진단(최근 4주) + 복용 습관
+//   결론 카드 → 시간대별 빠뜨린 비율 → 요일별 빠뜨린 횟수 → 자주 빠뜨린 약 → 연속 기록 → 제시간에 먹었나 → 시간대별 평균
 // =============================================================================================
 
+/** 빠뜨린 비율의 색: 낮을수록 좋다 (20% 이하 초록 · 50% 이하 주황 · 그 위 빨강) */
+private fun missFill(rate: Int): Color = when {
+    rate <= 20 -> RateGood
+    rate <= 50 -> RateFair
+    else -> RateLow
+}
+
+private fun missText(rate: Int): Color = when {
+    rate <= 20 -> HomeChipDoneText
+    rate <= 50 -> HomeChipMissedText
+    else -> DangerTitle
+}
+
 @Composable
-fun S15PatternScreen(state: PatternUiState, onTab: (Int) -> Unit) {
+fun S15PatternScreen(state: PatternUiState, onTab: (Int) -> Unit, onEditMedication: (Long) -> Unit) {
     StatsFrame(paneTitle = stringResource(R.string.screen_title_s15), bar = null) {
         StatsHeader(index = 2, onTab = onTab)
-        Text(
-            text = stringResource(R.string.s15_title),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Navy,
-            modifier = Modifier.padding(start = 2.dp, top = 18.dp, bottom = 4.dp).semantics { heading() }
-        )
         if (state.isLoading) return@StatsFrame
 
+        WorstCard(state.worst, onEditMedication)
+
+        // ----- 시간대별 빠뜨린 비율 -----
+        val worstPeriod = state.slots.filter { it.hasSchedule && (it.stats.rate ?: 0) > 0 }.maxByOrNull { it.stats.rate ?: 0 }?.period
         SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
             Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 6.dp)) {
-                CardTitle(stringResource(R.string.s15_section_slots), stringResource(R.string.s15_recent))
+                CardTitle(stringResource(R.string.etc_section_slots), stringResource(R.string.etc_recent))
                 state.slots.forEachIndexed { i, slot ->
-                    SlotRow(slot)
+                    SlotMissRow(slot, highlight = slot.period == worstPeriod)
                     if (i < state.slots.lastIndex) HorizontalDivider(color = Line)
                 }
             }
         }
 
-        StreakCard(state.streaks)
+        // ----- 요일별 빠뜨린 횟수 -----
+        SurfaceCard(Modifier.padding(top = 12.dp)) {
+            CardTitle(stringResource(R.string.etc_section_weekday), stringResource(R.string.etc_recent))
+            WeekdayMissBars(state.weekdays)
+        }
+
+        // ----- 자주 빠뜨린 약 -----
+        if (state.meds.isNotEmpty()) {
+            SurfaceCard(Modifier.padding(top = 12.dp), padding = 0.dp) {
+                Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 6.dp)) {
+                    CardTitle(stringResource(R.string.etc_section_meds), stringResource(R.string.etc_recent))
+                    state.meds.forEachIndexed { i, m ->
+                        MedMissRow(i + 1, m)
+                        if (i < state.meds.lastIndex) HorizontalDivider(color = Line)
+                    }
+                }
+            }
+        }
+
+        StreakCard(state.streaks, state.habitDays)
+        PunctualityCard(state.punctuality)
+        if (state.averageDelay.isNotEmpty()) DelayCard(state.averageDelay)
+    }
+}
+
+/** 맨 위 결론 카드(짙은 청록): "밤 9시 Magnesium을 / 28번 중 25번 못 먹었어요" + [알림 시간 바꾸기 ›]. 빠뜨린 적이 없으면 칭찬 한 줄 */
+@Composable
+private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
+    val shape = RoundedCornerShape(22.dp)
+    Column(
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+            .padding(18.dp)
+    ) {
+        Text(stringResource(R.string.etc_worst_kicker), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.85f))
+        if (worst == null) {
+            Text(
+                text = stringResource(R.string.etc_worst_none),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+            return@Column
+        }
+        val when_ = stringResource(R.string.etc_worst_when, stringResource(worst.time.let { periodOf(it) }.look().labelRes), timeText(worst.time))
+        Text(
+            text = stringResource(R.string.etc_worst_title, when_, worst.name),
+            fontSize = 20.sp,
+            lineHeight = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+        Text(
+            text = stringResource(R.string.etc_worst_count, worst.stats.due, worst.stats.missed),
+            fontSize = 20.sp,
+            lineHeight = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+        )
+        if (worst.weekendMore) {
+            Text(
+                text = stringResource(R.string.etc_weekend_more),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Color.White.copy(alpha = 0.18f))
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            )
+        }
+        Text(
+            text = stringResource(R.string.etc_change_time),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = HeroDeepStart,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(top = 14.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .clickable(role = Role.Button, onClick = { onEditMedication(worst.medicationId) })
+                .padding(vertical = 12.dp)
+        )
     }
 }
 
@@ -621,66 +732,140 @@ private fun DayPeriod.look(): SlotLook = when (this) {
     DayPeriod.NIGHT -> SlotLook(R.string.s05_period_night, Icons.Filled.Bedtime, Color(0xFF4B5E9C), Color(0xFFE9EDF8))
 }
 
-/** 시간대 한 줄: [아이콘] 아침  ━━━━━  57%  (회차가 없던 시간대는 흐리게 "일정 없음") */
 @Composable
-private fun SlotRow(slot: SlotRate) {
-    val look = slot.period.look()
-    val name = stringResource(look.labelRes)
-    val rate = slot.counts.completionRate
+private fun SlotIcon(period: DayPeriod, empty: Boolean = false) {
+    val look = period.look()
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(38.dp)
+            .clip(RoundedCornerShape(11.dp))
+            .background(if (empty) Color(0xFFF1F4F6) else look.bg)
+    ) {
+        Icon(look.icon, contentDescription = null, tint = if (empty) Color(0xFFA9B6BC) else look.tint, modifier = Modifier.size(look.iconSize))
+    }
+}
+
+/** 시간대 한 줄: [아이콘] 아침 / 08:00 · 3개   ━━━   21% / 18/84. 가장 나쁜 줄은 옅은 빨강 테두리 */
+@Composable
+private fun SlotMissRow(slot: SlotMiss, highlight: Boolean) {
+    val name = stringResource(slot.period.look().labelRes)
+    val rate = slot.stats.rate
+    val empty = !slot.hasSchedule
     val value = when {
-        !slot.hasSchedule -> stringResource(R.string.s15_no_schedule)
+        empty -> stringResource(R.string.s15_no_schedule)
         rate == null -> stringResource(R.string.common_na)
         else -> stringResource(R.string.common_percent, rate)
     }
-    val empty = !slot.hasSchedule
+    val sub = if (slot.time != null) stringResource(R.string.etc_slot_sub, timeText(slot.time), slot.medCount) else ""
+    val shape = RoundedCornerShape(14.dp)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
-            .clearAndSetSemantics { contentDescription = "$name $value" }
+            .padding(vertical = 4.dp)
+            .then(if (highlight) Modifier.clip(shape).background(Color(0xFFFFF8F8)).border(1.5.dp, Color(0xFFF4B4B4), shape) else Modifier)
+            .padding(horizontal = 6.dp, vertical = 8.dp)
+            .clearAndSetSemantics { contentDescription = "$name $sub $value" }
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(11.dp))
-                .background(if (empty) Color(0xFFF1F4F6) else look.bg)
-        ) {
-            Icon(look.icon, contentDescription = null, tint = if (empty) Color(0xFFA9B6BC) else look.tint, modifier = Modifier.size(look.iconSize))
+        SlotIcon(slot.period, empty)
+        Column(Modifier.padding(start = 12.dp).width(84.dp)) {
+            Text(name, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = if (empty) HeatEmptyText else Navy)
+            if (sub.isNotEmpty()) Text(sub, fontSize = 11.sp, color = Muted)
         }
-        Text(
-            text = name,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (empty) HeatEmptyText else Navy,
-            modifier = Modifier.padding(start = 12.dp).width(44.dp)
-        )
-        RateBar(if (empty) null else rate, Modifier.weight(1f))
-        Text(
-            text = value,
-            fontSize = if (empty) 12.sp else 15.sp,
-            fontWeight = if (empty) FontWeight.Medium else FontWeight.ExtraBold,
-            color = when {
-                empty || rate == null -> HeatEmptyText
-                else -> rateText(rate)
-            },
-            textAlign = TextAlign.End,
-            modifier = Modifier.width(64.dp)
-        )
+        MissBar(if (empty) null else rate, Modifier.weight(1f))
+        Column(horizontalAlignment = Alignment.End, modifier = Modifier.width(64.dp)) {
+            Text(
+                text = value,
+                fontSize = if (empty) 12.sp else 15.sp,
+                fontWeight = if (empty) FontWeight.Medium else FontWeight.ExtraBold,
+                color = if (empty || rate == null) HeatEmptyText else missText(rate)
+            )
+            if (!empty) Text(stringResource(R.string.etc_fraction, slot.stats.missed, slot.stats.due), fontSize = 11.sp, color = Muted)
+        }
     }
 }
 
-/** 연속 기록: [불꽃]  현재 0일 | 최고 4일 */
 @Composable
-private fun StreakCard(streaks: Streaks) {
+private fun MissBar(rate: Int?, modifier: Modifier = Modifier) {
+    Box(modifier.height(10.dp).clip(RoundedCornerShape(99.dp)).background(ProgressTrack)) {
+        if (rate != null && rate > 0) {
+            Box(Modifier.fillMaxWidth(rate / 100f).fillMaxHeight().clip(RoundedCornerShape(99.dp)).background(missFill(rate)))
+        }
+    }
+}
+
+/** 요일별 빠뜨린 횟수: 세로 막대 7개(월~일). 가장 많은 요일은 빨강 */
+@Composable
+private fun WeekdayMissBars(days: List<Pair<java.time.DayOfWeek, Int>>) {
+    val names = stringArrayResource(R.array.common_weekdays)
+    val max = days.maxOfOrNull { it.second } ?: 0
+    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
+        days.forEach { (day, count) ->
+            val name = names[day.value % 7]
+            val top = max > 0 && count == max
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(36.dp).clearAndSetSemantics { contentDescription = "$name $count" }
+            ) {
+                Text(count.toString(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (top) DangerTitle else Navy)
+                val h = if (max == 0) 4.dp else (6 + 64f * count / max).dp
+                Box(
+                    Modifier
+                        .padding(top = 4.dp)
+                        .width(22.dp)
+                        .height(h)
+                        .clip(RoundedCornerShape(7.dp))
+                        .background(if (top) RateLow else Color(0xFFF3C1A0))
+                )
+                Text(
+                    name,
+                    fontSize = 12.sp,
+                    fontWeight = if (top) FontWeight.ExtraBold else FontWeight.Normal,
+                    color = if (top) DangerTitle else Muted,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+        }
+    }
+}
+
+/** 자주 빠뜨린 약 한 줄: 1  [약 아이콘] Magnesium / 21:00 취침 전      25/28번 */
+@Composable
+private fun MedMissRow(rank: Int, m: MedMissUi) {
+    val cond = if (m.miss.condition == DoseCondition.NONE) "" else " " + conditionLabel(m.miss.condition)
+    val sub = timeText(m.miss.time) + cond
+    val count = stringResource(R.string.etc_med_count, m.miss.stats.missed, m.miss.stats.due)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+            .clearAndSetSemantics { contentDescription = "$rank ${m.miss.name} $sub $count" }
+    ) {
+        Text(rank.toString(), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Muted, modifier = Modifier.width(22.dp))
+        McMedIcon(m.shape, m.color, size = 38.dp)
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(m.miss.name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy)
+            Text(sub, fontSize = 11.sp, color = Muted)
+        }
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(m.miss.stats.missed.toString(), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = DangerTitle)
+            Text(stringResource(R.string.etc_med_of, m.miss.stats.due), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(bottom = 2.dp))
+        }
+    }
+}
+
+/** 연속 기록: [불꽃] 3일째 / 최고 7일 + 최근 14일 칸 */
+@Composable
+private fun StreakCard(streaks: Streaks, days: List<Pair<LocalDate, HabitMark>>) {
     SurfaceCard(Modifier.padding(top = 12.dp)) {
         CardTitle(stringResource(R.string.s15_section_streak))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(58.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(Brush.linearGradient(listOf(Color(0xFFFFB547), Color(0xFFF0743E))))
             ) {
@@ -690,7 +875,43 @@ private fun StreakCard(streaks: Streaks) {
             Box(Modifier.width(1.dp).height(44.dp).background(Line))
             StreakValue(stringResource(R.string.s15_streak_best), streaks.best, Modifier.weight(1f).padding(start = 18.dp))
         }
+        if (days.isNotEmpty()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                days.forEach { (date, mark) ->
+                    val label = stringResource(habitLabel(mark))
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(24.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(habitColor(mark))
+                            .clearAndSetSemantics { contentDescription = "${date.monthValue}.${date.dayOfMonth} $label" }
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                val first = days.first().first
+                Text("${first.monthValue}.${first.dayOfMonth}", fontSize = 11.sp, color = Muted, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.s07_day_today), fontSize = 11.sp, color = Muted)
+            }
+        }
     }
+}
+
+private fun habitColor(mark: HabitMark): Color = when (mark) {
+    HabitMark.ALL -> RateGood
+    HabitMark.SOME -> HeatSome
+    HabitMark.NONE -> HeatNone
+    HabitMark.EMPTY -> HeatEmpty
+    HabitMark.OPEN -> Color(0xFFDCE7EA)
+}
+
+private fun habitLabel(mark: HabitMark): Int = when (mark) {
+    HabitMark.ALL -> R.string.etc_habit_all
+    HabitMark.SOME -> R.string.etc_habit_some
+    HabitMark.NONE -> R.string.etc_habit_none
+    HabitMark.EMPTY -> R.string.etc_habit_empty
+    HabitMark.OPEN -> R.string.etc_habit_open
 }
 
 @Composable
@@ -704,3 +925,99 @@ private fun StreakValue(label: String, days: Int, modifier: Modifier) {
         }
     }
 }
+
+/** 제시간에 먹었나: 원 그래프(예정 30분 안 비율) + 세 줄 */
+@Composable
+private fun PunctualityCard(p: Punctuality) {
+    SurfaceCard(Modifier.padding(top = 12.dp)) {
+        CardTitle(stringResource(R.string.etc_section_on_time), stringResource(R.string.etc_recent))
+        if (p.total == 0) {
+            Text(stringResource(R.string.etc_no_taken), fontSize = 13.sp, color = Muted)
+            return@SurfaceCard
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RateRing(p.onTimeRate, size = 86.dp)
+            Column(Modifier.padding(start = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                PunctualLine(stringResource(R.string.etc_on_time), p.onTime, strong = true)
+                PunctualLine(stringResource(R.string.etc_late), p.late, strong = false)
+                PunctualLine(stringResource(R.string.etc_very_late), p.veryLate, strong = false)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PunctualLine(label: String, count: Int, strong: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, fontSize = 13.sp, fontWeight = if (strong) FontWeight.Bold else FontWeight.Normal, color = if (strong) Navy else Muted)
+        Text(
+            stringResource(R.string.etc_times, count),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (strong) Navy else Muted,
+            modifier = Modifier.padding(start = 6.dp)
+        )
+    }
+}
+
+/** 시간대별 평균: 예정보다 몇 분 늦게/일찍. 가운데 세로선 = 예정 시각, 점 = 평균 (±60분이 양 끝) */
+@Composable
+private fun DelayCard(avg: Map<DayPeriod, Int>) {
+    SurfaceCard(Modifier.padding(top = 12.dp)) {
+        CardTitle(stringResource(R.string.etc_section_delay), stringResource(R.string.etc_recent))
+        DayPeriod.entries.filter { it in avg }.forEachIndexed { i, period ->
+            val minutes = avg.getValue(period)
+            val name = stringResource(period.look().labelRes)
+            val value = when {
+                minutes == 0 -> stringResource(R.string.etc_delay_exact)
+                minutes > 0 -> stringResource(R.string.etc_delay_late, durationText(minutes))
+                else -> stringResource(R.string.etc_delay_early, durationText(-minutes))
+            }
+            val color = when {
+                minutes <= ON_TIME -> HomeChipDoneText
+                minutes <= 60 -> HomeChipMissedText
+                else -> DangerTitle
+            }
+            if (i > 0) HorizontalDivider(color = Line)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 11.dp)
+                    .clearAndSetSemantics { contentDescription = "$name $value" }
+            ) {
+                Text(name, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.width(48.dp))
+                Canvas(Modifier.weight(1f).height(20.dp)) {
+                    val y = size.height / 2
+                    drawLine(Line, Offset(0f, y), Offset(size.width, y), strokeWidth = 2.dp.toPx())
+                    val mid = size.width / 2
+                    drawLine(Color(0xFF9AABB2), Offset(mid, 2.dp.toPx()), Offset(mid, size.height - 2.dp.toPx()), strokeWidth = 2.dp.toPx())
+                    val x = mid + (minutes.coerceIn(-60, 60) / 60f) * (size.width / 2 - 8.dp.toPx())
+                    drawCircle(Color.White, radius = 8.dp.toPx(), center = Offset(x, y))
+                    drawCircle(when {
+                        minutes <= ON_TIME -> RateGood
+                        minutes <= 60 -> RateFair
+                        else -> RateLow
+                    }, radius = 5.5.dp.toPx(), center = Offset(x, y))
+                }
+                Text(value, fontSize = 13.5.sp, fontWeight = FontWeight.ExtraBold, color = color, textAlign = TextAlign.End, modifier = Modifier.width(104.dp))
+            }
+        }
+        Row(Modifier.fillMaxWidth().padding(start = 48.dp, end = 104.dp)) {
+            Text(stringResource(R.string.etc_scale_early), fontSize = 11.sp, color = Muted, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.etc_scale_on), fontSize = 11.sp, color = Muted)
+            Text(stringResource(R.string.etc_scale_late), fontSize = 11.sp, color = Muted, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+/** "8분" / "1시간 30분" / "2시간" */
+@Composable
+private fun durationText(minutes: Int): String = when {
+    minutes < 60 -> stringResource(R.string.etc_minutes, minutes)
+    minutes % 60 == 0 -> stringResource(R.string.etc_hours, minutes / 60)
+    else -> stringResource(R.string.etc_hours_minutes, minutes / 60, minutes % 60)
+}
+
+/** "제시간" 경계(분) — PatternInsights.ON_TIME_MINUTES와 같다 */
+private const val ON_TIME = 30

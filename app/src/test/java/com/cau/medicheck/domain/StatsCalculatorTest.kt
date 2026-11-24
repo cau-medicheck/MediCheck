@@ -9,7 +9,7 @@ import java.time.LocalTime
 import java.time.YearMonth
 
 /**
- * 통계 계산 테스트: 완료율, 최근 7일, 주간(월~일)·주차, 월간, 시간대별, 연속 기록. (docs/DB_DESIGN.md ⑩)
+ * 통계 계산 테스트: 완료율, 최근 7일, 주간(월~일)·주차, 월간, 연속 기록. (docs/DB_DESIGN.md ⑩)
  * 기준: "지금"은 2026-11-18(수) 12:00.
  */
 class StatsCalculatorTest {
@@ -248,33 +248,6 @@ class StatsCalculatorTest {
         val october = StatsCalculator.weeksOfMonth(YearMonth.of(2026, 10))
         assertEquals(LocalDate.of(2026, 9, 28), october.first())
         assertEquals(5, october.size)
-    }
-
-    // ---------- 패턴: 시간대별 (S15) ----------
-
-    @Test
-    fun `시간대별은 최근 7일을 예정 시각의 시간대로 나눠 센다`() {
-        val doses = listOf(
-            doseOn(today.minusDays(1), 8, 0, DoseStatus.TAKEN),
-            doseOn(today.minusDays(1), 8, 0, DoseStatus.SKIPPED),
-            doseOn(today.minusDays(1), 12, 30, DoseStatus.PENDING),   // 어제 점심 → 미복용
-            doseOn(today.minusDays(7), 8, 0, DoseStatus.TAKEN)        // 8일 전 → 빠짐
-        )
-        val slots = StatsCalculator.slotRates(doses, today, now).associateBy { it.period }
-
-        assertEquals(50, slots.getValue(DayPeriod.MORNING).counts.completionRate)
-        assertEquals(0, slots.getValue(DayPeriod.LUNCH).counts.completionRate)
-        assertEquals(false, slots.getValue(DayPeriod.EVENING).hasSchedule)
-    }
-
-    @Test
-    fun `새벽은 회차가 있을 때만 줄이 생긴다`() {
-        assertEquals(
-            listOf(DayPeriod.MORNING, DayPeriod.LUNCH, DayPeriod.EVENING, DayPeriod.NIGHT),
-            StatsCalculator.slotRates(emptyList(), today, now).map { it.period }
-        )
-        val withDawn = StatsCalculator.slotRates(listOf(doseOn(today.minusDays(1), 2, 0, DoseStatus.TAKEN)), today, now)
-        assertEquals(DayPeriod.DAWN, withDawn.first().period)
     }
 
     // ---------- 패턴: 연속 기록 (S15) ----------
