@@ -1,10 +1,16 @@
 package com.cau.medicheck.ui.screens.settings
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,26 +18,34 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.AuthValidator
-import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
+import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.FormField
-import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
-import com.cau.medicheck.ui.components.Notice
 import com.cau.medicheck.ui.components.ScreenIntro
 import com.cau.medicheck.ui.theme.Gap16
 import com.cau.medicheck.ui.theme.Gap22
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.Muted
+import com.cau.medicheck.ui.theme.Navy
 
 /**
  * S21 프로필 관리 (v3 profile()).
@@ -62,8 +76,8 @@ fun S21ProfileScreen(
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s21)) {
         BackLink(stringResource(R.string.s20_back), onBack)
         ScreenIntro(modifier = Modifier.padding(top = Gap16))
-        Spacer(Modifier.height(Gap22))
-        Avatar(Glyph.PROFILE, Modifier.align(Alignment.CenterHorizontally), size = 70.dp, fontSize = 34)
+        // 가운데 청록 동그라미 + 이름·이메일. 입력하는 대로 바로 바뀐다 (2026-11-25 시안 B)
+        ProfileBadge(nameInput.trim(), emailInput.trim(), Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp, bottom = 6.dp))
 
         val nameLabel = stringResource(R.string.s21_label_name)
         FieldLabel(nameLabel)
@@ -94,8 +108,30 @@ fun S21ProfileScreen(
             keyboardActions = KeyboardActions(onDone = { submit() })
         )
 
-        Spacer(Modifier.height(Gap22))
-        McButton(text = stringResource(R.string.s21_save), onClick = submit, full = true, loading = saving)
-        Notice(stringResource(R.string.s21_notice), Modifier.padding(top = Gap16))
+        // 아래 단추 둘: 취소(흰) · 저장(청록). 시안 비율 1 : 1.12
+        Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.padding(top = Gap22)) {
+            McButton(stringResource(R.string.action_cancel), onBack, Modifier.weight(1f), ButtonKind.WHITE, full = true, enabled = !saving)
+            McButton(stringResource(R.string.s21_save), submit, Modifier.weight(1.12f), full = true, loading = saving)
+        }
+    }
+}
+
+/** 청록 동그라미(이름 첫 글자) + 아래 "이름님" · 이메일. 이름이 비어 있으면 동그라미는 비워 둔다 */
+@Composable
+private fun ProfileBadge(name: String, email: String, modifier: Modifier = Modifier) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.clearAndSetSemantics { }) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(76.dp)
+                .clip(CircleShape)
+                .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+        ) {
+            Text(name.take(1), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+        }
+        if (name.isNotEmpty()) {
+            Text(stringResource(R.string.s19_name, name), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.padding(top = 9.dp))
+        }
+        Text(email, fontSize = 12.sp, color = Muted, modifier = Modifier.padding(top = 2.dp))
     }
 }
