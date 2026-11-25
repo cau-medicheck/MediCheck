@@ -77,6 +77,9 @@ import com.cau.medicheck.ui.theme.LabelText
 import com.cau.medicheck.ui.theme.LightButtonBg
 import com.cau.medicheck.ui.theme.MintText
 import com.cau.medicheck.ui.theme.Muted
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.SectionLabelText
 import com.cau.medicheck.ui.theme.Navy
 import com.cau.medicheck.ui.theme.NoticeBg
 import com.cau.medicheck.ui.theme.NoticeBorder
@@ -163,11 +166,11 @@ fun ScreenIntro(text: String? = null, modifier: Modifier = Modifier) {
         if (title != null) {
             Text(
                 text = title,
-                fontSize = 23.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
                 color = Navy,
-                lineHeight = 31.sp,
-                letterSpacing = (-0.9).sp,
+                lineHeight = 30.sp,
+                letterSpacing = (-0.6).sp,
                 modifier = Modifier.semantics { heading() }
             )
         }
@@ -187,13 +190,12 @@ fun ScreenIntro(text: String? = null, modifier: Modifier = Modifier) {
 /** 화면 안에서 구역을 나누는 작은 제목. 오른쪽에 덧붙일 글자(개수 등)를 넣을 수 있다. */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(top = 19.dp, bottom = 11.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(start = 3.dp, top = 22.dp, bottom = 9.dp)) {
         Text(
             text = text,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Navy,
-            letterSpacing = (-0.4).sp,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = SectionLabelText,
             modifier = Modifier.semantics { heading() }
         )
         if (suffix != null) {
@@ -208,8 +210,8 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier, suffix: String? = 
 fun FieldLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
+        fontSize = 12.5.sp,
+        fontWeight = FontWeight.SemiBold,
         color = LabelText,
         modifier = modifier.padding(top = 14.dp, bottom = 6.dp)
     )
@@ -237,8 +239,8 @@ fun LinkText(
 ) {
     Text(
         text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontSize = 12.5.sp,
+        fontWeight = FontWeight.SemiBold,
         color = Teal,
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
@@ -263,9 +265,9 @@ fun SurfaceCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(CardBackground)
-            .border(1.dp, CardBorder, RoundedCornerShape(18.dp))
+            .border(1.dp, CardBorder, RoundedCornerShape(20.dp))
             .padding(padding),
         content = content
     )
@@ -285,8 +287,8 @@ enum class PillKind(val background: Color, val text: Color) {
 fun Pill(text: String, kind: PillKind = PillKind.MINT, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontSize = 10.5.sp,
+        fontWeight = FontWeight.Bold,
         color = kind.text,
         maxLines = 1,
         modifier = modifier
@@ -311,17 +313,18 @@ fun Notice(text: AnnotatedString, modifier: Modifier = Modifier, warn: Boolean =
     val background = if (warn) WarnBg else NoticeBg
     val border = if (warn) WarnBorder else NoticeBorder
     val color = if (warn) WarnText else NoticeText
+    // 2026-11-25: 테두리 없이 옅은 바탕만, 글자는 조금 크게 (선진 앱들의 안내 상자처럼 조용하게)
+    @Suppress("UNUSED_VARIABLE") val unused = border
     Text(
         text = text,
-        fontSize = 11.sp,
-        lineHeight = 19.sp,
+        fontSize = 12.5.sp,
+        lineHeight = 20.sp,
         color = color,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(background)
-            .border(1.dp, border, RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .padding(horizontal = 14.dp, vertical = 13.dp)
     )
 }
 
@@ -659,10 +662,10 @@ fun ListRow(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 56.dp).padding(vertical = 12.dp)) {
             if (leading != null) {
                 leading()
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(12.dp))
             }
             Column(modifier = Modifier.weight(1f), content = content)
             if (trailing != null) {
@@ -679,8 +682,8 @@ fun ListRow(
 fun RowTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Bold,
+        fontSize = 14.5.sp,
+        fontWeight = FontWeight.Medium,
         color = Navy,
         letterSpacing = (-0.2).sp,
         modifier = modifier
@@ -690,7 +693,7 @@ fun RowTitle(text: String, modifier: Modifier = Modifier) {
 /** 목록 줄의 설명 글자 */
 @Composable
 fun RowSub(text: String, modifier: Modifier = Modifier) {
-    Text(text = text, fontSize = 11.sp, color = RowSubText, lineHeight = 16.sp, modifier = modifier.padding(top = 4.dp))
+    Text(text = text, fontSize = 12.sp, color = RowSubText, lineHeight = 17.sp, modifier = modifier.padding(top = 3.dp))
 }
 
 /** "이름 ........ 값" 한 줄. 상세 화면의 정보 표에 쓴다. */
@@ -699,11 +702,11 @@ fun LabelValueRow(label: String, value: String, showDivider: Boolean = true) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
             // 이름표는 92dp가 기본이고, 글자를 크게 쓰면 180dp까지 넓어진다(낱말 중간에서 줄이 바뀌지 않게).
-            Text(text = label, fontSize = 11.sp, color = Muted, modifier = Modifier.widthIn(min = 92.dp, max = 180.dp))
+            Text(text = label, fontSize = 13.sp, color = Muted, modifier = Modifier.widthIn(min = 92.dp, max = 180.dp))
             Text(
                 text = value,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Medium,
                 color = Navy,
                 textAlign = TextAlign.End,
                 modifier = Modifier.weight(1f)
@@ -791,9 +794,184 @@ fun IconTile(
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = Muted,
-        modifier = modifier.padding(start = 3.dp, bottom = 8.dp).semantics { heading() }
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = SectionLabelText,
+        modifier = modifier.padding(start = 3.dp, bottom = 9.dp).semantics { heading() }
     )
+}
+
+/**
+ * 화면 아래 단추 둘을 한 줄로: 왼쪽 흰 단추(취소·다시 확인) + 오른쪽 색 단추(저장·등록). 비율 1 : 1.12 (2026-11-25)
+ * @param danger true면 오른쪽 단추를 빨강으로 (삭제처럼 되돌리기 어려운 일)
+ */
+@Composable
+fun ActionPair(
+    secondaryText: String,
+    onSecondary: () -> Unit,
+    primaryText: String,
+    onPrimary: () -> Unit,
+    modifier: Modifier = Modifier,
+    loading: Boolean = false,
+    primaryEnabled: Boolean = true,
+    danger: Boolean = false
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = modifier.fillMaxWidth()) {
+        McButton(secondaryText, onSecondary, Modifier.weight(1f), ButtonKind.WHITE, full = true, enabled = !loading)
+        if (danger) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1.12f)
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (primaryEnabled) DangerFill else DangerFill.copy(alpha = 0.4f))
+                    .clickable(enabled = primaryEnabled && !loading, role = Role.Button, onClick = onPrimary)
+            ) {
+                if (loading) androidx.compose.material3.CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                else Text(primaryText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            }
+        } else {
+            McButton(primaryText, onPrimary, Modifier.weight(1.12f), full = true, enabled = primaryEnabled, loading = loading)
+        }
+    }
+}
+
+/** 빨간 단추 바탕 (약 삭제·계정 삭제) */
+val DangerFill = Color(0xFFC8504B)
+
+/**
+ * 확인·안내 화면의 머리: 가운데 큰 색 동그라미 아이콘 + 제목 + (있으면) 한 줄 설명.
+ * 메신저·금융 앱들이 "확인해 주세요" 화면 맨 위에 쓰는 모양.
+ */
+@Composable
+fun HeroHeader(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.fillMaxWidth().padding(top = 18.dp, bottom = 22.dp)) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(84.dp).clip(CircleShape).background(color.copy(alpha = 0.12f)).clearAndSetSemantics { }
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(62.dp).clip(CircleShape).background(color)) {
+                androidx.compose.material3.Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+            }
+        }
+        Text(
+            title,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Bold,
+            color = Navy,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp).semantics { heading() }
+        )
+        if (subtitle != null) {
+            Text(subtitle, fontSize = 13.5.sp, lineHeight = 20.sp, color = Muted, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
+        }
+    }
+}
+
+/**
+ * 카드 안 한 줄: [색 네모 아이콘] 제목(+작은 설명) ··· [오른쪽]. 누를 수 있으면 오른쪽 끝에 "›".
+ * 선은 아이콘 뒤에서 시작한다. 설정 안쪽 화면들이 함께 쓴다 (2026-11-25).
+ */
+@Composable
+fun IconRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    title: String,
+    modifier: Modifier = Modifier,
+    sub: String? = null,
+    titleColor: Color = Navy,
+    onClick: (() -> Unit)? = null,
+    showDivider: Boolean = true,
+    trailing: (@Composable () -> Unit)? = null
+) {
+    Column(modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+                .heightIn(min = 58.dp)
+                .padding(vertical = 10.dp)
+        ) {
+            IconTile(icon, color, size = 32.dp, iconSize = 19.dp)
+            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = titleColor)
+                if (sub != null) Text(sub, fontSize = 12.sp, lineHeight = 17.sp, color = RowSubText, modifier = Modifier.padding(top = 2.dp))
+            }
+            if (trailing != null) {
+                Spacer(Modifier.width(8.dp))
+                trailing()
+            }
+            if (onClick != null) {
+                Text("›", fontSize = 20.sp, color = RowSubText, modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics { })
+            }
+        }
+        if (showDivider) HorizontalDivider(thickness = 1.dp, color = RowDivider, modifier = Modifier.padding(start = 44.dp))
+    }
+}
+
+/** 카드 안 줄들을 담는 흰 카드 (좌우 여백만, 위아래 없음) */
+@Composable
+fun RowsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    SurfaceCard(modifier, padding = 0.dp) { Column(Modifier.padding(horizontal = 15.dp), content = content) }
+}
+
+/** [색 네모 아이콘] 제목 ··· [스위치]. 줄 어디를 눌러도 켜고 끈다 (2026-11-25) */
+@Composable
+fun IconSwitchRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    showDivider: Boolean = true
+) {
+    Column(modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+                .heightIn(min = 58.dp)
+                .padding(vertical = 10.dp)
+        ) {
+            IconTile(icon, color, size = 32.dp, iconSize = 19.dp)
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Navy, modifier = Modifier.weight(1f).padding(start = 12.dp))
+            McSwitch(checked = checked, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { })
+        }
+        if (showDivider) HorizontalDivider(thickness = 1.dp, color = RowDivider, modifier = Modifier.padding(start = 44.dp))
+    }
+}
+
+/** 상태 띠: 청록(좋음) 또는 주황(주의) 그라데이션 + 흰 아이콘 + 제목·한 줄 (2026-11-25, S18·S38) */
+@Composable
+fun StatusBanner(
+    good: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    sub: String,
+    modifier: Modifier = Modifier
+) {
+    val bg = if (good) Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)) else Brush.linearGradient(listOf(Color(0xFFE08A2E), Color(0xFFEFA24B)))
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(bg).padding(16.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(Color.White.copy(alpha = 0.2f))) {
+            androidx.compose.material3.Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+        }
+        Column(Modifier.padding(start = 13.dp)) {
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(sub, fontSize = 12.5.sp, lineHeight = 18.sp, color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(top = 2.dp))
+        }
+    }
 }

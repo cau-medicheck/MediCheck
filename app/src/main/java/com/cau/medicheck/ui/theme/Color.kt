@@ -82,7 +82,8 @@ val TabActive = Color(0xFF0B8990)          // 하단 탭 (켜짐)
 
 // ----- NEW: 글자 -----
 val ParagraphText = Color(0xFF748A95)      // .paragraph
-val LabelText = Color(0xFF597480)          // .label
+val LabelText = Color(0xFF597480)
+val SectionLabelText = Color(0xFF53666E)   // 묶음 제목(SectionTitle·GroupLabel) 2026-11-25          // .label
 val KickerText = Color(0xFF7FA5AC)         // .kicker
 val MetricText = Color(0xFF0E8D92)         // .metric
 val EmptyBodyText = Color(0xFF8497A0)      // .empty p
@@ -91,9 +92,9 @@ val AuthSubText = Color(0xFF8299A3)        // .auth-sub
 
 // ----- NEW: 줄 -----
 val RowDivider = Color(0xFFEDF2F3)         // .medrow 선
-val RowSubText = Color(0xFF8B9CA5)         // .medrow p
+val RowSubText = Color(0xFF6E808A)         // .medrow p
 val SettingDivider = Color(0xFFF0F3F3)     // .settingrow 선
-val SettingDescText = Color(0xFF7F9099)    // .settingrow p
+val SettingDescText = Color(0xFF6E808A)    // .settingrow p
 val OptionDivider = Color(0xFFEDF3F4)      // optionRows 선
 
 // ----- NEW: 부품 -----

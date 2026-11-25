@@ -425,9 +425,9 @@ fun NotificationOffCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(top = 5.dp)
         )
         Text(
-            text = stringResource(R.string.s18_link_denied),
+            text = stringResource(R.string.s18_link_denied) + " ›",
             fontSize = 12.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.SemiBold,
             color = Teal,
             modifier = Modifier.padding(top = 7.dp)
         )

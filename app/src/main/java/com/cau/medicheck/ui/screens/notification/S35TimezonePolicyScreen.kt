@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.GroupLabel
 import com.cau.medicheck.domain.TimeZoneMode
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.McButton
@@ -43,16 +44,10 @@ fun S35TimezonePolicyScreen(
         BackLink(stringResource(R.string.common_back_previous), onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
-        SurfaceCard {
-            Text(stringResource(R.string.s35_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
-            Text(
-                text = stringResource(R.string.s35_card_desc),
-                fontSize = 12.sp,
-                lineHeight = 18.sp,
-                color = Muted,
-                modifier = Modifier.padding(top = 7.dp, bottom = 6.dp)
-            )
-            // selectableGroup: TalkBack에게 "이 둘은 하나만 고르는 묶음"이라고 알려 준다.
+        // 2026-11-25 다시 그림: 묶음 제목 + 선택 두 줄 카드 + 저장
+        GroupLabel(stringResource(R.string.s35_card_title))
+        SurfaceCard(padding = 0.dp) {
+          Column(Modifier.padding(horizontal = 15.dp, vertical = 4.dp)) {
             Column(Modifier.selectableGroup()) {
                 RadioRow(
                     title = stringResource(R.string.s35_local_title),
@@ -69,15 +64,16 @@ fun S35TimezonePolicyScreen(
                     extra = stringResource(R.string.s35_home_zone, state.homeZoneId, state.homeZoneOffset)
                 )
             }
-            McButton(
-                text = stringResource(R.string.s35_save),
-                onClick = onSave,
-                full = true,
-                loading = state.isSaving,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+          }
         }
+        McButton(
+            text = stringResource(R.string.s35_save),
+            onClick = onSave,
+            full = true,
+            loading = state.isSaving,
+            modifier = Modifier.padding(top = 18.dp)
+        )
 
-        Notice(stringResource(R.string.s35_notice_warn), Modifier.padding(top = 16.dp), warn = true)
+        Notice(stringResource(R.string.s35_notice_warn), Modifier.padding(top = 14.dp))
     }
 }

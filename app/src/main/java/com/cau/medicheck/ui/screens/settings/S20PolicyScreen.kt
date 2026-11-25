@@ -1,27 +1,38 @@
 package com.cau.medicheck.ui.screens.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.Redo
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.ui.components.BackLink
-import com.cau.medicheck.ui.components.Kicker
+import com.cau.medicheck.ui.components.GroupLabel
+import com.cau.medicheck.ui.components.IconRow
 import com.cau.medicheck.ui.components.McScreenColumn
+import com.cau.medicheck.ui.components.Notice
+import com.cau.medicheck.ui.components.RowsCard
 import com.cau.medicheck.ui.components.ScreenIntro
-import com.cau.medicheck.ui.components.SettingRow
-import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.theme.Gap16
-import com.cau.medicheck.ui.theme.Navy
-import com.cau.medicheck.ui.theme.ParagraphText
-import com.cau.medicheck.ui.theme.SettingDescText
-import com.cau.medicheck.ui.theme.SettingDivider
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.RateGood
+import com.cau.medicheck.ui.theme.TimelineDotMissed
+import com.cau.medicheck.ui.theme.TimelineDotSkipped
 
 /**
  * S20 통계 계산 정책 (v3 policy()).
@@ -30,63 +41,40 @@ import com.cau.medicheck.ui.theme.SettingDivider
  * 여기 적힌 말은 실제 계산(domain/StatsCalculator)과 같아야 한다. 계산을 바꾸면 strings.xml의 s20_* 문구와
  * 주간 통계의 안내문(s13_notice)도 함께 고친다.
  */
+// 2026-11-25 다시 그림: 맨 위 청록 산식 카드 + 상태 세 줄(색 아이콘) + 자세한 설명은 아래 조용한 상자
 @Composable
 fun S20PolicyScreen(onBack: () -> Unit) {
     McScreenColumn(paneTitle = stringResource(R.string.screen_title_s20)) {
         BackLink(stringResource(R.string.s20_back), onBack)
-        ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
+        ScreenIntro(modifier = Modifier.padding(top = Gap16, bottom = 16.dp))
 
-        // ----- 상태 세 가지의 뜻 -----
-        SurfaceCard(padding = 0.dp) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 3.dp)) {
-                SettingRow(stringResource(R.string.status_pill_taken), stringResource(R.string.s20_taken_desc))
-                SettingRow(stringResource(R.string.status_pill_skipped), stringResource(R.string.s20_skipped_desc))
-                // 미기록 줄은 설명 아래에 한 줄이 더 붙어서(화면에 어떻게 표시되는지) SettingRow를 쓰지 않고 직접 그린다.
-                Column(Modifier.padding(vertical = 13.dp)) {
-                    Text(
-                        text = stringResource(R.string.s20_pending_title),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(
-                        text = stringResource(R.string.s20_pending_desc),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp,
-                        color = SettingDescText,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.s20_pending_display),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp,
-                        color = SettingDescText,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-        }
-
-        // ----- 산식 -----
-        SurfaceCard(Modifier.padding(top = Gap16)) {
-            Kicker(stringResource(R.string.s20_kicker))
+        // ----- 산식 카드 -----
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+                .padding(18.dp)
+        ) {
+            Text(stringResource(R.string.s20_kicker), fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
             Text(
-                text = stringResource(R.string.s20_formula),
-                fontSize = 16.sp,
-                lineHeight = 23.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Navy,
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-            HorizontalDivider(thickness = 1.dp, color = SettingDivider)
-            Text(
-                text = stringResource(R.string.s20_formula_desc),
-                fontSize = 12.sp,
-                lineHeight = 19.sp,
-                color = ParagraphText,
-                modifier = Modifier.padding(top = 10.dp)
+                stringResource(R.string.s20_formula),
+                fontSize = 18.sp,
+                lineHeight = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(top = 6.dp)
             )
         }
 
+        // ----- 상태 세 가지 -----
+        GroupLabel(stringResource(R.string.s20_section_states), Modifier.padding(top = 22.dp))
+        RowsCard {
+            IconRow(Icons.Rounded.Check, RateGood, stringResource(R.string.common_count_taken), sub = stringResource(R.string.s20_taken_desc))
+            IconRow(Icons.Rounded.Redo, TimelineDotSkipped, stringResource(R.string.common_count_skipped), sub = stringResource(R.string.s20_skipped_desc))
+            IconRow(Icons.Rounded.RadioButtonUnchecked, TimelineDotMissed, stringResource(R.string.s20_pending_title), sub = stringResource(R.string.s20_pending_display), showDivider = false)
+        }
+
+        Notice(stringResource(R.string.s20_formula_desc), Modifier.padding(top = 16.dp))
     }
 }
