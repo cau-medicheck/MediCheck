@@ -281,7 +281,7 @@ fun McBottomBar(active: McTab?, onTab: (McTab) -> Unit, modifier: Modifier = Mod
                         text = stringResource(tab.labelRes),
                         fontSize = 10.sp,
                         lineHeight = 14.sp,
-                        fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                         color = color
                     )
                 }

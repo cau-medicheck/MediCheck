@@ -97,7 +97,7 @@ fun S16NotificationCenterScreen(
                 Text(
                     text = fullDateText(date),
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = Navy,
                     modifier = Modifier.padding(start = 2.dp, top = 18.dp, bottom = 8.dp).semantics { heading() }
                 )
@@ -151,7 +151,7 @@ private fun NextReminderCard(items: List<ReminderDose>) {
         }
         Column(Modifier.padding(start = 12.dp)) {
             Text(label, fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
-            Text(value, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            Text(value, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }
@@ -187,7 +187,7 @@ private fun ReminderSlotRow(time: java.time.LocalTime, doses: List<ReminderDose>
             .padding(vertical = 12.dp)
             .clearAndSetSemantics { contentDescription = timeText(time) + " " + names.joinToString(", ") }
     ) {
-        Text(timeText(time), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.width(62.dp))
+        Text(timeText(time), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.width(62.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.weight(1f)) {
             names.forEach { name ->
                 Text(

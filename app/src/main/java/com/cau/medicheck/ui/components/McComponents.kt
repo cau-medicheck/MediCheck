@@ -138,7 +138,7 @@ fun ScreenTitle(title: String, subtitle: String? = null, modifier: Modifier = Mo
         Text(
             text = title,
             fontSize = 23.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             lineHeight = 31.sp,
             letterSpacing = (-0.9).sp,
@@ -339,7 +339,7 @@ fun Avatar(symbol: String, modifier: Modifier = Modifier, size: Dp = 43.dp, font
             .background(AvatarBg)
             .clearAndSetSemantics { }
     ) {
-        GlyphText(symbol, fontSize = fontSize, fontWeight = FontWeight.Black, color = AvatarText)
+        GlyphText(symbol, fontSize = fontSize, fontWeight = FontWeight.Bold, color = AvatarText)
     }
 }
 
@@ -450,7 +450,7 @@ fun McButton(
             Text(
                 text = text,
                 fontSize = if (small) 11.sp else 13.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 0.sp,   // M3 버튼이 내려 주는 자간(0.1sp)을 v3처럼 0으로
                 textAlign = TextAlign.Center,
                 maxLines = 2            // 200% 글자에서도 잘리지 않게 2줄까지

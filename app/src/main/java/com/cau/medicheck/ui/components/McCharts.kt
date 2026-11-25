@@ -129,7 +129,7 @@ fun MetricNumber(text: String, fontSize: Int, modifier: Modifier = Modifier, suf
         Text(
             text = text,
             fontSize = fontSize.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             letterSpacing = (-1).sp,
             color = MetricText
         )
@@ -137,7 +137,7 @@ fun MetricNumber(text: String, fontSize: Int, modifier: Modifier = Modifier, suf
             Text(
                 text = suffix,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight.Bold,
                 color = MetricText,
                 modifier = Modifier.padding(start = 2.dp, bottom = 7.dp)
             )
@@ -158,7 +158,7 @@ fun CountTriple(items: List<Pair<String, Int>>, modifier: Modifier = Modifier, v
                 Text(
                     text = value.toString(),
                     fontSize = valueSize.sp,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     color = Navy,
                     modifier = Modifier.padding(top = 5.dp)
                 )
@@ -173,7 +173,7 @@ fun Kicker(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         fontSize = 10.sp,
-        fontWeight = FontWeight.Black,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 0.8.sp,
         color = KickerText,
         modifier = modifier

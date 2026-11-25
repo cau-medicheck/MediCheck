@@ -265,7 +265,7 @@ private fun SlotPage(
                 text = timeText(slot.time),
                 fontSize = 28.sp,
                 lineHeight = 36.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = (-1).sp,
                 color = Color.White,
                 modifier = Modifier.padding(top = 10.dp).semantics { heading() }

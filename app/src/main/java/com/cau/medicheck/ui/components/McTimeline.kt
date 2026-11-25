@@ -287,7 +287,7 @@ fun RecordSheet(
                     text = row.name,
                     fontSize = 25.sp,
                     lineHeight = 33.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.9).sp,
                     color = Navy,
                     modifier = Modifier.padding(top = 14.dp).semantics { heading() }
@@ -438,7 +438,7 @@ fun StatusCountRow(items: List<StatusCount>, total: Int, modifier: Modifier = Mo
                     Text(item.label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.padding(start = 5.dp))
                 }
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
-                    Text(item.count.toString(), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = item.textColor)
+                    Text(item.count.toString(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = item.textColor)
                     Text(unit, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(start = 1.dp, bottom = 4.dp))
                 }
                 if (shareText != null) Text(shareText, fontSize = 11.sp, color = Muted)

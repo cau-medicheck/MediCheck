@@ -210,7 +210,7 @@ private fun MedicationCard(row: MedicationRowUi, actions: MedicationListActions)
             // 이름 1 tab                 (쉬는 중) [스위치]
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.weight(1f)) {
-                    Text(med.name, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Navy)
+                    Text(med.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy)
                     Text(med.dosage, fontSize = 12.sp, color = RowSubText, modifier = Modifier.padding(start = 6.dp, bottom = 1.dp))
                 }
                 when (row.status) {
@@ -252,7 +252,7 @@ private fun MedicationCard(row: MedicationRowUi, actions: MedicationListActions)
                     Text(
                         text = if (course.daysLeft == 0) stringResource(R.string.s06_dday_today) else stringResource(R.string.s06_dday, course.daysLeft),
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Bold,
                         color = PillOrangeText,
                         modifier = Modifier
                             .padding(start = 8.dp)
