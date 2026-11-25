@@ -673,9 +673,8 @@
     <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 미복용까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미복용을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
 
     <string name="s21_label_name">표시 이름</string>
-    <string name="s21_save">프로필 저장</string>
+    <string name="s21_save">저장</string>
     <!-- 프로토타입 원문 "실제 사용자 인증 및 계정 정보 변경은 인증 기술을 결정한 뒤 연결해야 합니다.": 실제로 바뀌므로 고쳤다 -->
-    <string name="s21_notice">계정 정보는 이 기기에만 저장돼요.</string>
     <string name="s21_toast_saved">프로필이 수정되었습니다.</string>
     <string name="s21_toast_failed">프로필을 저장하지 못했습니다. 다시 시도해주세요.</string>
 
