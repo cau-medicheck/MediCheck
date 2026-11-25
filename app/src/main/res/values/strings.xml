@@ -673,6 +673,8 @@
     <string name="s20_formula_desc">예정 시각이 된 회차는 건너뜀과 미복용까지 모두 분모에 포함합니다. 아직 예정 시각이 되지 않은 회차(내일 이후, 오늘 남은 회차)는 미리 복용 완료로 기록했더라도 분모와 분자에서 모두 뺍니다. 계산할 회차가 없으면 N/A로 표시하고, 백분율은 반올림합니다. 지난 시간의 미복용을 자동으로 건너뜀으로 바꾸지 않습니다.</string>
 
     <string name="s21_label_name">표시 이름</string>
+    <string name="s21_name_default">사용자</string>
+    <string name="s21_email_empty">이메일 미입력</string>
     <string name="s21_save">저장</string>
     <!-- 프로토타입 원문 "실제 사용자 인증 및 계정 정보 변경은 인증 기술을 결정한 뒤 연결해야 합니다.": 실제로 바뀌므로 고쳤다 -->
     <string name="s21_toast_saved">프로필이 수정되었습니다.</string>
@@ -814,20 +816,16 @@
     <string name="s28_toast_restore_failed">복원하지 못했습니다. 다시 시도해주세요.</string>
 
     <string name="s36_hide_name_title">잠금 화면에 약 이름 숨김</string>
-    <string name="s36_hide_name_desc">약 이름 대신 일반 알림 문구 표시</string>
     <string name="s36_hide_stats_title">통계 미리보기 숨김</string>
-    <string name="s36_hide_stats_desc">다른 사람이 화면을 볼 때 통계 노출 최소화</string>
-    <string name="s36_section_data">내 데이터 관리</string>
+    <string name="s36_section_hide">화면 가리기</string>
+    <string name="s36_tile_hide_name">약 이름 숨김</string>
+    <string name="s36_tile_hide_stats">통계 숨김</string>
+    <string name="s36_section_data">내 데이터</string>
     <string name="s36_row_lock_title">앱 잠금</string>
-    <string name="s36_row_lock_desc">추가 보호 기능</string>
-    <string name="s36_row_backup_title">기기 백업·복원</string>
-    <string name="s36_row_backup_desc">민감정보 포함 가능</string>
-    <string name="s36_row_export_title">복용 기록 내보내기</string>
-    <string name="s36_row_export_desc">CSV 파일 다운로드</string>
+    <string name="s36_row_backup_title">백업·복원</string>
+    <string name="s36_row_export_title">기록 내보내기</string>
     <string name="s36_row_delete_title">계정·데이터 삭제</string>
-    <string name="s36_row_delete_desc">데이터 처리 범위 확인</string>
     <!-- 프로토타입 원문 "ⓘ 브라우저 내 데모 데이터만 변경합니다. …": 스위치가 실제 알림과 최근 앱 미리보기를 바꾸므로 고쳤다 -->
-    <string name="s36_notice">모든 기록은 이 기기 안에만 저장되고 서버로 보내지 않아요.</string>
 
     <string name="s37_preview_title">글자 확대 미리보기</string>
     <!-- 프로토타입 원문 "Android 시스템 글꼴 확대와 함께 검증해야 해요."는 개발 메모라 실제 규칙으로 바꿨다 -->

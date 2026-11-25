@@ -768,3 +768,32 @@ fun WarnBadge(modifier: Modifier = Modifier) {
 
 private val WarnBadgeBg = Color(0xFFE08A2E)   // 진한 주황 동그라미 + 흰 아이콘 (아이콘 3번)
 private val WarnBadgeTint = Color.White
+
+/** 진한 색 네모 + 흰 아이콘 (2026-11-25 아이콘 3번). 설정 줄들의 앞 그림. 장식이라 읽지 않는다 */
+@Composable
+fun IconTile(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 34.dp,
+    iconSize: Dp = 20.dp
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.size(size).clip(RoundedCornerShape(10.dp)).background(color)
+    ) {
+        androidx.compose.material3.Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(iconSize))
+    }
+}
+
+/** 카드 위 작은 묶음 제목 ("알림 설정", "화면 가리기" 같은). TalkBack은 제목으로 읽는다 */
+@Composable
+fun GroupLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = Muted,
+        modifier = modifier.padding(start = 3.dp, bottom = 8.dp).semantics { heading() }
+    )
+}
