@@ -24,6 +24,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.components.RowsCard
+import com.cau.medicheck.ui.components.IconSwitchRow
+import com.cau.medicheck.ui.components.GroupLabel
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.rounded.MotionPhotosOff
+import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.Row
 import com.cau.medicheck.data.local.A11ySettings
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
@@ -60,81 +71,53 @@ fun S37AccessibilityScreen(settings: A11ySettings, actions: AccessibilityActions
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
-        // ----- 글자 크기 -----
+        // 2026-11-25 다시 그림: "글자 크기" 칸(같은 너비 4칸 + 미리보기) + "보기 편하게" 스위치 두 줄(아이콘)
+        GroupLabel(stringResource(R.string.s37_preview_title))
         SurfaceCard {
-            Text(stringResource(R.string.s37_preview_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
-            Text(
-                text = stringResource(R.string.s37_preview_desc),
-                fontSize = 12.sp,
-                lineHeight = 19.sp,
-                color = ParagraphText,
-                modifier = Modifier.padding(top = 5.dp)
-            )
-            // FlowRow: 한 줄에 다 안 들어가면 다음 줄로 넘긴다 (글자를 키우면 버튼 4개가 한 줄에 안 들어간다).
             // selectableGroup: TalkBack에게 "이 넷은 하나만 고르는 묶음"이라고 알려 준다.
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .padding(vertical = Gap16)
-                    .selectableGroup()
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.selectableGroup()) {
                 A11ySettings.FONT_SCALES.forEach { percent ->
                     val chosen = percent == settings.fontScalePercent
                     val spoken = stringResource(R.string.s37_cd_font_scale, percent)
-                    McButton(
+                    Text(
                         text = stringResource(R.string.s37_scale, percent),
-                        onClick = { actions.onFontScale(percent) },
-                        kind = if (chosen) ButtonKind.PRIMARY else ButtonKind.WHITE,
-                        small = true,
-                        // TalkBack은 "글자 크기 125%, 선택 안 됨"처럼 읽는다.
-                        modifier = Modifier.semantics {
-                            contentDescription = spoken
-                            selected = chosen
-                            role = Role.RadioButton
-                        }
+                        fontSize = 13.sp,
+                        fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (chosen) Color.White else Navy,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(11.dp))
+                            .background(if (chosen) Teal else Color(0xFFF1F5F6))
+                            .selectable(selected = chosen, role = Role.RadioButton, onClick = { actions.onFontScale(percent) })
+                            .semantics { contentDescription = spoken }
+                            .padding(vertical = 11.dp)
                     )
                 }
             }
             // 미리보기 상자: 고정된 예시 글(실제 데이터가 아니다)
             Column(
                 modifier = Modifier
+                    .padding(top = 14.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .background(PreviewBg)
                     .padding(15.dp)
             ) {
-                Text(stringResource(R.string.s37_sample_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
+                Text(stringResource(R.string.s37_sample_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Navy)
                 Text(
                     text = stringResource(R.string.s37_sample_status),
-                    fontSize = 12.sp,
-                    lineHeight = 19.sp,
+                    fontSize = 13.sp,
                     color = ParagraphText,
-                    modifier = Modifier.padding(top = 5.dp)
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
 
-        // ----- 높은 대비 · 움직임 최소화 -----
-        SurfaceCard(Modifier.padding(top = Gap16), padding = 0.dp) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 3.dp)) {
-                ToggleRow(
-                    title = stringResource(R.string.s37_contrast_title),
-                    description = stringResource(R.string.s37_contrast_desc),
-                    checked = settings.highContrast,
-                    onCheckedChange = actions.onHighContrast,
-                    verticalPadding = 13.dp
-                )
-                HorizontalDivider(thickness = 1.dp, color = SettingDivider)
-                ToggleRow(
-                    title = stringResource(R.string.s37_motion_title),
-                    description = stringResource(R.string.s37_motion_desc),
-                    checked = settings.reduceMotion,
-                    onCheckedChange = actions.onReduceMotion,
-                    verticalPadding = 13.dp
-                )
-            }
+        GroupLabel(stringResource(R.string.s37_section_view), Modifier.padding(top = 22.dp))
+        RowsCard {
+            IconSwitchRow(Icons.Rounded.Contrast, Navy, stringResource(R.string.s37_contrast_title), settings.highContrast, actions.onHighContrast)
+            IconSwitchRow(Icons.Rounded.MotionPhotosOff, Color(0xFF8064C1), stringResource(R.string.s37_motion_title), settings.reduceMotion, actions.onReduceMotion, showDivider = false)
         }
-
     }
 }

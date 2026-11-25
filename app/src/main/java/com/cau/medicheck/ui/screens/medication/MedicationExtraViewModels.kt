@@ -40,6 +40,9 @@ import java.time.LocalDate
 data class PrescriptionSourceUiState(
     val isLoading: Boolean = true,
     val medName: String? = null,
+    /** 위 띠에 그릴 약 모양·색 (약을 못 찾으면 null) */
+    val shape: com.cau.medicheck.domain.MedicationShape? = null,
+    val color: com.cau.medicheck.domain.MedicationColor? = null,
     val hospital: String = "",
     val department: String = "",
     val memo: String = "",
@@ -66,6 +69,8 @@ class PrescriptionSourceViewModel(
                 it.copy(
                     isLoading = false,
                     medName = med?.name,
+                    shape = med?.shape,
+                    color = med?.color,
                     hospital = med?.hospital.orEmpty(),
                     department = med?.department.orEmpty(),
                     memo = med?.sourceMemo.orEmpty()

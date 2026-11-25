@@ -17,6 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.components.HeroHeader
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.Icons
 import com.cau.medicheck.domain.CsvExporter
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.Kicker
@@ -53,42 +57,25 @@ fun S43CsvExportScreen(
         BackLink(stringResource(R.string.common_back_previous), onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
-        SurfaceCard {
-            Kicker(stringResource(R.string.s43_kicker))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp)
-            ) {
-                Text(stringResource(R.string.s43_format), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy)
-                Pill(stringResource(R.string.s43_format_badge), PillKind.MINT)
-            }
-            LabelValueRow(stringResource(R.string.s43_label_target), stringResource(R.string.s43_target))
-            LabelValueRow(
-                stringResource(R.string.s43_label_days),
-                // 아직 읽는 중이면 "0일"이 잠깐 보이지 않게 줄표를 둔다.
-                state.pastDays?.let { stringResource(R.string.s43_days, it) } ?: "—",
-                showDivider = false
-            )
-            McButton(
-                text = stringResource(R.string.s43_btn_download),
-                // 저장 화면의 이름 칸에 파일 이름을 미리 넣어 둔다.
-                onClick = {
-                    // 드물게 파일 저장 화면이 없는 폰이 있다. 그때 앱이 꺼지지 않게 한다.
-                    try {
-                        saveFile.launch(CsvExporter.FILE_NAME)
-                    } catch (e: ActivityNotFoundException) {
-                        onSaveScreenUnavailable()
-                    }
-                },
-                full = true,
-                loading = state.isExporting,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-        }
-
-        Notice(stringResource(R.string.s43_notice), Modifier.padding(top = 16.dp), warn = true)
+        // 2026-11-25 다시 그림: 가운데 아이콘 + 무엇을 내보내는지 한 줄 + 단추 + 작은 주의 한 줄
+        HeroHeader(
+            icon = Icons.Rounded.FileDownload,
+            color = Teal,
+            title = stringResource(R.string.s43_format),
+            subtitle = stringResource(R.string.s43_target) + (state.pastDays?.let { " · " + stringResource(R.string.s43_days, it) } ?: "")
+        )
+        McButton(
+            text = stringResource(R.string.s43_btn_download),
+            onClick = {
+                try {
+                    saveFile.launch(CsvExporter.FILE_NAME)
+                } catch (e: ActivityNotFoundException) {
+                    onSaveScreenUnavailable()
+                }
+            },
+            full = true,
+            loading = state.isExporting
+        )
+        Notice(stringResource(R.string.s43_notice), Modifier.padding(top = 14.dp))
     }
 }

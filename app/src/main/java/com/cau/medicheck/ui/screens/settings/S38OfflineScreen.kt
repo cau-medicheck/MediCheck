@@ -14,6 +14,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.components.StatusBanner
+import com.cau.medicheck.ui.components.RowsCard
+import com.cau.medicheck.ui.components.IconRow
+import com.cau.medicheck.ui.components.GroupLabel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.Medication
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.FactCheck
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.Icons
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.Notice
@@ -49,62 +62,20 @@ fun S38OfflineScreen(online: Boolean, actions: OfflineActions) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
-        // ----- 지금 연결 상태 -----
-        SurfaceCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.s38_status_title),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Navy
-                    )
-                    Text(
-                        text = stringResource(if (online) R.string.s38_status_online else R.string.s38_status_offline),
-                        fontSize = 12.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 5.dp)
-                    )
-                }
-                Spacer(Modifier.width(10.dp))
-                // 색만으로 구분하지 않도록 배지에 글자("연결됨"/"오프라인")를 함께 쓴다.
-                Pill(
-                    text = stringResource(if (online) R.string.s38_pill_online else R.string.s38_pill_offline),
-                    kind = if (online) PillKind.MINT else PillKind.ORANGE
-                )
-            }
-            Notice(
-                text = stringResource(if (online) R.string.s38_notice_online else R.string.s38_notice_offline),
-                modifier = Modifier.padding(top = Gap16),
-                warn = !online
-            )
-        }
+        // 2026-11-25 다시 그림: 상태 띠(연결됨 청록 / 오프라인 주황) + "인터넷 없이도 돼요" 아이콘 줄 넷
+        StatusBanner(
+            good = online,
+            icon = if (online) Icons.Rounded.Wifi else Icons.Rounded.WifiOff,
+            title = stringResource(if (online) R.string.s38_pill_online else R.string.s38_pill_offline),
+            sub = stringResource(R.string.s38_banner_sub)
+        )
 
-        // ----- 인터넷 없이 쓸 수 있는 화면들 -----
-        SurfaceCard(Modifier.padding(top = Gap16), padding = 0.dp) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 3.dp)) {
-                OptionRow(
-                    title = stringResource(R.string.s38_row_meds_title),
-                    description = stringResource(R.string.s38_row_meds_desc),
-                    onClick = actions.onOpenMeds
-                )
-                OptionRow(
-                    title = stringResource(R.string.s38_row_schedule_title),
-                    description = stringResource(R.string.s38_row_schedule_desc),
-                    onClick = actions.onOpenSchedule
-                )
-                OptionRow(
-                    title = stringResource(R.string.s38_row_records_title),
-                    description = stringResource(R.string.s38_row_records_desc),
-                    onClick = actions.onOpenRecords
-                )
-                OptionRow(
-                    title = stringResource(R.string.s38_row_verify_title),
-                    description = stringResource(R.string.s38_row_verify_desc),
-                    onClick = actions.onOpenVerify,
-                    showDivider = false
-                )
-            }
+        GroupLabel(stringResource(R.string.s38_section_works), Modifier.padding(top = 22.dp))
+        RowsCard {
+            IconRow(Icons.Rounded.Medication, Teal, stringResource(R.string.s38_row_meds_title), onClick = actions.onOpenMeds)
+            IconRow(Icons.Rounded.CalendarMonth, Color(0xFF4779C5), stringResource(R.string.s38_row_schedule_title), onClick = actions.onOpenSchedule)
+            IconRow(Icons.Rounded.History, Color(0xFF8064C1), stringResource(R.string.s38_row_records_title), onClick = actions.onOpenRecords)
+            IconRow(Icons.Rounded.FactCheck, Color(0xFF71858E), stringResource(R.string.s38_row_verify_title), onClick = actions.onOpenVerify, showDivider = false)
         }
     }
 }

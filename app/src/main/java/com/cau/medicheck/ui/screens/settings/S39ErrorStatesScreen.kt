@@ -66,7 +66,7 @@ fun S39ErrorStatesScreen(onBack: () -> Unit, onAddMedication: () -> Unit, onOpen
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
         SurfaceCard {
-            Text(stringResource(R.string.s39_card_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
+            Text(stringResource(R.string.s39_card_title), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Navy)
             SegmentedTabs(
                 labels = EXAMPLES.map { stringResource(it.tabRes) },
                 selectedIndex = selected,

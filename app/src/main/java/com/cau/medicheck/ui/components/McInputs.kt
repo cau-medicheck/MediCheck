@@ -116,13 +116,13 @@ fun ToggleRow(
             .padding(vertical = verticalPadding)
     ) {
         Column(Modifier.weight(1f)) {
-            Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Navy)
-            Text(
+            Text(text = title, fontSize = 14.5.sp, fontWeight = FontWeight.Medium, color = Navy)
+            if (description.isNotEmpty()) Text(
                 text = description,
-                fontSize = 11.sp,
-                lineHeight = 16.sp,
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
                 color = SettingDescText,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 3.dp)
             )
         }
         Spacer(Modifier.width(10.dp))
@@ -163,13 +163,13 @@ fun RadioRow(
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Navy)
-            Text(
+            Text(text = title, fontSize = 14.5.sp, fontWeight = FontWeight.Medium, color = Navy)
+            if (description.isNotEmpty()) Text(
                 text = description,
-                fontSize = 11.sp,
-                lineHeight = 16.sp,
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
                 color = SettingDescText,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 3.dp)
             )
             if (extra != null) {
                 Text(text = extra, fontSize = 11.sp, lineHeight = 16.sp, color = Teal, modifier = Modifier.padding(top = 3.dp))
@@ -194,13 +194,13 @@ fun SettingRow(
     Column(modifier.then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 13.dp)) {
             Column(Modifier.weight(1f)) {
-                Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Navy)
-                Text(
+                Text(text = title, fontSize = 14.5.sp, fontWeight = FontWeight.Medium, color = Navy)
+                if (description.isNotEmpty()) Text(
                     text = description,
-                    fontSize = 11.sp,
-                    lineHeight = 16.sp,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
                     color = SettingDescText,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 3.dp)
                 )
             }
             Spacer(Modifier.width(12.dp))

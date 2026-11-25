@@ -22,6 +22,21 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Muted
+import com.cau.medicheck.ui.components.RowsCard
+import com.cau.medicheck.ui.components.IconRow
+import com.cau.medicheck.ui.components.HeroHeader
+import com.cau.medicheck.ui.components.GroupLabel
+import com.cau.medicheck.ui.components.DangerFill
+import com.cau.medicheck.ui.components.ActionPair
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.rounded.PersonRemove
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Medication
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.fillMaxWidth
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.FieldLabel
@@ -61,50 +76,51 @@ fun S44AccountDeleteScreen(deleting: Boolean, onDelete: (String) -> Unit, onBack
         BackLink(stringResource(R.string.common_back_previous), onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
-        SurfaceCard {
-            Text(
-                text = stringResource(R.string.s44_card_title),
-                fontSize = 17.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = DangerTitle,
-                // heading: TalkBack이 이 글자를 "제목"으로 읽는다.
-                modifier = Modifier.semantics { heading() }
-            )
-            Text(
-                text = stringResource(R.string.s44_card_body),
-                fontSize = 12.sp,
-                lineHeight = 19.sp,
-                color = ParagraphText,
-                modifier = Modifier.padding(top = 10.dp)
-            )
-
-            val label = stringResource(R.string.s44_label)
-            FieldLabel(label)
-            FormField(
-                value = confirmText,
-                onValueChange = { confirmText = it },
-                placeholder = stringResource(R.string.s44_confirm_word),
-                label = label,
-                enabled = !deleting,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Done
-                ),
-                // 키보드의 '완료' 키는 키보드만 내린다. 되돌릴 수 없는 삭제는 아래 빨간 버튼을 직접 눌러야만 실행한다.
-                keyboardActions = KeyboardActions(onDone = { keyboard?.hide() })
-            )
-
-            Spacer(Modifier.height(Gap16))
-            McButton(
-                text = stringResource(R.string.s44_button),
-                onClick = submit,
-                kind = ButtonKind.RED,
-                full = true,
-                loading = deleting
-            )
+        // 2026-11-25 다시 그림: 빨간 동그라미 + 묻는 말 + "함께 지워져요" 세 줄 + 확인 칸 + 빨간 단추
+        HeroHeader(
+            icon = Icons.Rounded.PersonRemove,
+            color = DangerFill,
+            title = stringResource(R.string.s44_card_title),
+            subtitle = stringResource(R.string.s44_sub)
+        )
+        GroupLabel(stringResource(R.string.s44_section_gone))
+        RowsCard {
+            IconRow(Icons.Rounded.Medication, Color(0xFF8A9AA1), stringResource(R.string.s44_gone_meds))
+            IconRow(Icons.Rounded.History, Color(0xFF8A9AA1), stringResource(R.string.s44_gone_history))
+            IconRow(Icons.Rounded.NotificationsOff, Color(0xFF8A9AA1), stringResource(R.string.s44_gone_alarms), showDivider = false)
         }
 
-        Notice(stringResource(R.string.s44_notice), Modifier.padding(top = Gap16), warn = true)
+        val label = stringResource(R.string.s44_label)
+        FieldLabel(label, Modifier.padding(top = 10.dp))
+        FormField(
+            value = confirmText,
+            onValueChange = { confirmText = it },
+            placeholder = stringResource(R.string.s44_confirm_word),
+            label = label,
+            enabled = !deleting,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = { keyboard?.hide() })
+        )
+        ActionPair(
+            secondaryText = stringResource(R.string.action_cancel),
+            onSecondary = onBack,
+            primaryText = stringResource(R.string.s44_button),
+            onPrimary = submit,
+            loading = deleting,
+            danger = true,
+            modifier = Modifier.padding(top = 18.dp)
+        )
+        Text(
+            stringResource(R.string.s44_notice),
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+            color = Muted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+        )
     }
 }

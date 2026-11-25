@@ -8,6 +8,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.components.GroupLabel
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.Kicker
@@ -36,9 +37,10 @@ fun S46SafetyScopeScreen(state: SafetyScopeUiState, onBack: () -> Unit, onOpenMa
         BackLink(stringResource(R.string.common_back_previous), onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
-        SurfaceCard {
-            // 프로토타입처럼 영문을 대문자로 보여 준다("WON’T"). 한글에는 영향이 없다.
-            Kicker(stringResource(R.string.s46_kicker).uppercase())
+        // 2026-11-25: 묶음 제목 + 카드 (글씨 가볍게)
+        GroupLabel(stringResource(R.string.s46_kicker))
+        SurfaceCard(padding = 0.dp) {
+          androidx.compose.foundation.layout.Column(Modifier.padding(horizontal = 15.dp)) {
             if (state.loadFailed) {
                 Notice(stringResource(R.string.req_load_failed), Modifier.padding(top = 10.dp), warn = true)
             }
@@ -50,6 +52,7 @@ fun S46SafetyScopeScreen(state: SafetyScopeUiState, onBack: () -> Unit, onOpenMa
                     trailing = { Pill(moscowLabel(requirement.moscow), PillKind.ORANGE) }
                 )
             }
+          }
         }
 
         // 첫 문장만 굵게 그리려고 문구를 HTML 조각으로 적어 두었다(strings.xml). fromHtml이 굵기·줄바꿈을 해석한다.

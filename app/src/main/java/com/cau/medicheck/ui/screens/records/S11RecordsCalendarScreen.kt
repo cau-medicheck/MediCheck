@@ -14,6 +14,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.TimelineDotMissed
+import com.cau.medicheck.ui.theme.TimelineDotSkipped
+import com.cau.medicheck.ui.theme.HomeChipMissedText
+import com.cau.medicheck.ui.theme.HomeChipSkippedText
+import com.cau.medicheck.ui.theme.HomeChipDoneText
+import com.cau.medicheck.ui.theme.RateGood
+import com.cau.medicheck.ui.components.StatusCountRow
+import com.cau.medicheck.ui.components.StatusCount
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.McButton
 import com.cau.medicheck.ui.components.McScreenColumn
@@ -53,24 +61,28 @@ fun S11RecordsCalendarScreen(
             )
         }
 
-        // 고른 날짜의 요약: "11월 16일 월요일" / "완료 1 · 건너뜀 0 · 미기록 1"   [기록 보기 ›]
-        SurfaceCard(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(fullDateText(state.day), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy)
-                    Text(
-                        // 읽어 오는 잠깐 동안은 "완료 0 · …"이 번쩍이지 않게 비워 둔다.
-                        text = if (state.isLoading) "" else stringResource(
-                            R.string.s11_summary, state.counts.taken, state.counts.skipped, state.counts.missed
-                        ),
-                        fontSize = 11.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-                Spacer(Modifier.width(10.dp))
-                McButton(stringResource(R.string.s11_btn_open), onOpenDay, kind = ButtonKind.LIGHT, small = true)
+        // 고른 날짜의 요약: 날짜 + 완료·건너뜀·미복용 칸(일정 탭·통계와 같은 모양) + 넓은 "이날 기록 보기" (2026-11-25)
+        SurfaceCard(Modifier.padding(top = 14.dp)) {
+            Text(fullDateText(state.day), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Navy)
+            if (!state.isLoading) {
+                val c = state.counts
+                StatusCountRow(
+                    items = listOf(
+                        StatusCount(stringResource(R.string.common_count_taken), c.taken, RateGood, HomeChipDoneText),
+                        StatusCount(stringResource(R.string.common_count_skipped), c.skipped, TimelineDotSkipped, HomeChipSkippedText),
+                        StatusCount(stringResource(R.string.common_count_missed), c.missed, TimelineDotMissed, HomeChipMissedText)
+                    ),
+                    total = c.taken + c.skipped + c.missed,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
             }
+            McButton(
+                stringResource(R.string.s11_btn_open),
+                onOpenDay,
+                kind = ButtonKind.LIGHT,
+                full = true,
+                modifier = Modifier.padding(top = 14.dp)
+            )
         }
 
     }

@@ -24,6 +24,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.HeroDeepStart
+import com.cau.medicheck.ui.theme.HeroDeepEnd
+import com.cau.medicheck.ui.components.RowsCard
+import com.cau.medicheck.ui.components.IconRow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
 import com.cau.medicheck.ui.components.FieldLabel
@@ -73,55 +89,58 @@ fun S28BackupScreen(state: BackupUiState, actions: BackupActions) {
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = Gap16))
 
-        SurfaceCard {
-            // ----- 지금 이 계정의 데이터 -----
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.s28_current), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy)
-                    Text(
-                        // 아직 읽는 중이면 "0개"가 잠깐 보이지 않게 줄표를 둔다.
-                        text = state.counts?.let { stringResource(R.string.s28_counts, it.medications, it.records) } ?: "—",
-                        fontSize = 12.sp,
-                        color = Muted,
-                        modifier = Modifier.padding(top = 5.dp)
-                    )
-                }
-                Spacer(Modifier.width(10.dp))
-                Pill(stringResource(R.string.s28_chip_device), PillKind.MINT)
-            }
-
-            // ----- 내보내기 -----
-            McButton(
-                text = stringResource(R.string.s28_export),
-                onClick = {
-                    // 드물게 파일 저장 화면이 없는 폰이 있다. 그때 앱이 꺼지지 않게 한다.
-                    try {
-                        saveFile.launch(fileName)   // 저장 화면의 이름 칸에 파일 이름을 미리 넣어 둔다
-                    } catch (e: ActivityNotFoundException) {
-                        actions.onPickerUnavailable()
-                    }
-                },
-                full = true,
-                enabled = idle,
-                loading = state.busy == BackupBusy.EXPORTING,
-                modifier = Modifier.padding(top = Gap16)
+        // 2026-11-25 다시 그림: 맨 위 청록 카드(이 기기에 있는 것) + 아이콘 줄 둘(내보내기·불러오기)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+                .padding(18.dp)
+        ) {
+            Text(stringResource(R.string.s28_current), fontSize = 12.5.sp, color = Color.White.copy(alpha = 0.85f))
+            Text(
+                // 아직 읽는 중이면 "0개"가 잠깐 보이지 않게 줄표를 둔다.
+                text = state.counts?.let { stringResource(R.string.s28_counts, it.medications, it.records) } ?: "—",
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(top = 4.dp)
             )
+        }
 
-            // ----- 불러오기 -----
-            FieldLabel(stringResource(R.string.s28_import_label))
-            McButton(
-                text = stringResource(R.string.s28_import_pick),
-                onClick = {
-                    try {
-                        pickFile.launch(PICKABLE_TYPES)
-                    } catch (e: ActivityNotFoundException) {
-                        actions.onPickerUnavailable()
+        val exportBusy = state.busy == BackupBusy.EXPORTING
+        val importBusy = state.busy == BackupBusy.READING || state.busy == BackupBusy.RESTORING
+        RowsCard(Modifier.padding(top = 14.dp)) {
+            IconRow(
+                Icons.Rounded.CloudUpload, Teal, stringResource(R.string.s28_export),
+                onClick = if (idle) {
+                    {
+                        try {
+                            saveFile.launch(fileName)   // 저장 화면의 이름 칸에 파일 이름을 미리 넣어 둔다
+                        } catch (e: ActivityNotFoundException) {
+                            actions.onPickerUnavailable()
+                        }
                     }
-                },
-                kind = ButtonKind.WHITE,
-                full = true,
-                enabled = idle,
-                loading = state.busy == BackupBusy.READING || state.busy == BackupBusy.RESTORING
+                } else null,
+                trailing = if (exportBusy) {
+                    { CircularProgressIndicator(strokeWidth = 2.dp, color = Teal, modifier = Modifier.size(18.dp)) }
+                } else null
+            )
+            IconRow(
+                Icons.Rounded.CloudDownload, Color(0xFF4779C5), stringResource(R.string.s28_import_pick),
+                onClick = if (idle) {
+                    {
+                        try {
+                            pickFile.launch(PICKABLE_TYPES)
+                        } catch (e: ActivityNotFoundException) {
+                            actions.onPickerUnavailable()
+                        }
+                    }
+                } else null,
+                showDivider = false,
+                trailing = if (importBusy) {
+                    { CircularProgressIndicator(strokeWidth = 2.dp, color = Teal, modifier = Modifier.size(18.dp)) }
+                } else null
             )
         }
 

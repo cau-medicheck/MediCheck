@@ -77,7 +77,7 @@ fun S21ProfileScreen(
         BackLink(stringResource(R.string.s20_back), onBack)
         ScreenIntro(modifier = Modifier.padding(top = Gap16))
         // 가운데 청록 동그라미 + 이름·이메일. 입력하는 대로 바로 바뀐다 (2026-11-25 시안 B)
-        ProfileBadge(nameInput.trim(), emailInput.trim(), Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp, bottom = 6.dp))
+        ProfileBadge(nameInput.trim(), emailInput.trim(), Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp, bottom = 10.dp))
 
         val nameLabel = stringResource(R.string.s21_label_name)
         FieldLabel(nameLabel)
@@ -116,22 +116,36 @@ fun S21ProfileScreen(
     }
 }
 
-/** 청록 동그라미(이름 첫 글자) + 아래 "이름님" · 이메일. 이름이 비어 있으면 동그라미는 비워 둔다 */
+/**
+ * 청록 동그라미(이름 첫 글자, 바깥 연한 청록 테두리) + 아래 "이름님" · 이메일.
+ * 비어 있으면 전수환 디자인 파일(MediCheck_S21_Redesign.html B안)처럼: 동그라미 "·", 이름 "사용자님", 이메일 "이메일 미입력"
+ */
 @Composable
 private fun ProfileBadge(name: String, email: String, modifier: Modifier = Modifier) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.clearAndSetSemantics { }) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(76.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+            modifier = Modifier.size(102.dp).clip(CircleShape).background(AvatarRing)
         ) {
-            Text(name.take(1), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
+            ) {
+                Text(name.take(1).ifEmpty { "·" }, fontSize = 38.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            }
         }
-        if (name.isNotEmpty()) {
-            Text(stringResource(R.string.s19_name, name), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.padding(top = 9.dp))
-        }
-        Text(email, fontSize = 12.sp, color = Muted, modifier = Modifier.padding(top = 2.dp))
+        Text(
+            stringResource(R.string.s19_name, name.ifEmpty { stringResource(R.string.s21_name_default) }),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Navy,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+        Text(email.ifEmpty { stringResource(R.string.s21_email_empty) }, fontSize = 13.sp, color = Muted, modifier = Modifier.padding(top = 4.dp))
     }
 }
+
+private val AvatarRing = Color(0xFFE6F3F0)

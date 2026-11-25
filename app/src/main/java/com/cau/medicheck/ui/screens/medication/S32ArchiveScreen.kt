@@ -47,12 +47,12 @@ fun S32ArchiveScreen(
         SurfaceCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.s32_count_label), fontSize = 11.sp, color = Muted)
+                    Text(stringResource(R.string.s32_count_label), fontSize = 12.5.sp, color = Muted)
                     Text(
                         text = stringResource(R.string.s32_count, state.archive.total),
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-1).sp,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.6).sp,
                         color = MetricText
                     )
                 }

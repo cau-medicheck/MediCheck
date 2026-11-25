@@ -14,6 +14,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.theme.RowSubText
+import com.cau.medicheck.ui.theme.Line
+import com.cau.medicheck.ui.components.RowsCard
+import com.cau.medicheck.ui.components.HeroHeader
+import com.cau.medicheck.ui.components.GroupLabel
+import com.cau.medicheck.ui.components.ActionPair
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import com.cau.medicheck.ui.components.Avatar
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.ButtonKind
@@ -48,69 +69,50 @@ fun S34NotificationDeniedScreen(
         BackLink(stringResource(R.string.common_back_previous), actions.onBack)
         ScreenIntro(modifier = Modifier.padding(vertical = 16.dp))
 
-        SurfaceCard {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                // 그림 글자는 장식이라 TalkBack이 읽지 않게 한다.
-                GlyphText(
-                    symbol = if (notificationsOn) Glyph.BELL else Glyph.BELL_OFF,
-                    fontSize = 40,
-                    modifier = Modifier.clearAndSetSemantics { }
-                )
-                Text(
-                    text = stringResource(if (notificationsOn) R.string.s34_on_title else R.string.s34_off_title),
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Navy,
-                    modifier = Modifier.padding(top = 12.dp, bottom = 9.dp)
-                )
-                Text(
-                    text = stringResource(if (notificationsOn) R.string.s34_on_body else R.string.s34_off_body),
-                    fontSize = 12.sp,
-                    lineHeight = 19.sp,
-                    color = Muted,
-                    textAlign = TextAlign.Center
-                )
-                if (!notificationsOn) {
-                    McButton(
-                        text = stringResource(R.string.s34_allow),
-                        onClick = actions.onRequestNotification,
-                        full = true,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
-                McButton(
-                    text = stringResource(R.string.s34_btn_schedule),
-                    onClick = actions.onOpenOther,
-                    kind = ButtonKind.WHITE,
-                    full = true,
-                    modifier = Modifier.padding(top = if (notificationsOn) 16.dp else 8.dp)
-                )
-            }
+        // 2026-11-25 다시 그림: 가운데 큰 종 아이콘(켜짐 청록 / 꺼짐 주황) + 제목 + 한 줄 + 단추
+        HeroHeader(
+            icon = if (notificationsOn) Icons.Rounded.NotificationsActive else Icons.Rounded.NotificationsOff,
+            color = if (notificationsOn) Teal else Color(0xFFE08A2E),
+            title = stringResource(if (notificationsOn) R.string.s34_on_title else R.string.s34_off_title),
+            subtitle = stringResource(if (notificationsOn) R.string.s34_on_body else R.string.s34_off_body)
+        )
+        if (!notificationsOn) {
+            ActionPair(
+                secondaryText = stringResource(R.string.s34_btn_schedule),
+                onSecondary = actions.onOpenOther,
+                primaryText = stringResource(R.string.s34_allow),
+                onPrimary = actions.onRequestNotification
+            )
+        } else {
+            McButton(stringResource(R.string.s34_btn_schedule), actions.onOpenOther, kind = ButtonKind.LIGHT, full = true)
         }
 
-        SectionTitle(stringResource(R.string.s34_section))
-        SurfaceCard(padding = 0.dp) {
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                StepRow("1", R.string.s34_step1, actions.onRequestNotification)
-                StepRow("2", R.string.s34_step2, if (exactAlarmNeedsCheck) actions.onOpenExactAlarm else null)
-                StepRow("3", R.string.s34_step3, actions.onOpenAppDetails, showDivider = false)
-            }
+        GroupLabel(stringResource(R.string.s34_section), Modifier.padding(top = 26.dp))
+        RowsCard {
+            StepRow(1, R.string.s34_step1, actions.onRequestNotification)
+            StepRow(2, R.string.s34_step2, if (exactAlarmNeedsCheck) actions.onOpenExactAlarm else null)
+            StepRow(3, R.string.s34_step3, actions.onOpenAppDetails, showDivider = false)
         }
-
     }
 }
 
-/** 번호 + 할 일 한 줄. 누를 수 있는 줄에만 오른쪽에 "›"를 그린다. */
+/** 번호(청록 동그라미) + 할 일 한 줄. 누를 수 있는 줄에만 오른쪽에 "›"를 그린다. */
 @Composable
-private fun StepRow(number: String, textRes: Int, onClick: (() -> Unit)?, showDivider: Boolean = true) {
-    ListRow(
-        leading = { Avatar(number, Modifier.clearAndSetSemantics { }) },
-        trailing = if (onClick != null) {
-            { Text("›", fontSize = 16.sp, color = DateChipText, modifier = Modifier.clearAndSetSemantics { }) }
-        } else null,
-        showDivider = showDivider,
-        onClick = onClick
-    ) {
-        RowTitle(stringResource(textRes))
+private fun StepRow(number: Int, textRes: Int, onClick: (() -> Unit)?, showDivider: Boolean = true) {
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+                .heightIn(min = 56.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(26.dp).clip(CircleShape).background(Teal).clearAndSetSemantics { }) {
+                Text(number.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            }
+            Text(stringResource(textRes), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Navy, modifier = Modifier.weight(1f).padding(start = 12.dp))
+            if (onClick != null) Text("›", fontSize = 20.sp, color = RowSubText, modifier = Modifier.clearAndSetSemantics { })
+        }
+        if (showDivider) HorizontalDivider(color = Line, modifier = Modifier.padding(start = 38.dp))
     }
 }

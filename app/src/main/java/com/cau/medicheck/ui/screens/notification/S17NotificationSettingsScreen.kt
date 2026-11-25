@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.UserSettings
 import com.cau.medicheck.ui.components.BackLink
+import com.cau.medicheck.ui.components.GroupLabel
+import com.cau.medicheck.ui.components.IconTile
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSwitch
 import com.cau.medicheck.ui.components.ScreenIntro
@@ -88,7 +90,7 @@ fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationS
         BackLink(stringResource(R.string.s17_back), actions.onBack)
         ScreenIntro(modifier = Modifier.padding(top = 16.dp, bottom = 20.dp))
 
-        SectionLabel(stringResource(R.string.s17_section_alerts))
+        GroupLabel(stringResource(R.string.s17_section_alerts))
         SurfaceCard(padding = 0.dp) {
             Column(Modifier.padding(horizontal = 15.dp)) {
                 SwitchLine(Icons.Outlined.Notifications, Teal, R.string.s17_reminder_title, main, enabled = true, onChange = actions.onReminder)
@@ -106,7 +108,7 @@ fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationS
             }
         }
 
-        SectionLabel(stringResource(R.string.s17_section_more), Modifier.padding(top = 24.dp))
+        GroupLabel(stringResource(R.string.s17_section_more), Modifier.padding(top = 24.dp))
         SurfaceCard(padding = 0.dp) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -133,28 +135,6 @@ fun S17NotificationSettingsScreen(settings: UserSettings, actions: NotificationS
             BottomButton(Icons.Outlined.Notifications, stringResource(R.string.s17_test_short), primary = false, onClick = actions.onSendTest, modifier = Modifier.weight(1f))
             BottomButton(Icons.Outlined.Visibility, stringResource(R.string.s17_btn_preview), primary = true, onClick = actions.onOpenPreview, modifier = Modifier.weight(1.12f))
         }
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = Muted,
-        modifier = modifier.padding(start = 3.dp, bottom = 8.dp).semantics { heading() }
-    )
-}
-
-/** 진한 색 네모 + 흰 아이콘 */
-@Composable
-private fun IconTile(icon: ImageVector, color: Color) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(color)
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
     }
 }
 

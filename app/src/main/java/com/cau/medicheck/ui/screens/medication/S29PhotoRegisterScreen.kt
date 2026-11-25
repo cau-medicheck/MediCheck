@@ -30,6 +30,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cau.medicheck.R
+import com.cau.medicheck.ui.theme.Teal
+import com.cau.medicheck.ui.components.IconTile
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.Icons
 import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.FieldLabel
 import com.cau.medicheck.ui.components.Glyph
@@ -118,11 +122,11 @@ private fun UploadBox() {
             }
             .padding(horizontal = 15.dp, vertical = 30.dp)
     ) {
-        Text(text = Glyph.UPLOAD, fontSize = 35.sp, color = Muted, modifier = Modifier.clearAndSetSemantics { })
+        IconTile(Icons.Rounded.PhotoCamera, Teal, size = 52.dp, iconSize = 28.dp, modifier = Modifier.clearAndSetSemantics { })
         Text(
             text = stringResource(R.string.s29_upload_title),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
             color = Navy,
             modifier = Modifier.padding(vertical = 12.dp)
         )
