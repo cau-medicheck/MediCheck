@@ -471,13 +471,10 @@
     <string name="s08_toast_saved">약 정보가 저장되었습니다.</string>
 
     <!-- ===== S09 삭제 확인 ===== -->
-    <string name="s09_back">취소하고 돌아가기</string>
-    <string name="s09_title">약을 삭제할까요?</string>
+    <string name="s09_back">약 상세</string>
+    <string name="s09_title">이 약을 삭제할까요?</string>
     <!-- "{약 이름}" 바로 뒤에 붙는다 (이름만 굵게 그리려고 나눠 두었다) -->
-    <string name="s09_body_tail">은(는) 앞으로의 일정에서 빠져요.</string>
-    <string name="s09_body_second">지난 기록은 그대로 남아요.</string>
-    <string name="s09_btn_delete">삭제하기</string>
-    <string name="s09_btn_keep">계속 사용하기</string>
+    <string name="s09_btn_delete">%1$s 삭제</string>
     <string name="s09_toast_deleted">약을 삭제했어요.</string>
 
     <string name="s29_upload_title">약 봉투 사진 추가</string>

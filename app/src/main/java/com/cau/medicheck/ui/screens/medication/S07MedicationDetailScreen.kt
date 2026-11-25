@@ -282,7 +282,7 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
 
 /** "매일 12:30 식후" / "매일 08:00 식전 · 20:00" / 시간마다 요일이 다르면 "월·수·금 08:00, 매일 20:00" */
 @Composable
-private fun whenText(med: MedicationDetail): String {
+internal fun whenText(med: MedicationDetail): String {
     val dayLabels = stringArrayResource(R.array.common_weekdays).toList()
     val everyDay = stringResource(R.string.common_every_day)
     val schedules = med.schedules.sortedBy { it.time }
