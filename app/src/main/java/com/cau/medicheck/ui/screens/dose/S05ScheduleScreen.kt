@@ -111,7 +111,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                 Text(
                     text = fullDateText(state.date),
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.3).sp,
                     color = Navy
                 )
@@ -174,7 +174,7 @@ fun S05ScheduleScreen(state: DayDosesUiState, actions: ScheduleActions) {
                     Text(
                         text = fullDateText(state.date),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Bold,
                         color = Navy,
                         modifier = Modifier.weight(1f).semantics { heading() }
                     )

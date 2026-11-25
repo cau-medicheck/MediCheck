@@ -116,7 +116,7 @@ fun S36PrivacyScreen(settings: UserSettings, actions: PrivacyActions) {
         Text(
             text = stringResource(R.string.s36_row_delete_title),
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = DangerTitle,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -158,7 +158,7 @@ private fun HideTile(
         Text(
             label,
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             modifier = Modifier.padding(top = 12.dp).clearAndSetSemantics { }
         )

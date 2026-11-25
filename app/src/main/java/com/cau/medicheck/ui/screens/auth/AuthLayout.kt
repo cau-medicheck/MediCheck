@@ -225,7 +225,7 @@ fun AuthCardTitle(text: String) {
     Text(
         text = text,
         fontSize = 21.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontWeight = FontWeight.Bold,
         color = Navy,
         modifier = Modifier.padding(bottom = 4.dp).semantics { heading() }
     )
@@ -239,7 +239,7 @@ fun AuthFooterLink(question: String, action: String, onClick: () -> Unit) {
         Text(
             text = action,
             fontSize = 13.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Teal,
             modifier = Modifier
                 .padding(start = 4.dp)

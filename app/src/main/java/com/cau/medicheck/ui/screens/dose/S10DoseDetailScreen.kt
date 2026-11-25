@@ -134,7 +134,7 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
                         text = dose.medicationName,
                         fontSize = 22.sp,
                         lineHeight = 30.sp,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.8).sp,
                         color = Navy,
                         modifier = Modifier.weight(1f, fill = false).semantics { heading() }
@@ -157,7 +157,7 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
     Text(
         text = stringResource(R.string.s10_section_state),
         fontSize = 14.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontWeight = FontWeight.Bold,
         color = Navy,
         modifier = Modifier.padding(start = 2.dp, top = 20.dp, bottom = 10.dp).semantics { heading() }
     )
@@ -221,8 +221,8 @@ private fun StateTile(
             .selectable(selected = on, enabled = enabled, role = Role.RadioButton, onClick = { onMark(target) })
             .padding(vertical = 12.dp)
     ) {
-        Text(symbol, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = if (on) Color.White else Navy)
-        Text(stringResource(labelRes), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = if (on) Color.White else Navy, modifier = Modifier.padding(top = 2.dp))
+        Text(symbol, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = if (on) Color.White else Navy)
+        Text(stringResource(labelRes), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (on) Color.White else Navy, modifier = Modifier.padding(top = 2.dp))
     }
 }
 

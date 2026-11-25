@@ -192,7 +192,7 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
                             text = med.name,
                             fontSize = 23.sp,
                             lineHeight = 31.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.9).sp,
                             color = Navy,
                             modifier = Modifier
@@ -345,7 +345,7 @@ private fun NextDoseBand(dose: DoseItem?, status: MedicationStatus) {
         }
         Column(Modifier.padding(start = 12.dp)) {
             Text(label, fontSize = 11.sp, color = if (active) Color.White.copy(alpha = 0.85f) else HomeChipWaitText)
-            Text(value, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -359,7 +359,7 @@ private fun RecentWeek(days: List<RecentDay>, counts: DoseCounts) {
             Text(
                 text = stringResource(R.string.s07_recent_title),
                 fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = Navy,
                 modifier = Modifier.semantics { heading() }
             )
@@ -395,7 +395,7 @@ private fun RateRing(rate: Int) {
             drawArc(ProgressTrack, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
             drawArc(arc, -90f, 360f * rate / 100f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
         }
-        Text(stringResource(R.string.s07_recent_rate, rate), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = text)
+        Text(stringResource(R.string.s07_recent_rate, rate), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = text)
     }
 }
 
@@ -487,12 +487,12 @@ private fun DayCircle(day: RecentDay, isToday: Boolean) {
                 .size(34.dp)
                 .markCircle(day.mark)
         ) {
-            Text(symbol, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = fg)
+            Text(symbol, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = fg)
         }
         Text(
             text = dayName,
             fontSize = 11.sp,
-            fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
             color = if (isToday) Navy else Muted,
             modifier = Modifier.padding(top = 5.dp)
         )

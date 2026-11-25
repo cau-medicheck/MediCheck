@@ -286,7 +286,7 @@ fun S25CaregiverDashboardScreen(onBack: () -> Unit) {
             Text(
                 text = stringResource(R.string.s25_metric),
                 fontSize = 30.sp,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight.Bold,
                 color = Navy,
                 modifier = Modifier.padding(top = Gap16)
             )

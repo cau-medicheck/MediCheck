@@ -48,7 +48,7 @@ fun MonthSwitcher(month: YearMonth, onPrev: () -> Unit, onNext: () -> Unit, modi
         Text(
             text = monthTitleText(month),
             fontSize = 16.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)

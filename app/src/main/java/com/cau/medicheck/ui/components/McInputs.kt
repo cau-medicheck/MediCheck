@@ -278,7 +278,7 @@ fun DayToggleRow(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit, modifi
                 Text(
                     text = labels[index],
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = if (on) Color.White else DayBtnText,
                     modifier = Modifier.clearAndSetSemantics { }
                 )

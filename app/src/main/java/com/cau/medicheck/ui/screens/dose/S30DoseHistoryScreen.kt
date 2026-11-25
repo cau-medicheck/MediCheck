@@ -76,7 +76,7 @@ fun S30DoseHistoryScreen(
                 Text(
                     text = fullDateText(date),
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = Navy,
                     modifier = Modifier.padding(start = 2.dp, top = 18.dp, bottom = 8.dp).semantics { heading() }
                 )

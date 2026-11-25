@@ -244,7 +244,7 @@ fun CircleProgress(percent: Int?, modifier: Modifier = Modifier) {
             text = if (percent == null) stringResource(R.string.common_na)
             else stringResource(R.string.common_percent, percent),
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Color.White
         )
     }

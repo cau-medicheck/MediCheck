@@ -157,7 +157,7 @@ private fun WeekRateCard(stats: PeriodStats, today: LocalDate, onOpenStats: () -
             Text(
                 text = stringResource(R.string.s04_week_title),
                 fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = Navy,
                 modifier = Modifier.weight(1f).semantics { heading() }
             )
@@ -173,7 +173,7 @@ private fun WeekRateCard(stats: PeriodStats, today: LocalDate, onOpenStats: () -
             },
             fontSize = 34.sp,
             lineHeight = 40.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             letterSpacing = (-1).sp,
             color = Navy,
             modifier = Modifier.padding(top = 10.dp, bottom = 14.dp)
@@ -232,7 +232,7 @@ private fun ScheduleCard(state: DayDosesUiState, actions: HomeActions, onOpenDos
             Text(
                 text = stringResource(R.string.s04_section_schedule),
                 fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = Navy,
                 modifier = Modifier.weight(1f).semantics { heading() }
             )

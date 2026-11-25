@@ -42,7 +42,7 @@ fun AuthTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         fontSize = 26.sp,
-        fontWeight = FontWeight.Black,
+        fontWeight = FontWeight.Bold,
         letterSpacing = (-1).sp,
         color = AuthTitleText,
         textAlign = TextAlign.Center,

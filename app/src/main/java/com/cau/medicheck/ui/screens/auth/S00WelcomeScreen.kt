@@ -49,7 +49,7 @@ fun S00WelcomeScreen(onFinish: () -> Unit, initialPage: Int = 0) {
         Text(
             text = stringResource(current.titleRes),
             fontSize = 23.sp,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()

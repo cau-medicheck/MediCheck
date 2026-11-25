@@ -134,13 +134,13 @@ private fun ProfileBadge(name: String, email: String, modifier: Modifier = Modif
                     .clip(CircleShape)
                     .background(Brush.linearGradient(listOf(HeroDeepStart, HeroDeepEnd)))
             ) {
-                Text(name.take(1).ifEmpty { "·" }, fontSize = 38.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text(name.take(1).ifEmpty { "·" }, fontSize = 38.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
         Text(
             stringResource(R.string.s19_name, name.ifEmpty { stringResource(R.string.s21_name_default) }),
             fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             modifier = Modifier.padding(top = 12.dp)
         )

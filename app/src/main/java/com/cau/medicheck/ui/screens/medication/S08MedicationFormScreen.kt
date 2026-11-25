@@ -279,7 +279,7 @@ private fun FormCard(title: String, content: @Composable ColumnScope.() -> Unit)
         Text(
             text = title,
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Navy,
             modifier = Modifier.padding(bottom = 2.dp).semantics { heading() }
         )
@@ -320,7 +320,7 @@ private fun FormPreview(state: MedicationEditUiState) {
                 Text(
                     text = state.name.ifBlank { stringResource(if (state.isNew) R.string.s08_title_new else R.string.s08_title_edit) },
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = if (state.name.isBlank()) Muted else Navy,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

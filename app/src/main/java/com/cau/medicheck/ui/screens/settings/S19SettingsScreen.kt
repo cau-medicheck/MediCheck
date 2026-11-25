@@ -125,16 +125,16 @@ fun S19SettingsScreen(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(46.dp).clip(CircleShape).background(Color.White).clearAndSetSemantics { }
             ) {
-                Text(displayName.take(1), fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = HeroDeepStart)
+                Text(displayName.take(1), fontSize = 19.sp, fontWeight = FontWeight.Bold, color = HeroDeepStart)
             }
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(stringResource(R.string.s19_name, displayName), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text(stringResource(R.string.s19_name, displayName), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Text(email, fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f), modifier = Modifier.padding(top = 3.dp))
             }
             Text(
                 text = stringResource(R.string.s19_edit),
                 fontSize = 12.5.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = HeroDeepStart,
                 modifier = Modifier
                     .clip(RoundedCornerShape(99.dp))
@@ -154,7 +154,7 @@ fun S19SettingsScreen(
         Text(
             text = stringResource(R.string.action_logout),
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = if (loggingOut) Muted else DangerTitle,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -173,7 +173,7 @@ private fun HubSection(title: String, rows: List<HubRow>, onOpen: (String) -> Un
     Text(
         text = title,
         fontSize = 13.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontWeight = FontWeight.Bold,
         color = Navy,
         modifier = Modifier.padding(start = 2.dp, top = 20.dp, bottom = 8.dp).semantics { heading() }
     )

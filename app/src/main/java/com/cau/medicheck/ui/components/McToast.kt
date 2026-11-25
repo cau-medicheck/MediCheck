@@ -123,7 +123,7 @@ fun McToastHost(
                 text = actionLabel,
                 color = Color.White,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .clickable(role = Role.Button, onClick = onAction)
                     .padding(start = 14.dp, top = 15.dp, bottom = 15.dp, end = 2.dp)

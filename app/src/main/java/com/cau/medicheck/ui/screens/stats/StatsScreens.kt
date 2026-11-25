@@ -131,7 +131,7 @@ private fun StatsHeader(index: Int, onTab: (Int) -> Unit) {
                     Text(
                         text = label,
                         fontSize = 16.sp,
-                        fontWeight = if (on) FontWeight.ExtraBold else FontWeight.Bold,
+                        fontWeight = if (on) FontWeight.Bold else FontWeight.Bold,
                         color = if (on) Navy else TabOffText,
                         modifier = Modifier.padding(horizontal = 2.dp)
                     )
@@ -210,7 +210,7 @@ private fun FloatingPeriodBar(title: String, range: String, prevLabel: String, n
     ) {
         RoundArrow(Glyph.PREV, prevLabel, onPrev, enabled = true)
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.semantics { heading() })
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.semantics { heading() })
             Text(range, fontSize = 12.sp, color = Muted)
         }
         RoundArrow(Glyph.NEXT, nextLabel, onNext, enabled = nextEnabled)
@@ -274,7 +274,7 @@ private fun SummaryCard(total: DoseCounts, prevRate: Int?, @androidx.annotation.
                 Text(
                     text = stringResource(R.string.stats_count, total.taken, total.due),
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = Navy
                 )
                 if (rate != null && prevRate != null) DeltaChip(rate - prevRate, deltaRes, Modifier.padding(top = 8.dp))
@@ -314,7 +314,7 @@ private fun RateRing(rate: Int?, size: Dp) {
                 drawArc(rateFill(rate), -90f, 360f * rate / 100f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
             }
         }
-        Text(label, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = if (rate == null) Muted else rateText(rate))
+        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = if (rate == null) Muted else rateText(rate))
     }
 }
 
@@ -342,7 +342,7 @@ private fun DeltaChip(delta: Int, @androidx.annotation.StringRes deltaRes: Int, 
 @Composable
 private fun CardTitle(title: String, side: String? = null) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
-        Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.weight(1f).semantics { heading() })
+        Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.weight(1f).semantics { heading() })
         if (side != null) Text(side, fontSize = 12.sp, color = Muted)
     }
 }
@@ -433,7 +433,7 @@ private fun WeekdayBars(days: List<DayStats>, today: LocalDate) {
                 Text(
                     text = name,
                     fontSize = 12.sp,
-                    fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                     color = if (isToday) Navy else Muted,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -567,7 +567,7 @@ private fun WeekRateRow(row: WeekRow) {
         Text(
             text = pct,
             fontSize = 15.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = if (row.rate == null) Muted else rateText(row.rate),
             textAlign = TextAlign.End,
             modifier = Modifier.width(54.dp)
@@ -655,7 +655,7 @@ private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
             Text(
                 text = stringResource(R.string.etc_worst_none),
                 fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier.padding(top = 6.dp)
             )
@@ -666,7 +666,7 @@ private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
             text = stringResource(R.string.etc_worst_title, when_, worst.name),
             fontSize = 20.sp,
             lineHeight = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.padding(top = 6.dp)
         )
@@ -674,7 +674,7 @@ private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
             text = stringResource(R.string.etc_worst_count, worst.stats.due, worst.stats.missed),
             fontSize = 20.sp,
             lineHeight = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = Color.White
         )
         if (worst.weekendMore) {
@@ -693,7 +693,7 @@ private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
         Text(
             text = stringResource(R.string.etc_change_time),
             fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = HeroDeepStart,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -757,7 +757,7 @@ private fun SlotMissRow(slot: SlotMiss, highlight: Boolean) {
     ) {
         SlotIcon(slot.period, empty)
         Column(Modifier.padding(start = 12.dp).width(84.dp)) {
-            Text(name, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = if (empty) HeatEmptyText else Navy)
+            Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (empty) HeatEmptyText else Navy)
             if (sub.isNotEmpty()) Text(sub, fontSize = 11.sp, color = Muted)
         }
         MissBar(if (empty) null else rate, Modifier.weight(1f))
@@ -765,7 +765,7 @@ private fun SlotMissRow(slot: SlotMiss, highlight: Boolean) {
             Text(
                 text = value,
                 fontSize = if (empty) 12.sp else 15.sp,
-                fontWeight = if (empty) FontWeight.Medium else FontWeight.ExtraBold,
+                fontWeight = if (empty) FontWeight.Medium else FontWeight.Bold,
                 color = if (empty || rate == null) HeatEmptyText else missText(rate)
             )
             if (!empty) Text(stringResource(R.string.etc_fraction, slot.stats.missed, slot.stats.due), fontSize = 11.sp, color = Muted)
@@ -808,7 +808,7 @@ private fun WeekdayMissBars(days: List<Pair<java.time.DayOfWeek, Int>>) {
                 Text(
                     name,
                     fontSize = 12.sp,
-                    fontWeight = if (top) FontWeight.ExtraBold else FontWeight.Normal,
+                    fontWeight = if (top) FontWeight.Bold else FontWeight.Normal,
                     color = if (top) DangerTitle else Muted,
                     modifier = Modifier.padding(top = 6.dp)
                 )
@@ -830,14 +830,14 @@ private fun MedMissRow(rank: Int, m: MedMissUi) {
             .padding(vertical = 10.dp)
             .clearAndSetSemantics { contentDescription = "$rank ${m.miss.name} $sub $count" }
     ) {
-        Text(rank.toString(), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Muted, modifier = Modifier.width(22.dp))
+        Text(rank.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.width(22.dp))
         McMedIcon(m.shape, m.color, size = 38.dp)
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(m.miss.name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy)
             Text(sub, fontSize = 11.sp, color = Muted)
         }
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(m.miss.stats.missed.toString(), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = DangerTitle)
+            Text(m.miss.stats.missed.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DangerTitle)
             Text(stringResource(R.string.etc_med_of, m.miss.stats.due), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.padding(bottom = 2.dp))
         }
     }
@@ -907,7 +907,7 @@ private fun StreakValue(label: String, days: Int, modifier: Modifier) {
     Column(modifier.clearAndSetSemantics { contentDescription = "$label $days$unit" }) {
         Text(label, fontSize = 12.sp, color = Muted)
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(days.toString(), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Navy)
+            Text(days.toString(), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Navy)
             Text(unit, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.padding(start = 2.dp, bottom = 5.dp))
         }
     }
@@ -940,7 +940,7 @@ private fun PunctualLine(label: String, count: Int, strong: Boolean) {
         Text(
             stringResource(R.string.etc_times, count),
             fontSize = 13.sp,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = if (strong) Navy else Muted,
             modifier = Modifier.padding(start = 6.dp)
         )
@@ -973,7 +973,7 @@ private fun DelayCard(avg: Map<DayPeriod, Int>) {
                     .padding(vertical = 11.dp)
                     .clearAndSetSemantics { contentDescription = "$name $value" }
             ) {
-                Text(name, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Navy, modifier = Modifier.width(48.dp))
+                Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.width(48.dp))
                 Canvas(Modifier.weight(1f).height(20.dp)) {
                     val y = size.height / 2
                     drawLine(Line, Offset(0f, y), Offset(size.width, y), strokeWidth = 2.dp.toPx())
@@ -987,7 +987,7 @@ private fun DelayCard(avg: Map<DayPeriod, Int>) {
                         else -> RateLow
                     }, radius = 5.5.dp.toPx(), center = Offset(x, y))
                 }
-                Text(value, fontSize = 13.5.sp, fontWeight = FontWeight.ExtraBold, color = color, textAlign = TextAlign.End, modifier = Modifier.width(104.dp))
+                Text(value, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.End, modifier = Modifier.width(104.dp))
             }
         }
         Row(Modifier.fillMaxWidth().padding(start = 48.dp, end = 104.dp)) {
