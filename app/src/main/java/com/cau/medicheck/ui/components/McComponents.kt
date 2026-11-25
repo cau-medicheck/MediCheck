@@ -43,7 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -758,7 +758,7 @@ fun WarnBadge(modifier: Modifier = Modifier) {
             .clearAndSetSemantics { }
     ) {
         androidx.compose.material3.Icon(
-            imageVector = androidx.compose.material.icons.Icons.Rounded.WarningAmber,
+            imageVector = androidx.compose.material.icons.Icons.Rounded.Warning,
             contentDescription = null,
             tint = WarnBadgeTint,
             modifier = Modifier.size(32.dp)
@@ -766,5 +766,5 @@ fun WarnBadge(modifier: Modifier = Modifier) {
     }
 }
 
-private val WarnBadgeBg = Color(0xFFFFF0DE)
-private val WarnBadgeTint = Color(0xFFE08A2E)
+private val WarnBadgeBg = Color(0xFFE08A2E)   // 진한 주황 동그라미 + 흰 아이콘 (아이콘 3번)
+private val WarnBadgeTint = Color.White

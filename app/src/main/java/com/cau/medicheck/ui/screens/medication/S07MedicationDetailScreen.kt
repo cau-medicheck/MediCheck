@@ -18,6 +18,9 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Description
@@ -222,14 +225,14 @@ private fun MedicationDetailBody(med: MedicationDetail, state: MedicationDetailU
     // ----- 부수 정보: 작은 칸 3개 (복용 기간 · 메모 · 처방 출처) -----
     val source = listOf(med.hospital, med.department).filter { it.isNotBlank() }.joinToString(" · ")
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 12.dp)) {
-        InfoTile(Icons.Outlined.CalendarMonth, Teal, Mint, stringResource(R.string.s07_label_period), periodShort(med), Modifier.weight(1f))
+        InfoTile(Icons.Filled.CalendarMonth, Teal, Mint, stringResource(R.string.s07_label_period), periodShort(med), Modifier.weight(1f))
         InfoTile(
-            Icons.Outlined.Description, MemoIconTint, MemoIconBg, stringResource(R.string.s07_label_memo),
+            Icons.Filled.Description, MemoIconTint, MemoIconBg, stringResource(R.string.s07_label_memo),
             med.memo.ifBlank { stringResource(R.string.s07_no_memo) }, Modifier.weight(1f)
         )
         // 처방 출처(S42): 누르면 적는 화면으로. 적어 둔 값이 없으면 "적기 ›"
         InfoTile(
-            Icons.Outlined.LocalHospital, SourceIconTint, SourceIconBg, stringResource(R.string.s07_label_source),
+            Icons.Filled.LocalHospital, SourceIconTint, SourceIconBg, stringResource(R.string.s07_label_source),
             if (source.isNotEmpty()) source else stringResource(R.string.s07_source_add), Modifier.weight(1f),
             onClick = actions.onOpenSource
         )
@@ -422,9 +425,9 @@ private fun InfoTile(
             modifier = Modifier
                 .size(26.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(iconBg)
+                .background(tint)   // 진한 색 네모 + 흰 아이콘 (2026-11-25 아이콘 3번)
         ) {
-            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(15.dp))
+            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
         }
         Text(label, fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 6.dp))
         Text(
