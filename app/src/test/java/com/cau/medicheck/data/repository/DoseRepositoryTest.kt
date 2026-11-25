@@ -425,6 +425,19 @@ class DoseRepositoryTest {
     }
 
     @Test
+    fun `되돌릴 변경은 바꾼 뒤에만 있고 한 번 되돌리면 없어진다`() = runBlocking<Unit> {
+        insertMedication()
+        repository.refresh(me)
+        assertFalse(repository.canUndo(me, todayKey))          // 아직 아무것도 안 바꿈
+
+        repository.changeStatus(me, todayKey, DoseStatus.TAKEN)
+        assertTrue(repository.canUndo(me, todayKey))
+
+        repository.undoLast(me, todayKey)
+        assertFalse(repository.canUndo(me, todayKey))          // 되돌린 뒤에는 더 되돌릴 것이 없다
+    }
+
+    @Test
     fun `실행취소하면 바로 전 상태와 시각으로 돌아가고 실행취소 이력이 남는다`() = runBlocking<Unit> {
         insertMedication()
         repository.refresh(me)

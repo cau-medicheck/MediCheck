@@ -329,6 +329,16 @@ class DoseRepository(
     }
 
     /** 회차 하나의 마지막 변경을 되돌린다. 부르는 쪽이 트랜잭션 안에서 부른다. */
+    /**
+     * 이 회차에 되돌릴 마지막 변경이 있는가 (undoLast와 같은 규칙, 쓰지는 않는다).
+     * 복용 상세(S10)가 "마지막 변경 되돌리기"를 보여 줄지 정할 때 쓴다. (2026-11-25)
+     */
+    suspend fun canUndo(userId: Long, key: DoseKey): Boolean {
+        val record = findByKey(userId, key) ?: return false
+        val last = statusEventDao.latestFor(userId, record.id) ?: return false
+        return !last.isUndo && record.status == last.toStatus && record.actedAt == last.toActedAt
+    }
+
     private suspend fun undoOne(userId: Long, key: DoseKey): UndoResult {
         val record = findByKey(userId, key) ?: return UndoResult.NOTHING
         val last = statusEventDao.latestFor(userId, record.id) ?: return UndoResult.NOTHING

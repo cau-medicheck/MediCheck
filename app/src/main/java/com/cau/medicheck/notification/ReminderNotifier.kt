@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import com.cau.medicheck.MainActivity
 import com.cau.medicheck.R
 import com.cau.medicheck.domain.DueReminder
@@ -76,7 +77,26 @@ class ReminderNotifier(private val context: Context) {
             .putExtra(DeepLinkInbox.EXTRA_SCHEDULE_ID, dose.scheduleId)
             .putExtra(DeepLinkInbox.EXTRA_DATE, dose.date.toString())
 
-        notificationManager.notify(id, build(ReminderChannels.idFor(settings), title, text, pendingIntent(id, open)))
+        // "복용 완료" 단추: 앱을 열지 않고 ReminderReceiver가 바로 기록하고 알림을 지운다 (2026-11-25)
+        val take = Intent(context, ReminderReceiver::class.java)
+            .setAction(ReminderReceiver.ACTION_TAKE)
+            .putExtra(DeepLinkInbox.EXTRA_SCHEDULE_ID, dose.scheduleId)
+            .putExtra(DeepLinkInbox.EXTRA_DATE, dose.date.toString())
+        val takeIntent = PendingIntent.getBroadcast(
+            context, TAKE_REQUEST_OFFSET + id, take, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val takeAction = Notification.Action.Builder(
+            Icon.createWithResource(context, R.drawable.ic_notification),
+            context.getString(R.string.reminder_action_taken),
+            takeIntent
+        ).build()
+
+        notificationManager.notify(id, build(ReminderChannels.idFor(settings), title, text, pendingIntent(id, open), takeAction))
+    }
+
+    /** 회차 알림 하나를 지운다 (알림의 "복용 완료"를 눌렀을 때). 알림 번호 = 규칙 id */
+    fun cancel(scheduleId: Long) {
+        notificationManager.cancel(scheduleId.toInt())
     }
 
     /**
@@ -107,7 +127,7 @@ class ReminderNotifier(private val context: Context) {
             context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-    private fun build(channelId: String, title: String, text: String, open: PendingIntent): Notification =
+    private fun build(channelId: String, title: String, text: String, open: PendingIntent, action: Notification.Action? = null): Notification =
         Notification.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
@@ -115,6 +135,7 @@ class ReminderNotifier(private val context: Context) {
             .setCategory(Notification.CATEGORY_REMINDER)
             .setContentIntent(open)
             .setAutoCancel(true)   // 누르면 알림이 사라진다
+            .apply { if (action != null) addAction(action) }
             .build()
 
     /** 떠 있는 복약 알림을 모두 지운다. (로그아웃할 때) */
@@ -125,6 +146,9 @@ class ReminderNotifier(private val context: Context) {
     private companion object {
         /** 테스트 알림의 번호. 규칙 id는 1부터라 겹치지 않는다. */
         const val TEST_NOTIFICATION_ID = 0
+
+        /** "복용 완료" 단추 예약표의 요청 번호 = 이 값 + 규칙 id (알림을 여는 예약표와 겹치지 않게) */
+        const val TAKE_REQUEST_OFFSET = 1_000_000
 
         /** 진동 모양: 0.5초 울리고 0.25초 쉬고 0.5초 (밀리초) */
         val VIBRATION_PATTERN = longArrayOf(0, 500, 250, 500)

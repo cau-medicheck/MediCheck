@@ -58,6 +58,9 @@ class AppContainer(context: Context) {
 
     private val sessionStore: SessionStore by lazy { SharedPrefsSessionStore(appContext) }
 
+    /** 지금 로그인한 사람의 번호. 없으면 null (알림의 "복용 완료" 단추가 쓴다) */
+    fun currentUserId(): Long? = sessionStore.getLoggedInUserId()
+
     private val transactionRunner: TransactionRunner by lazy { RoomTransactionRunner(database) }
 
     /** 폰 단위 설정(온보딩을 봤는지, 접근성, 알림 권한 창을 띄웠는지). 로그인 전에도 읽는다. */
