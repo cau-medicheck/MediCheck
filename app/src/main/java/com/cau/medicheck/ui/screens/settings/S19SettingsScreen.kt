@@ -11,17 +11,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Calculate
-import androidx.compose.material.icons.outlined.Checklist
-import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -55,40 +55,40 @@ import com.cau.medicheck.ui.theme.Line
 import com.cau.medicheck.ui.theme.Muted
 import com.cau.medicheck.ui.theme.Navy
 
-/** 설정 허브의 한 줄: 색 아이콘 + 제목 + 누르면 갈 화면 */
+/** 설정 허브의 한 줄: 색 네모 안 흰 아이콘 + 제목 + 누르면 갈 화면. bg는 쓰지 않고 tint가 네모 바탕색 (2026-11-25 아이콘 3번) */
 private data class HubRow(val icon: ImageVector, val tint: Color, val bg: Color, val titleRes: Int, val route: String)
 
 private val TealTint = Color(0xFF128B94); private val TealBg = Color(0xFFE3F5F2)
 private val BlueTint = Color(0xFF3E73C5); private val BlueBg = Color(0xFFE6EEF9)
 private val PurpleTint = Color(0xFF8A63C9); private val PurpleBg = Color(0xFFF1ECF9)
 private val OrangeTint = Color(0xFFC96F12); private val OrangeBg = Color(0xFFFFF3E2)
-private val GrayTint = Color(0xFF6E828B); private val GrayBg = Color(0xFFF1F5F6)
+private val GrayTint = Color(0xFF8A9AA1); private val GrayBg = Color(0xFFF1F5F6)
 
 /** 묶음: 알림 */
 private val NOTI_ROWS = listOf(
-    HubRow(Icons.Outlined.Notifications, TealTint, TealBg, R.string.s19_row_noti_title, Routes.S17),
-    HubRow(Icons.Outlined.Shield, BlueTint, BlueBg, R.string.s19_row_perm_title, Routes.S18)
+    HubRow(Icons.Filled.Notifications, TealTint, TealBg, R.string.s19_row_noti_title, Routes.S17),
+    HubRow(Icons.Filled.Shield, BlueTint, BlueBg, R.string.s19_row_perm_title, Routes.S18)
 )
 
 /** 묶음: 내 정보 */
 private val MINE_ROWS = listOf(
-    HubRow(Icons.Outlined.Lock, PurpleTint, PurpleBg, R.string.s19_row_privacy_title, Routes.S36),
-    HubRow(Icons.Outlined.History, OrangeTint, OrangeBg, R.string.s19_row_archive_title, Routes.S32)
+    HubRow(Icons.Filled.Lock, PurpleTint, PurpleBg, R.string.s19_row_privacy_title, Routes.S36),
+    HubRow(Icons.Filled.History, OrangeTint, OrangeBg, R.string.s19_row_archive_title, Routes.S32)
 )
 
 /** 묶음: 화면 · 도움말 */
 private val VIEW_ROWS = listOf(
-    HubRow(Icons.Outlined.TextFields, TealTint, TealBg, R.string.s19_row_a11y_title, Routes.S37),
-    HubRow(Icons.Outlined.Calculate, BlueTint, BlueBg, R.string.s19_row_policy_title, Routes.S20),
-    HubRow(Icons.Outlined.CloudOff, GrayTint, GrayBg, R.string.s19_row_offline_title, Routes.S38),
-    HubRow(Icons.Outlined.Info, GrayTint, GrayBg, R.string.s19_row_help_title, Routes.S22)
+    HubRow(Icons.Filled.TextFields, TealTint, TealBg, R.string.s19_row_a11y_title, Routes.S37),
+    HubRow(Icons.Filled.Calculate, BlueTint, BlueBg, R.string.s19_row_policy_title, Routes.S20),
+    HubRow(Icons.Filled.CloudOff, GrayTint, GrayBg, R.string.s19_row_offline_title, Routes.S38),
+    HubRow(Icons.Filled.Info, GrayTint, GrayBg, R.string.s19_row_help_title, Routes.S22)
 )
 
 /** 묶음: 준비 중 (시안 화면들의 입구 + 전체 기능 목록) — 회색으로 조용히 */
 private val SOON_ROWS = listOf(
-    HubRow(Icons.Outlined.Groups, GrayTint, GrayBg, R.string.s19_soon_family, Routes.S23),
-    HubRow(Icons.Outlined.PhotoCamera, GrayTint, GrayBg, R.string.s19_soon_photo, Routes.S29),
-    HubRow(Icons.Outlined.Checklist, GrayTint, GrayBg, R.string.s19_row_reqmap_title, Routes.S45)
+    HubRow(Icons.Filled.Groups, GrayTint, GrayBg, R.string.s19_soon_family, Routes.S23),
+    HubRow(Icons.Filled.PhotoCamera, GrayTint, GrayBg, R.string.s19_soon_photo, Routes.S29),
+    HubRow(Icons.Filled.Checklist, GrayTint, GrayBg, R.string.s19_row_reqmap_title, Routes.S45)
 )
 
 /**
@@ -189,9 +189,9 @@ private fun HubSection(title: String, rows: List<HubRow>, onOpen: (String) -> Un
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(row.bg)
+                        modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(row.tint)
                     ) {
-                        Icon(row.icon, contentDescription = null, tint = row.tint, modifier = Modifier.size(19.dp))
+                        Icon(row.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(19.dp))
                     }
                     Text(stringResource(row.titleRes), fontSize = 14.5.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.weight(1f).padding(start = 12.dp))
                     Text("›", fontSize = 18.sp, color = Muted)

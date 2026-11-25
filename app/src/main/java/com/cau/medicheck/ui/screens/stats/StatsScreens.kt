@@ -23,6 +23,10 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.WbTwilight
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -707,11 +711,12 @@ private fun WorstCard(worst: WorstDose?, onEditMedication: (Long) -> Unit) {
 private data class SlotLook(val labelRes: Int, val icon: ImageVector, val tint: Color, val bg: Color, val iconSize: Dp = 20.dp)
 
 private fun DayPeriod.look(): SlotLook = when (this) {
-    DayPeriod.DAWN -> SlotLook(R.string.s05_period_dawn, Icons.Outlined.Nightlight, Color(0xFF6B7BB0), Color(0xFFEEF0F8))
-    DayPeriod.MORNING -> SlotLook(R.string.s05_period_morning, Icons.Outlined.WbSunny, Color(0xFFC96F12), Color(0xFFFFF3E2))
-    DayPeriod.LUNCH -> SlotLook(R.string.s05_period_lunch, Icons.Filled.Circle, Color(0xFFD9A21B), Color(0xFFFFF8DC), iconSize = 12.dp)
-    DayPeriod.EVENING -> SlotLook(R.string.s05_period_evening, Icons.Outlined.WbTwilight, Color(0xFFC2703D), Color(0xFFFCEFE6))
-    DayPeriod.NIGHT -> SlotLook(R.string.s05_period_night, Icons.Filled.Bedtime, Color(0xFF4B5E9C), Color(0xFFE9EDF8))
+    // 하루 흐름 색: 새벽 보라 → 아침 노랑 → 한낮 주황 → 노을 분홍 → 밤 남색 (2026-11-25)
+    DayPeriod.DAWN -> SlotLook(R.string.s05_period_dawn, Icons.Filled.Nightlight, Color(0xFF7B68B5), Color(0xFFEEF0F8))
+    DayPeriod.MORNING -> SlotLook(R.string.s05_period_morning, Icons.Filled.WbSunny, Color(0xFFE5A50A), Color(0xFFFFF8DC))
+    DayPeriod.LUNCH -> SlotLook(R.string.s05_period_lunch, Icons.Filled.LightMode, Color(0xFFEF7D22), Color(0xFFFFF3E2))
+    DayPeriod.EVENING -> SlotLook(R.string.s05_period_evening, Icons.Filled.WbTwilight, Color(0xFFD9577A), Color(0xFFFCEAEF))
+    DayPeriod.NIGHT -> SlotLook(R.string.s05_period_night, Icons.Filled.Bedtime, Color(0xFF3F5296), Color(0xFFE9EDF8))
 }
 
 @Composable
@@ -722,9 +727,9 @@ private fun SlotIcon(period: DayPeriod, empty: Boolean = false) {
         modifier = Modifier
             .size(38.dp)
             .clip(RoundedCornerShape(11.dp))
-            .background(if (empty) Color(0xFFF1F4F6) else look.bg)
+            .background(look.tint)   // 진한 색 네모 + 흰 아이콘 (아이콘 3번). 일정 없는 시간대도 제 색 (2026-11-25 전수환)
     ) {
-        Icon(look.icon, contentDescription = null, tint = if (empty) Color(0xFFA9B6BC) else look.tint, modifier = Modifier.size(look.iconSize))
+        Icon(look.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(look.iconSize))
     }
 }
 
