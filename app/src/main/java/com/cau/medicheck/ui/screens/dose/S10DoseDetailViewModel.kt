@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Clock
@@ -55,7 +56,9 @@ data class DoseDetailUiState(
     val shouldClose: Boolean = false,
     /** 약 아이콘의 모양·색 (내 약에서 고른 값). 약 정보를 못 읽었으면 null */
     val shape: MedicationShape? = null,
-    val color: MedicationColor? = null
+    val color: MedicationColor? = null,
+    /** 되돌릴 마지막 변경이 있는가. 없으면 "마지막 변경 되돌리기"를 숨긴다 */
+    val canUndo: Boolean = false
 )
 
 /** DB에서 읽어 온 결과: 어느 열쇠로 읽었고(key), 무엇이 나왔고(dose), 그때의 오늘(today) */
@@ -104,6 +107,11 @@ class S10DoseDetailViewModel(
             else medicationRepository.observeMedications(userId).map { list -> list.find { it.id == id } }
         }
 
+    /** 되돌릴 변경이 있는가. 회차 기록이 바뀔 때마다(dose가 새 값을 줄 때) 다시 묻는다 */
+    private val canUndo = dose.mapLatest { loaded ->
+        loaded.key?.let { doseRepository.canUndo(userId, it) } ?: false
+    }
+
     val uiState: StateFlow<DoseDetailUiState> =
         combine(dose, now, resolved, shouldClose, key) { (loadedKey, dose, today), now, resolved, close, key ->
             DoseDetailUiState(
@@ -117,6 +125,7 @@ class S10DoseDetailViewModel(
                 shouldClose = close
             )
         }.combine(medication) { state, med -> state.copy(shape = med?.shape, color = med?.color) }
+            .combine(canUndo) { state, undo -> state.copy(canUndo = undo) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DoseDetailUiState())
 
     init {

@@ -182,8 +182,8 @@ private fun DoseDetailBody(dose: DoseItem, state: DoseDetailUiState, actions: Do
         }
     }
 
-    // 마지막 변경 되돌리기 (글자 단추)
-    Text(
+    // 마지막 변경 되돌리기 (글자 단추). 되돌릴 변경이 있을 때만 (2026-11-25). 맨 아래라 숨겨도 위가 움직이지 않는다
+    if (state.canUndo) Text(
         text = stringResource(R.string.s10_undo_text),
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,

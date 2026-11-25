@@ -4,7 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.cau.medicheck.MediCheckApplication
+import com.cau.medicheck.domain.DoseKey
+import com.cau.medicheck.domain.DoseStatus
 import com.cau.medicheck.domain.ReminderTrigger
+import com.cau.medicheck.ui.navigation.DeepLinkInbox
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,7 +37,17 @@ class ReminderReceiver : BroadcastReceiver() {
                 // 1. 앱이 방금 깨어났을 수 있으므로 설정부터 읽는다 (알림 켜짐·소리·진동·시간대 정책).
                 container.settingsRepository.loadForCurrentUser()
 
-                if (intent.action == ACTION_REMIND) {
+                if (intent.action == ACTION_TAKE) {
+                    // 알림의 "복용 완료" 단추: 그 회차를 복용 완료로 기록하고(앱 안 단추와 같은 함수) 알림을 지운다.
+                    // 로그인한 사람이 없거나 값이 틀리면 알림만 지운다.
+                    val scheduleId = intent.getLongExtra(DeepLinkInbox.EXTRA_SCHEDULE_ID, -1L)
+                    val date = intent.getStringExtra(DeepLinkInbox.EXTRA_DATE)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                    val userId = container.currentUserId()
+                    if (userId != null && scheduleId > 0 && date != null) {
+                        container.doseRepository.changeStatus(userId, DoseKey(scheduleId, date), DoseStatus.TAKEN)
+                    }
+                    if (scheduleId > 0) container.reminderNotifier.cancel(scheduleId)
+                } else if (intent.action == ACTION_REMIND) {
                     // 2. 몇 시 회차의 알람이었는지 알아낸다.
                     val at = ReminderTrigger.resolve(
                         localText = intent.getStringExtra(EXTRA_TRIGGER_LOCAL),
@@ -59,6 +73,9 @@ class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_REMIND = "com.cau.medicheck.action.REMIND"
+
+        /** 알림의 "복용 완료" 단추 */
+        const val ACTION_TAKE = "com.cau.medicheck.action.TAKE"
 
         /** 알람이 울리기로 한 순간 (1970년부터 센 밀리초) */
         const val EXTRA_TRIGGER_AT = "trigger_at"
