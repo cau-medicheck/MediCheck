@@ -161,21 +161,19 @@
     <!-- S17 알림 설정 -->
     <string name="s17_back">설정</string>
     <string name="s17_reminder_title">복약 시간 알림</string>
-    <string name="s17_reminder_desc">정해진 시간에 알림을 받습니다.</string>
     <string name="s17_sound_title">알림 소리</string>
-    <string name="s17_sound_desc">알림을 소리로 안내합니다.</string>
     <string name="s17_vibrate_title">진동</string>
-    <string name="s17_vibrate_desc">알림이 울릴 때 기기가 진동합니다.</string>
     <string name="s17_realert_title">재알림</string>
-    <string name="s17_realert_desc">놓친 복약을 다시 알려줍니다.</string>
     <string name="s17_realert_interval">재알림 간격</string>
     <string name="s17_minutes">%1$d분</string>
     <string name="s17_realert_changed">재알림 간격을 변경했어요.</string>
+    <string name="s17_section_alerts">알림 설정</string>
+    <string name="s17_section_more">추가 설정</string>
+    <string name="s17_test_short">테스트 알림</string>
     <string name="s17_test_button">테스트 알림 보내기</string>
     <string name="s17_test_sent">테스트 알림을 보냈어요.</string>
     <string name="s17_test_blocked">알림이 꺼져 있어 테스트 알림을 보낼 수 없어요.</string>
     <string name="s17_timezone_title">시간대 변경 정책</string>
-    <string name="s17_timezone_desc">해외 이동 시 알림 해석 방식</string>
     <string name="s17_btn_preview">알림 미리보기</string>
 
     <!-- S18 권한·OS 안내 -->
