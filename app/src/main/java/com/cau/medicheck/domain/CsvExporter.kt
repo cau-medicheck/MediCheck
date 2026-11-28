@@ -17,6 +17,9 @@ object CsvExporter {
     /** 첫 줄(머리줄) */
     val HEADER = listOf("날짜", "약 이름", "복용량", "예정시각", "상태", "실제복용시각")
 
+    /** 기기 언어가 한국어가 아닐 때의 머리줄 */
+    val HEADER_EN = listOf("Date", "Medication", "Dose", "Scheduled time", "Status", "Actual time")
+
     /** 파일 저장 화면에 미리 넣어 둘 파일 이름 */
     const val FILE_NAME = "MediCheck_medication_records.csv"
 
@@ -32,8 +35,8 @@ object CsvExporter {
      * 줄들을 CSV 글자 하나로 만든다.
      * 모든 칸을 큰따옴표로 감싸고(칸 안에 쉼표·줄바꿈이 있어도 칸이 밀리지 않는다), 줄 끝은 \r\n(엑셀과 맞는 줄바꿈).
      */
-    fun build(rows: List<List<String>>): String =
-        BOM + (listOf(HEADER) + rows).joinToString("\r\n") { row -> row.joinToString(",") { quote(it) } }
+    fun build(rows: List<List<String>>, korean: Boolean = true): String =
+        BOM + (listOf(if (korean) HEADER else HEADER_EN) + rows).joinToString("\r\n") { row -> row.joinToString(",") { quote(it) } }
 
     /** 칸 하나를 큰따옴표로 감싼다. 칸 안의 큰따옴표는 두 개로 적는 것이 CSV의 약속이다. */
     private fun quote(value: String): String = "\"" + value.replace("\"", "\"\"") + "\""
@@ -43,16 +46,16 @@ object CsvExporter {
      *   상태: 복용 완료 / 건너뜀 / 미복용(미기록이고 예정 시각 30분이 지남) / 복용 예정(미기록이고 아직) — 내보내는 순간 기준
      *   실제복용시각: 복용 완료이고 그날 누른(적은) 시각이 있을 때만. 화면(S10)과 같은 판정을 쓴다.
      */
-    fun toRow(item: DoseItem, now: LocalDateTime, zone: ZoneId): List<String> = listOf(
+    fun toRow(item: DoseItem, now: LocalDateTime, zone: ZoneId, korean: Boolean = true): List<String> = listOf(
         item.date.toString(),
         safeText(item.medicationName),
         safeText(item.dosage),
         item.time.format(TIME_FORMAT),
         when (item.displayStatus(now)) {
-            DoseDisplayStatus.TAKEN -> "복용 완료"
-            DoseDisplayStatus.SKIPPED -> "건너뜀"
-            DoseDisplayStatus.MISSED -> "미복용"
-            DoseDisplayStatus.UPCOMING -> "복용 예정"
+            DoseDisplayStatus.TAKEN -> if (korean) "복용 완료" else "Taken"
+            DoseDisplayStatus.SKIPPED -> if (korean) "건너뜀" else "Skipped"
+            DoseDisplayStatus.MISSED -> if (korean) "미복용" else "Missed"
+            DoseDisplayStatus.UPCOMING -> if (korean) "복용 예정" else "Upcoming"
         },
         item.actualTimeOrNull(zone)?.format(TIME_FORMAT).orEmpty()
     )

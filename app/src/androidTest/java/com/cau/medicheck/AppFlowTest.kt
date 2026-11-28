@@ -165,7 +165,7 @@ class AppFlowTest {
         tap(str(R.string.tab_meds))
         waitForText(str(R.string.s06_btn_add))
         tap(str(R.string.tab_stats))
-        for (tab in listOf("주간", "월간", "기타")) tap(tab)
+        for (tab in listOf(R.string.stats_tab_week, R.string.stats_tab_month, R.string.stats_tab_pattern)) tap(str(tab))
         tap(str(R.string.tab_home))
     }
 

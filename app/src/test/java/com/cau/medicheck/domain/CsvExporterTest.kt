@@ -119,4 +119,10 @@ class CsvExporterTest {
         // 보통 글자는 그대로다
         assertEquals("비타민 D", CsvExporter.toRow(dose(), now, zone)[1])
     }
+
+    @Test
+    fun `한국어가 아니면 머리줄을 영어로 쓴다`() {
+        val csv = CsvExporter.build(emptyList(), korean = false)
+        assertEquals("\uFEFF\"Date\",\"Medication\",\"Dose\",\"Scheduled time\",\"Status\",\"Actual time\"", csv)
+    }
 }

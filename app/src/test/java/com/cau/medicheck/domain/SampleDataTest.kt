@@ -58,4 +58,14 @@ class SampleDataTest {
         assertEquals(listOf("08:00", "12:30", "21:00"), SampleData.MEDS.map { it.time })
         assertEquals("MON,TUE,WED,THU,FRI,SAT,SUN", SampleData.REPEAT_DAYS)
     }
+
+    @Test
+    fun `영어 샘플 약은 이름과 복용량만 다르고 나머지는 같다`() {
+        val english = SampleData.meds(korean = false)
+        assertEquals(listOf("Vitamin D", "Omega-3", "Magnesium"), english.map { it.name })
+        assertEquals(listOf("1 tablet", "1 capsule", "1 tablet"), english.map { it.dosage })
+        assertEquals(SampleData.MEDS.map { it.time to it.condition }, english.map { it.time to it.condition })
+        assertEquals(SampleData.MEDS, SampleData.meds(korean = true))
+        assertEquals("User", SampleData.displayName(korean = false))
+    }
 }

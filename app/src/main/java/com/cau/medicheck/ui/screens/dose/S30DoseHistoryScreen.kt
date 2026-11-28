@@ -147,7 +147,9 @@ private fun StatusWordChip(status: DoseStatus) {
     )
 }
 
-private val CHANGED_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN)
+// 쓸 때마다 만든다: 앱이 켜진 채로 기기 언어가 바뀌어도 오전/오후 글자가 그 언어로 나오게
+private val CHANGED_TIME_FORMAT: DateTimeFormatter
+    get() = DateTimeFormatter.ofPattern("a h:mm", Locale.getDefault())
 
 /** 저장 상태 → 이력에 쓰는 낱말 ("복용 완료" / "건너뜀" / "미기록") */
 private fun DoseStatus.wordRes(): Int = when (this) {

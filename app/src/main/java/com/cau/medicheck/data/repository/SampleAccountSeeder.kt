@@ -33,6 +33,7 @@ import java.util.UUID
  * 지우기·만들기는 한 트랜잭션이다. 중간에 실패하면 전부 없던 일이 된다.
  *
  * @param clock "오늘"을 정하는 시계. 테스트에서는 멈춘 시계를 넣는다.
+ * @param isKorean 기기 언어가 한국어인가. 아니면 샘플 약 이름을 영어로 만든다.
  */
 class SampleAccountSeeder(
     private val userDao: UserDao,
@@ -43,7 +44,8 @@ class SampleAccountSeeder(
     private val userSettingsDao: UserSettingsDao,
     private val transaction: TransactionRunner,
     private val clock: Clock = Clock.systemDefaultZone(),
-    private val hashDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val hashDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val isKorean: () -> Boolean = { true }
 ) {
 
     /** 오늘 만든 샘플 계정이 있으면 그대로, 없으면 지우고 새로 만들어 돌려준다. */
@@ -74,7 +76,7 @@ class SampleAccountSeeder(
         val user = User(
             email = SampleData.EMAIL,
             passwordHash = passwordHash,
-            displayName = SampleData.DISPLAY_NAME,
+            displayName = SampleData.displayName(isKorean()),
             createdAt = now,
             isSample = true
         )
@@ -82,7 +84,7 @@ class SampleAccountSeeder(
         userSettingsDao.insert(UserSettingsEntity.defaultsFor(userId, clock.zone.id))
 
         val startDate = today.plusDays(SampleData.START_OFFSET.toLong()).toString()
-        SampleData.MEDS.forEach { med ->
+        SampleData.meds(isKorean()).forEach { med ->
             val medicationId = medicationDao.insert(
                 Medication(
                     userId = userId, name = med.name, dosage = med.dosage,

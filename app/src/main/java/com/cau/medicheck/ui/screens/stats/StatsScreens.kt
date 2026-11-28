@@ -84,6 +84,7 @@ import com.cau.medicheck.ui.components.SurfaceCard
 import com.cau.medicheck.ui.components.conditionLabel
 import com.cau.medicheck.ui.components.monthTitleText
 import com.cau.medicheck.ui.components.timeText
+import com.cau.medicheck.ui.components.monthText
 import com.cau.medicheck.ui.theme.DangerTitle
 import com.cau.medicheck.ui.theme.HeroDeepEnd
 import com.cau.medicheck.ui.theme.HeroDeepStart
@@ -375,7 +376,7 @@ private fun RateBar(rate: Int?, modifier: Modifier = Modifier) {
 @Composable
 fun S13WeekStatsScreen(state: WeeklyStatsUiState, onTab: (Int) -> Unit, onShiftWeek: (Long) -> Unit) {
     val week = state.week
-    val title = stringResource(R.string.stats_week_title, week.month.monthValue, week.index)
+    val title = stringResource(R.string.stats_week_title, monthText(week.month.monthValue), week.index)
     val range = rangeText(state.monday, state.monday.plusDays(6))
     val prev = stringResource(R.string.stats_cd_prev_week)
     val next = stringResource(R.string.stats_cd_next_week)

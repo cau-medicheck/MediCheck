@@ -34,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.ZoneId
+import java.util.Locale
 
 /**
  * 앱 전체에서 하나씩만 있어야 하는 것들을 만들어 보관하는 상자.
@@ -139,7 +140,8 @@ class AppContainer(context: Context) {
             statusEventDao = database.doseStatusEventDao(),
             userSettingsDao = database.userSettingsDao(),
             transaction = transactionRunner,
-            clock = clock
+            clock = clock,
+            isKorean = { Locale.getDefault().language == "ko" }
         )
     }
 
