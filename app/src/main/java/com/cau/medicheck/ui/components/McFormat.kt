@@ -29,15 +29,19 @@ fun weekdayText(date: LocalDate): String {
     return names[date.dayOfWeek.value % 7]
 }
 
-/** "11월 17일 화요일" (v3 formatDate) */
+/** 달 이름: 한국어 "11월", 영어 "Nov". 언어마다 어순이 달라 숫자가 아니라 글자로 문구에 넣는다. */
+@Composable
+fun monthText(month: Int): String = stringArrayResource(R.array.common_months)[month - 1]
+
+/** "11월 17일 화요일" / "Tue, Nov 17" (v3 formatDate) */
 @Composable
 fun fullDateText(date: LocalDate): String =
-    stringResource(R.string.common_date_full, date.monthValue, date.dayOfMonth, weekdayText(date))
+    stringResource(R.string.common_date_full, monthText(date.monthValue), date.dayOfMonth, weekdayText(date))
 
-/** "2026년 11월" (v3 monthTitle) */
+/** "2026년 11월" / "Nov 2026" (v3 monthTitle) */
 @Composable
 fun monthTitleText(month: YearMonth): String =
-    stringResource(R.string.common_month_title, month.year, month.monthValue)
+    stringResource(R.string.common_month_title, month.year, monthText(month.monthValue))
 
 /** "2026. 11. 17." (날짜 고르는 칸의 한국어 표기) */
 fun dottedDateText(date: LocalDate): String = "${date.year}. ${date.monthValue}. ${date.dayOfMonth}."

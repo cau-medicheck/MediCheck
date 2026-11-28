@@ -25,4 +25,11 @@ class DeleteConfirmTest {
         assertFalse(DeleteConfirm.matches("삭제!"))
         assertFalse(DeleteConfirm.matches("delete"))
     }
+
+    @Test
+    fun `영어 화면의 낱말 DELETE도 통과한다`() {
+        assertTrue(DeleteConfirm.matches("DELETE"))
+        assertTrue(DeleteConfirm.matches(" DELETE "))
+        assertFalse(DeleteConfirm.matches("Delete"))
+    }
 }

@@ -15,6 +15,7 @@ package com.cau.medicheck.domain
 object SampleData {
     const val EMAIL = "demo@medicheck.app"
     const val DISPLAY_NAME = "사용자"
+    const val DISPLAY_NAME_EN = "User"
 
     /** 약의 시작일 = 오늘 - 32일. 기록도 이날부터 오늘까지 만든다. */
     const val START_OFFSET = -32
@@ -36,6 +37,19 @@ object SampleData {
         Med(2, "오메가3", "1캡슐", "12:30", DoseCondition.AFTER_MEAL, MedicationShape.CAPSULE, MedicationColor.BLUE),
         Med(3, "마그네슘", "1정", "21:00", DoseCondition.BEDTIME, MedicationShape.TABLET, MedicationColor.PURPLE)
     )
+
+    /** 같은 약 3개의 영어 이름·복용량. 번호·시각·조건·모양은 MEDS와 같다. */
+    val MEDS_EN = listOf(
+        MEDS[0].copy(name = "Vitamin D", dosage = "1 tablet"),
+        MEDS[1].copy(name = "Omega-3", dosage = "1 capsule"),
+        MEDS[2].copy(name = "Magnesium", dosage = "1 tablet")
+    )
+
+    /** 기기 언어에 맞는 샘플 약 목록 */
+    fun meds(korean: Boolean): List<Med> = if (korean) MEDS else MEDS_EN
+
+    /** 기기 언어에 맞는 샘플 계정 이름 */
+    fun displayName(korean: Boolean): String = if (korean) DISPLAY_NAME else DISPLAY_NAME_EN
 
     /** 기록을 만드는 날의 범위: 오늘 기준 며칠 전인지 (-32 ~ 0) */
     val DAY_OFFSETS: IntRange = START_OFFSET..0

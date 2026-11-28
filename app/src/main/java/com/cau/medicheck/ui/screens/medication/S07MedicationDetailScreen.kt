@@ -66,6 +66,7 @@ import com.cau.medicheck.ui.components.BackLink
 import com.cau.medicheck.ui.components.EmptyState
 import com.cau.medicheck.ui.components.Glyph
 import com.cau.medicheck.ui.components.McButton
+import com.cau.medicheck.ui.components.monthText
 import com.cau.medicheck.ui.components.McScreenColumn
 import com.cau.medicheck.ui.components.McSwitch
 import com.cau.medicheck.ui.components.MedShapeArt
@@ -448,7 +449,7 @@ private fun periodShort(med: MedicationDetail): String {
     val today = LocalDate.now()
     val end = med.endDate
     return when {
-        today.isBefore(med.startDate) -> stringResource(R.string.s07_period_short_future, med.startDate.monthValue, med.startDate.dayOfMonth)
+        today.isBefore(med.startDate) -> stringResource(R.string.s07_period_short_future, monthText(med.startDate.monthValue), med.startDate.dayOfMonth)
         end != null && today.isAfter(end) -> stringResource(R.string.s07_period_short_ended)
         else -> stringResource(R.string.s07_period_short_day, ChronoUnit.DAYS.between(med.startDate, today).toInt() + 1)
     }

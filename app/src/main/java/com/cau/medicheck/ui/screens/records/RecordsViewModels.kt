@@ -31,6 +31,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
+import java.util.Locale
 
 // =============================================================================================
 // S11 기록 캘린더
@@ -158,9 +159,11 @@ class CsvExportViewModel(
             val ok = try {
                 doseRepository.refresh(userId)
                 val now = LocalDateTime.now(clock)
+                // 파일의 머리줄·상태 글자는 기기 언어를 따른다
+                val korean = Locale.getDefault().language == "ko"
                 val rows = CsvExporter.sorted(doseRepository.exportItems(userId))
-                    .map { CsvExporter.toRow(it, now, clock.zone) }
-                documentFileIo.write(uri, CsvExporter.build(rows))
+                    .map { CsvExporter.toRow(it, now, clock.zone, korean) }
+                documentFileIo.write(uri, CsvExporter.build(rows, korean))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

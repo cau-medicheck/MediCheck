@@ -8,6 +8,9 @@ object DeleteConfirm {
     /** 입력해야 하는 낱말 (화면의 자리표시 글자와 같다) */
     const val WORD = "삭제"
 
+    /** 화면이 영어일 때 입력해야 하는 낱말 */
+    const val WORD_EN = "DELETE"
+
     /** 앞뒤 공백만 봐주고, 그 밖에는 한 글자도 다르면 안 된다. ("삭 제", "삭제!", "delete"는 틀림) */
-    fun matches(input: String): Boolean = input.trim() == WORD
+    fun matches(input: String): Boolean = input.trim().let { it == WORD || it == WORD_EN }
 }
