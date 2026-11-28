@@ -14,7 +14,7 @@ object RequirementCsv {
      */
     fun parse(text: String): List<Requirement> {
         // 맨 앞의 BOM(인코딩 표시, 눈에 안 보이는 글자)을 떼고, 줄 끝이 CRLF든 LF든 줄로 나눈다.
-        val lines = text.removePrefix("﻿").lines().filter { it.isNotBlank() }
+        val lines = text.removePrefix("\uFEFF").lines().filter { it.isNotBlank() }
         require(lines.isNotEmpty()) { "빈 파일" }
 
         // 칸 위치는 머리줄의 이름으로 찾는다 (칸 순서가 바뀌어도 읽히게).
