@@ -9,7 +9,7 @@
 ![Room 2.8](https://img.shields.io/badge/Room-2.8-3DDC84)
 ![minSdk 26](https://img.shields.io/badge/minSdk-26-34A853)
 ![47 screens](https://img.shields.io/badge/screens-47-5865F2)
-![445 unit tests](https://img.shields.io/badge/unit_tests-445-2088FF)
+![509 unit tests](https://img.shields.io/badge/unit_tests-509-2088FF)
 
 </div>
 
@@ -46,7 +46,7 @@ MediCheck는 사용자가 자신의 약 정보와 복약 일정을 관리하고,
 | Team Size | 4 Members |
 | Development Period | 2026.11 ~ 2026.12 (약 1개월 반) |
 | Screens | 47개 (S00 ~ S46) |
-| Unit Tests | 445개 (JUnit, 폰 없이 실행) |
+| Unit Tests | 509개 (JUnit, 폰 없이 실행) |
 
 ### 🎯 Development Objectives
 
@@ -88,7 +88,7 @@ git clone https://github.com/cau-medicheck/MediCheck.git
 
 ### 처음 써 보기
 
-로그인 화면의 **샘플 계정으로 체험하기**를 누르면 약 3개와 33일 치 기록이 들어 있는 계정으로 바로 들어갑니다. 직접 가입하려면 이메일과 6자 이상의 비밀번호를 입력합니다(계정은 이 기기 안에만 만들어집니다).
+로그인 화면의 **샘플 계정으로 체험하기**를 누르면 약 5개와 33일 치 기록이 들어 있는 계정으로 바로 들어갑니다. 화면은 기기 언어가 한국어면 한국어로, 그 밖에는 영어로 보입니다. 직접 가입하려면 이메일과 6자 이상의 비밀번호를 입력합니다(계정은 이 기기 안에만 만들어집니다).
 
 ## 주요 기능
 
@@ -99,7 +99,7 @@ git clone https://github.com/cau-medicheck/MediCheck.git
 - 비밀번호는 원문을 저장하지 않고 PBKDF2 해시로 저장
 - 프로필(표시 이름·이메일) 수정
 - 계정·데이터 삭제 — 지금 로그인한 계정의 데이터만 지웁니다
-- 샘플 계정으로 체험하기 (약 3개와 33일 치 기록 99건이 들어 있는 계정)
+- 샘플 계정으로 체험하기 (약 5개와 33일 치 기록 165건이 들어 있는 계정)
 - 비밀번호 재설정 안내 — 서버가 없어 재설정 메일을 보내지 않고, 안내만 보여 줍니다
 - 약·기록, 알림·개인정보·앱 잠금 설정은 계정별로 나뉩니다. 접근성 설정(글자 크기 등)은 기기 단위입니다
 
