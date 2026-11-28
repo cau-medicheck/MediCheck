@@ -976,7 +976,7 @@ private fun DelayCard(avg: Map<DayPeriod, Int>) {
                     .padding(vertical = 11.dp)
                     .clearAndSetSemantics { contentDescription = "$name $value" }
             ) {
-                Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.width(48.dp))
+                Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy, modifier = Modifier.width(64.dp))   // 영어 "Morning"이 한 줄에 들어가는 폭
                 Canvas(Modifier.weight(1f).height(20.dp)) {
                     val y = size.height / 2
                     drawLine(Line, Offset(0f, y), Offset(size.width, y), strokeWidth = 2.dp.toPx())
@@ -993,7 +993,7 @@ private fun DelayCard(avg: Map<DayPeriod, Int>) {
                 Text(value, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.End, modifier = Modifier.width(104.dp))
             }
         }
-        Row(Modifier.fillMaxWidth().padding(start = 48.dp, end = 104.dp)) {
+        Row(Modifier.fillMaxWidth().padding(start = 64.dp, end = 104.dp)) {
             Text(stringResource(R.string.etc_scale_early), fontSize = 11.sp, color = Muted, modifier = Modifier.weight(1f))
             Text(stringResource(R.string.etc_scale_on), fontSize = 11.sp, color = Muted)
             Text(stringResource(R.string.etc_scale_late), fontSize = 11.sp, color = Muted, textAlign = TextAlign.End, modifier = Modifier.weight(1f))

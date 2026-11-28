@@ -842,12 +842,12 @@ D의 요일 ∈ s.repeat_days
 |---|---|
 | users | 1줄: `email = 'demo@medicheck.app'`, `display_name = '사용자'`, `password_hash` = 무작위 UUID의 해시, `created_at = 지금`, `is_sample = 1` |
 | user_settings | 1줄: 기본값, `home_zone_id` = 지금 기기 시간대 (같은 트랜잭션) |
-| medications | 3줄 (v3 `fresh()`): 비타민 D 1정 '아침 식후' / 오메가3 1캡슐 '점심 식후' / 마그네슘 1정 '저녁'. **`start_date = 오늘 − 32일`**, `end_date`·`paused_from`·처방 출처 NULL. **끝난 약은 더하지 않는다** |
-| schedules | 3줄: 08:00 / 12:30 / 21:00, 매일, `effective_from = NULL` |
-| dose_records | **오늘 − 32일 ~ 오늘**, 약마다 하루 1줄 = 33 × 3 = **99줄**(어제까지 96줄 + 오늘 3줄). 스냅샷 칸은 위 약 값으로 채운다. `acted_at = NULL`, `created_at = 지금`. 상태는 `SampleData.statusFor`(v3 식) → **TAKEN 73 · SKIPPED 12 · PENDING 14** (어제까지 72 · 12 · 12, 오늘 1 · 0 · 2) |
+| medications | 5줄. v3 `fresh()`의 3줄(비타민 D 1정 식후 / 오메가3 1캡슐 식후 / 마그네슘 1정 취침 전) + **2026-11-29 추가 2줄**(루테인 1캡슐 식전 / 유산균 2캡슐 공복 — 같은 시각에 약이 여러 개인 모습을 보여 주려는 것). 기기 언어가 한국어가 아니면 이름·복용량은 영어(`SampleData.MEDS_EN`). **`start_date = 오늘 − 32일`**, `end_date`·`paused_from`·처방 출처 NULL. **끝난 약은 더하지 않는다** |
+| schedules | 5줄: 08:00 / 12:30 / 21:00 / 08:00 / 08:00, 매일, `effective_from = NULL` |
+| dose_records | **오늘 − 32일 ~ 오늘**, 약마다 하루 1줄 = 33 × 5 = **165줄**(어제까지 160줄 + 오늘 5줄). 스냅샷 칸은 위 약 값으로 채운다. `acted_at`은 **어제까지의 TAKEN 줄에만** 예정 시각 + `SampleData.actedDelayMinutes`(−10~76분, 날짜·약 번호로 정해짐)를 넣고 나머지는 NULL(2026-11-29: 통계의 "제시간에 먹었나"가 비지 않게), `created_at = 지금`. 상태는 `SampleData.statusFor`(v3 식) → **TAKEN 122 · SKIPPED 20 · PENDING 23** (어제까지 121 · 20 · 19, 오늘 1 · 0 · 4) |
 | dose_status_events | 만들지 않음 (v3 `auditEvents:[]`) |
 
-- 상태 식 (`d` = 오늘 기준 며칠 전, 어제 = −1, `n` = 약 번호 1·2·3, 위에서부터 먼저 맞는 것): `d = 0`이면 1번만 TAKEN 나머지 PENDING / `(d + n)`이 9의 배수면 SKIPPED / 7의 배수면 PENDING / 그 밖 TAKEN.
+- 상태 식 (`d` = 오늘 기준 며칠 전, 어제 = −1, `n` = 약 번호 1~5, 위에서부터 먼저 맞는 것): `d = 0`이면 1번만 TAKEN 나머지 PENDING / `(d + n)`이 9의 배수면 SKIPPED / 7의 배수면 PENDING / 그 밖 TAKEN.
 - 01 명세의 처음 안(시작일 −38일, 117줄, 38~33일 전 6일은 전부 미기록)과 다르다 — 시작일을 기록 시작과 맞춰 그 구간이 없어졌다. 과거 기록 수는 v3 스크린샷과 같은 **96건**이다(S32·S43 확인 숫자).
 - **다시 만드는 때**: "샘플 계정으로 체험하기"를 눌렀을 때 오늘 만든 샘플(`created_at`의 날짜 = 오늘)이 있으면 그대로 쓰고, 없으면 옛 샘플 사용자마다 ⑧ "명시적 삭제 순서" 1~5 뒤 새로 만든다. 한 트랜잭션(비밀번호 해시는 느려서 트랜잭션 전에 계산). "오늘"은 앱 시계 기준(10.7).
 - 다음 날부터는 `DoseRecordGenerator`가 마지막 기록 다음 날부터 이어서 채운다.
