@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -904,8 +905,9 @@ private fun habitLabel(mark: HabitMark): Int = when (mark) {
 
 @Composable
 private fun StreakValue(label: String, days: Int, modifier: Modifier) {
-    val unit = stringResource(R.string.s15_days_unit)
-    Column(modifier.clearAndSetSemantics { contentDescription = "$label $days$unit" }) {
+    // 영어는 1일 때 "day", 그 밖에는 "days"라서 숫자에 맞는 글자를 고른다
+    val unit = pluralStringResource(R.plurals.s15_days_unit, days)
+    Column(modifier.clearAndSetSemantics { contentDescription = "$label $days $unit" }) {
         Text(label, fontSize = 12.sp, color = Muted)
         Row(verticalAlignment = Alignment.Bottom) {
             Text(days.toString(), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Navy)

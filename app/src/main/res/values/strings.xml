@@ -567,11 +567,14 @@
     <string name="etc_scale_early">Early</string>
     <string name="etc_scale_on">Due</string>
     <string name="etc_scale_late">Late</string>
-    <string name="s15_no_schedule">No schedule</string>
+    <string name="s15_no_schedule">None</string>
     <string name="s15_section_streak">Streak</string>
     <string name="s15_streak_current">Current</string>
     <string name="s15_streak_best">Best</string>
-    <string name="s15_days_unit"> days</string>
+    <plurals name="s15_days_unit">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
     <string name="s15_count_unit"></string>
     <string name="stats_tab_week">Weekly</string>
     <string name="stats_tab_month">Monthly</string>
