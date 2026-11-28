@@ -907,7 +907,7 @@ private fun habitLabel(mark: HabitMark): Int = when (mark) {
 private fun StreakValue(label: String, days: Int, modifier: Modifier) {
     // 영어는 1일 때 "day", 그 밖에는 "days"라서 숫자에 맞는 글자를 고른다
     val unit = pluralStringResource(R.plurals.s15_days_unit, days)
-    Column(modifier.clearAndSetSemantics { contentDescription = "$label $days$unit" }) {
+    Column(modifier.clearAndSetSemantics { contentDescription = "$label $days $unit" }) {
         Text(label, fontSize = 12.sp, color = Muted)
         Row(verticalAlignment = Alignment.Bottom) {
             Text(days.toString(), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Navy)

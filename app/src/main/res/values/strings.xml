@@ -572,8 +572,8 @@
     <string name="s15_streak_current">Current</string>
     <string name="s15_streak_best">Best</string>
     <plurals name="s15_days_unit">
-        <item quantity="one"> day</item>
-        <item quantity="other"> days</item>
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
     </plurals>
     <string name="s15_count_unit"></string>
     <string name="stats_tab_week">Weekly</string>
