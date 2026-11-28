@@ -44,7 +44,7 @@ object BackupJson {
      */
     fun decode(text: String): BackupData? = try {
         // 파일 맨 앞에 BOM(글자 인코딩 표시, 눈에 안 보이는 글자)이 있으면 떼고 읽는다.
-        val root = JSONObject(text.removePrefix("﻿"))
+        val root = JSONObject(text.removePrefix("\uFEFF"))
         if (root.optString("format") != BackupData.FORMAT) {
             null
         } else {

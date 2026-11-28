@@ -147,11 +147,6 @@
     <string name="s16_next_label">다음 알림</string>
     <string name="s16_next_value">%1$s %2$s · %3$d개</string>
     <string name="s16_next_none">예약된 알림이 없어요</string>
-    <string name="s16_section">예약된 알림 미리보기</string>
-    <string name="s16_row_title">%1$s 복약 시간</string>
-    <string name="s16_row_sub">%1$s · %2$s · %3$s</string>
-    <string name="s16_open">열기 ›</string>
-    <string name="s16_cd_open">%1$s %2$s %3$s 회차 열기</string>
     <string name="s16_empty_title">예정 알림 없음</string>
     <string name="s16_empty_body">약을 등록하면 알림 미리보기가 표시돼요.</string>
     <string name="s16_empty_body_has_meds">오늘과 내일 남은 알림이 없어요.</string>
@@ -170,7 +165,6 @@
     <string name="s17_section_alerts">알림 설정</string>
     <string name="s17_section_more">추가 설정</string>
     <string name="s17_test_short">테스트 알림</string>
-    <string name="s17_test_button">테스트 알림 보내기</string>
     <string name="s17_test_sent">테스트 알림을 보냈어요.</string>
     <string name="s17_test_blocked">알림이 꺼져 있어 테스트 알림을 보낼 수 없어요.</string>
     <string name="s17_timezone_title">시간대 변경 정책</string>
@@ -193,7 +187,6 @@
     <string name="s18_chip_off">꺼짐</string>
     <string name="s18_chip_restricted">제한됨</string>
     <string name="s18_chip_unrestricted">제한 없음</string>
-    <string name="s18_chip_applied">적용됨</string>
     <string name="s18_button_allow">알림 권한 허용</string>
     <string name="s18_button_open_settings">Android 알림 설정 열기</string>
 
@@ -237,9 +230,6 @@
     </string-array>
     <string name="common_dose_time_amount">%1$s · %2$s</string>
     <string name="status_pill_taken">✓ 복용 완료</string>
-    <string name="status_pill_skipped">↷ 건너뜀</string>
-    <string name="status_pill_overdue">미복용</string>
-    <string name="status_pill_upcoming">○ 복용 예정</string>
     <string name="common_status_word_taken">복용 완료</string>
     <string name="common_status_word_skipped">건너뜀</string>
     <string name="common_status_word_pending">기록 전</string>
@@ -406,9 +396,6 @@
     <string name="s06_empty_title">해당 약이 없어요</string>
     <string name="s06_empty_body">새 약을 등록하거나 검색어를 변경해주세요.</string>
     <string name="s06_empty_action">약 추가하기</string>
-    <string name="s06_notice">약 등록·수정·삭제는 날짜별 일정과 연결됩니다.</string>
-    <!-- 샘플 계정일 때만 위 문장 뒤에 붙인다 -->
-    <string name="s06_notice_sample">이 화면의 데이터는 시연용입니다.</string>
 
     <!-- ===== S07 약 상세 ===== -->
     <string name="s07_back">내 약 관리</string>
@@ -455,7 +442,6 @@
     <string name="s08_cd_time">복용 시간 %1$d</string>
     <string name="s08_cd_time_remove">복용 시간 %1$d 삭제</string>
     <string name="s08_link_add_time">＋ 시간 추가하기</string>
-    <string name="s08_label_days">반복 요일 *</string>
     <string name="s08_notice_mixed_days">시간마다 요일이 달랐던 약이에요. 고른 요일이 모든 시간에 적용돼요.</string>
     <string name="s08_label_start">복용 시작일 *</string>
     <string name="s08_label_end">복용 종료일 (선택)</string>
@@ -588,7 +574,6 @@
     <string name="stats_tab_pattern">기타</string>
 
     <!-- ===== S11 기록 캘린더 ===== -->
-    <string name="s11_summary">완료 %1$d · 건너뜀 %2$d · 미복용 %3$d</string>
     <string name="s11_btn_open">이날 기록 보기</string>
     <string name="s11_cd_day_with_dose">%1$s, 복용 일정 있음</string>
 
@@ -617,33 +602,17 @@
     <string name="s19_section_soon">준비 중</string>
     <string name="s19_soon_family">가족·보호자</string>
     <string name="s19_soon_photo">사진으로 약 등록</string>
-    <string name="s19_section_app">알림 및 앱</string>
     <string name="s19_row_noti_title">복약 알림 설정</string>
-    <string name="s19_row_noti_desc">알림·소리·재알림</string>
     <string name="s19_row_perm_title">알림 권한·OS</string>
-    <string name="s19_row_perm_desc">Android 알림 제한 확인</string>
     <string name="s19_row_policy_title">복약률 계산 정책</string>
-    <string name="s19_row_policy_desc">미복용/건너뜀 기준</string>
     <!-- 프로토타입 원문 "도움말·프로토타입": 실제 앱은 프로토타입이 아니라서 S22 본문 제목과 같은 말로 바꿨다 -->
     <string name="s19_row_help_title">도움말</string>
-    <string name="s19_row_help_desc">사용법 및 기능 범위</string>
-    <string name="s19_section_safety">안전·편의 기능</string>
     <string name="s19_row_a11y_title">접근성·글자 크기</string>
-    <string name="s19_row_a11y_desc" formatted="false">200% 글꼴·높은 대비</string>
     <string name="s19_row_privacy_title">개인정보 센터</string>
-    <string name="s19_row_privacy_desc">잠금화면 정보·내보내기</string>
     <!-- 프로토타입 원문 "오프라인 시연": S38은 시연 스위치가 아니라 실제 연결 상태를 보여 주므로 바꿨다 -->
     <string name="s19_row_offline_title">오프라인 사용</string>
-    <string name="s19_row_offline_desc">기기 로컬 기록 사용</string>
     <string name="s19_row_archive_title">과거 기록 보존</string>
-    <string name="s19_row_archive_desc">삭제 이후 과거 기록</string>
     <string name="s19_row_reqmap_title">전체 기능 목록</string>
-    <string name="s19_row_reqmap_desc">107개 MoSCoW 요구사항</string>
-    <!-- 프로토타입에는 S23으로 들어가는 길이 없어서 더한 줄 -->
-    <string name="s19_row_family_title">가족·보호자 (준비 중)</string>
-    <string name="s19_row_family_desc">보호할 가족의 프로필 전환 시안</string>
-    <string name="s19_row_photo_title">사진으로 약 등록 (준비 중)</string>
-    <string name="s19_row_photo_desc">약 봉투 사진으로 등록하는 시안</string>
 
     <!-- ===== S20 통계 계산 정책 ===== -->
     <string name="s20_back">설정</string>
@@ -811,7 +780,6 @@
     <string name="s37_preview_title">글자 크기</string>
     <string name="s37_section_view">보기 편하게</string>
     <!-- 프로토타입 원문 "Android 시스템 글꼴 확대와 함께 검증해야 해요."는 개발 메모라 실제 규칙으로 바꿨다 -->
-    <string name="s37_preview_desc" formatted="false">Android 시스템 글꼴 크기에 곱해져 적용되고, 합쳐서 200%를 넘지 않아요.</string>
     <string name="s37_scale">%1$d%%</string>
     <string name="s37_cd_font_scale">글자 크기 %1$d%%</string>
     <string name="s37_sample_title">오늘 08:00 · 비타민 D</string>
