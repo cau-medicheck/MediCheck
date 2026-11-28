@@ -51,16 +51,16 @@ class SampleAccountSeederTest {
     )
 
     @Test
-    fun `처음 들어가면 샘플 계정과 약 3개 기록 99줄 설정 줄을 만든다`() = runBlocking<Unit> {
+    fun `처음 들어가면 샘플 계정과 약 5개 기록 165줄 설정 줄을 만든다`() = runBlocking<Unit> {
         val user = seeder(todayClock).prepare()
 
         assertEquals(SampleData.EMAIL, user.email)
         assertEquals("사용자", user.displayName)
         assertTrue(user.isSample)
         assertTrue(user.passwordHash.startsWith("pbkdf2$"))
-        assertEquals(3, medicationDao.medications.value.size)
-        assertEquals(3, scheduleDao.schedules.value.size)
-        assertEquals(99, doseRecordDao.records.value.size)
+        assertEquals(5, medicationDao.medications.value.size)
+        assertEquals(5, scheduleDao.schedules.value.size)
+        assertEquals(165, doseRecordDao.records.value.size)
         assertEquals(user.id, settingsDao.rows.value.single().userId)
         assertEquals("Z", settingsDao.rows.value.single().homeZoneId)
         assertTrue(eventDao.events.value.isEmpty())
@@ -85,9 +85,10 @@ class SampleAccountSeederTest {
         val vitamin = records.filter { it.medicationName == "비타민 D" }
         assertEquals(33, vitamin.size)
         assertTrue(vitamin.all { it.dosage == "1정" && it.doseCondition == "AFTER_MEAL" && it.scheduledTime == "08:00" })
-        assertTrue(records.all { it.actedAt == null })
+        // 먹은 시각은 어제까지의 복용 완료 기록에만 있다
+        assertTrue(records.all { (it.actedAt != null) == (it.status == "TAKEN" && it.date != "2026-11-16") })
         val counts = records.groupingBy { it.status }.eachCount()
-        assertEquals(mapOf("TAKEN" to 73, "SKIPPED" to 12, "PENDING" to 14), counts)
+        assertEquals(mapOf("TAKEN" to 122, "SKIPPED" to 20, "PENDING" to 23), counts)
     }
 
     @Test
@@ -97,7 +98,7 @@ class SampleAccountSeederTest {
 
         generator.generateForUser(user.id)
 
-        assertEquals(99, doseRecordDao.records.value.size)
+        assertEquals(165, doseRecordDao.records.value.size)
     }
 
     @Test
@@ -133,9 +134,9 @@ class SampleAccountSeederTest {
         assertTrue(eventDao.events.value.none { it.userId == old.id })
         assertTrue(settingsDao.rows.value.none { it.userId == old.id })
         assertTrue(medicationDao.medications.value.none { it.userId == old.id })
-        assertEquals(3, medicationDao.medications.value.size)
-        assertEquals(3, scheduleDao.schedules.value.size)
-        assertEquals(99, doseRecordDao.records.value.size)
+        assertEquals(5, medicationDao.medications.value.size)
+        assertEquals(5, scheduleDao.schedules.value.size)
+        assertEquals(165, doseRecordDao.records.value.size)
         assertEquals("2026-11-17", doseRecordDao.records.value.maxOf { it.date })
     }
 

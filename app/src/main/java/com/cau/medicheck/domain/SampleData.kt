@@ -35,14 +35,19 @@ object SampleData {
     val MEDS = listOf(
         Med(1, "비타민 D", "1정", "08:00", DoseCondition.AFTER_MEAL, MedicationShape.TABLET, MedicationColor.ORANGE),
         Med(2, "오메가3", "1캡슐", "12:30", DoseCondition.AFTER_MEAL, MedicationShape.CAPSULE, MedicationColor.BLUE),
-        Med(3, "마그네슘", "1정", "21:00", DoseCondition.BEDTIME, MedicationShape.TABLET, MedicationColor.PURPLE)
+        Med(3, "마그네슘", "1정", "21:00", DoseCondition.BEDTIME, MedicationShape.TABLET, MedicationColor.PURPLE),
+        // 4·5번은 v3에 없던 약(2026-11-29 추가): 같은 시각(08:00)에 약이 여러 개인 모습과 통계 순위를 보여 주려고 넣었다.
+        Med(4, "루테인", "1캡슐", "08:00", DoseCondition.BEFORE_MEAL, MedicationShape.CAPSULE, MedicationColor.PINK),
+        Med(5, "유산균", "2캡슐", "08:00", DoseCondition.EMPTY_STOMACH, MedicationShape.CAPSULE, MedicationColor.TEAL)
     )
 
     /** 같은 약 3개의 영어 이름·복용량. 번호·시각·조건·모양은 MEDS와 같다. */
     val MEDS_EN = listOf(
         MEDS[0].copy(name = "Vitamin D", dosage = "1 tablet"),
         MEDS[1].copy(name = "Omega-3", dosage = "1 capsule"),
-        MEDS[2].copy(name = "Magnesium", dosage = "1 tablet")
+        MEDS[2].copy(name = "Magnesium", dosage = "1 tablet"),
+        MEDS[3].copy(name = "Lutein", dosage = "1 capsule"),
+        MEDS[4].copy(name = "Probiotics", dosage = "2 capsules")
     )
 
     /** 기기 언어에 맞는 샘플 약 목록 */
@@ -57,7 +62,7 @@ object SampleData {
     /**
      * 그날 그 약의 기록 상태 (v3 fresh()의 공식 그대로).
      * @param dayOffset 오늘이 0, 어제가 -1
-     * @param medNo 약 번호 1~3
+     * @param medNo 약 번호 1~5
      *
      * 음수 나머지: Kotlin의 %는 부호가 앞 숫자를 따르지만(-9 % 9 == 0), "0인지"만 보므로 v3(JavaScript)와 같은 결과다.
      */
@@ -67,4 +72,17 @@ object SampleData {
         (dayOffset + medNo) % 7 == 0 -> DoseStatus.PENDING
         else -> DoseStatus.TAKEN
     }
+
+    /**
+     * 복용 완료 기록의 "실제로 먹은 시각"이 예정 시각보다 몇 분 늦었는지 (-10 ~ 76분, 음수면 일찍).
+     * 20번에 14번쯤은 제시간(30분 안), 5번은 30분~1시간 늦게, 1번은 1시간 넘게 늦게. 약마다 몇 분씩 다르게 민다(시간대별 평균이 똑같아 보이지 않게).
+     * 통계의 "제시간에 먹었나"가 비어 보이지 않게 넣는 값이다. 무작위가 아니라 날짜와 약 번호로 정해져서 언제 만들어도 같다.
+     * 오늘(0) 기록에는 넣지 않는다(null): 아직 오지 않은 시각이 "먹은 시각"이 될 수 있어서.
+     */
+    fun actedDelayMinutes(dayOffset: Int, medNo: Int): Int? =
+        if (dayOffset == 0) null else when (val step = (-dayOffset * 7 + medNo * 11) % 20) {
+            in 0..13 -> step * 2 - 6
+            in 14..18 -> 30 + (step - 13) * 5
+            else -> 70
+        } + (medNo * 5) % 12 - 4
 }

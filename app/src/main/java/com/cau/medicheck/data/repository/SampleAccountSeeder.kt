@@ -12,6 +12,7 @@ import com.cau.medicheck.data.local.User
 import com.cau.medicheck.data.local.UserDao
 import com.cau.medicheck.data.local.UserSettingsDao
 import com.cau.medicheck.data.local.UserSettingsEntity
+import com.cau.medicheck.domain.DoseStatus
 import com.cau.medicheck.domain.PasswordHasher
 import com.cau.medicheck.domain.SampleData
 import kotlinx.coroutines.CoroutineDispatcher
@@ -20,6 +21,7 @@ import kotlinx.coroutines.withContext
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 /**
@@ -70,7 +72,7 @@ class SampleAccountSeeder(
     private val eraser =
         UserDataEraser(statusEventDao, doseRecordDao, scheduleDao, medicationDao, userSettingsDao, userDao)
 
-    /** 새 샘플 계정과 약 3개·규칙 3개·기록 99줄·설정 기본 줄을 만든다. 이력은 만들지 않는다(v3 auditEvents가 빈 목록). */
+    /** 새 샘플 계정과 약 5개·규칙 5개·기록 165줄·설정 기본 줄을 만든다. 이력은 만들지 않는다(v3 auditEvents가 빈 목록). */
     private suspend fun createSample(today: LocalDate, passwordHash: String): User {
         val now = clock.millis()
         val user = User(
@@ -101,15 +103,21 @@ class SampleAccountSeeder(
             )
             doseRecordDao.insertAllIgnore(
                 SampleData.DAY_OFFSETS.map { offset ->
+                    val date = today.plusDays(offset.toLong())
+                    val status = SampleData.statusFor(offset, med.no)
+                    // 복용 완료 기록에만 "먹은 시각"을 넣는다: 예정 시각에서 몇 분 늦게(또는 일찍)
+                    val delay = SampleData.actedDelayMinutes(offset, med.no).takeIf { status == DoseStatus.TAKEN }
                     DoseRecord(
                         scheduleId = scheduleId,
-                        date = today.plusDays(offset.toLong()).toString(),
+                        date = date.toString(),
                         scheduledTime = med.time,
                         medicationName = med.name,   // 스냅샷: 그때의 약 값
                         dosage = med.dosage,
                         memo = null,
-                        status = SampleData.statusFor(offset, med.no).name,
-                        actedAt = null,              // v3 샘플에는 실제 복용 시각이 없다
+                        status = status.name,
+                        actedAt = delay?.let {
+                            date.atTime(LocalTime.parse(med.time)).plusMinutes(it.toLong()).atZone(clock.zone).toInstant().toEpochMilli()
+                        },
                         createdAt = now,
                         doseCondition = med.condition.name
                     )
